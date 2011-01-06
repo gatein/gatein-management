@@ -2,6 +2,9 @@
 To build this project just run:
 mvn clean install
 
+NOTE: Until stax parsing is figured out, you will also need stax-builder which can be obtained from:
+https://github.com/nscavell/stax-builder
+
 Once that's done copy the ear from packaging/jbossas/ear to the JBoss Application Server deploy directory.
 
 ** pomdata **

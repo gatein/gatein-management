@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>org.gatein.management</groupId>
+      <artifactId>management-packaging-jboss-as</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+   </parent>
+
+   <artifactId>mgmt-packaging-jboss-as-ear</artifactId>
+   <version>1.0.0-SNAPSHOT</version>
+   <packaging>ear</packaging>
+
+   <name>GateIn Management - Packaging - JBoss AS EAR</name>
+
+   <dependencies>
+      <!--  WARs -->
+      <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>management-web</artifactId>
+         <type>war</type>
+         <version>${project.version}</version>
+      </dependency>
+      <!-- LIBS -->
+      <dependency>
+         <groupId>org.exoplatform.portal</groupId>
+         <artifactId>exo.portal.component.portal</artifactId>
+         <scope>provided</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>org.chromattic</groupId>
+               <artifactId>chromattic.api</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.chromattic</groupId>
+               <artifactId>chromattic.core</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.chromattic</groupId>
+               <artifactId>chromattic.apt</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.exoplatform.kernel</groupId>
+         <artifactId>exo.kernel.container</artifactId>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.binding</groupId>
+         <artifactId>binding-api</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.binding</groupId>
+         <artifactId>binding-spi</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.binding</groupId>
+         <artifactId>binding-core</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.pomdata</groupId>
+         <artifactId>pomdata-api</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.pomdata</groupId>
+         <artifactId>pomdata-binding</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.pomdata</groupId>
+         <artifactId>pomdata-core</artifactId>
+      </dependency>
+   </dependencies>
+
+   <build>
+      <finalName>gatein-management</finalName>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-ear-plugin</artifactId>
+            <configuration>
+               <displayName>GateIn Managment</displayName>
+               <defaultLibBundleDir>lib</defaultLibBundleDir>
+               <archive>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                  </manifest>
+               </archive>
+
+               <modules>
+                  <!-- WAR modules -->
+                  <webModule>
+                     <groupId>org.gatein.management</groupId>
+                     <artifactId>management-web</artifactId>
+                     <contextRoot>management</contextRoot>
+                     <bundleFileName>management-web.war</bundleFileName>
+                     <unpack>true</unpack>
+                  </webModule>
+               </modules>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
+
+</project>

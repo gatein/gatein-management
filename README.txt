@@ -2,13 +2,13 @@
 To build this project just run:
 mvn clean install
 
-Once that's done copy the ear from packaging/jbossas/ear to the GateIn or EPP deploy directory.
+Once that's done copy the ear from packaging/jbossas/ear to the JBoss Application Server deploy directory.
 
 ** pomdata **
 pomdata currently represents the object model the management services use to 'manage' portal artifacts.  It may
 make sense to define our own domain model, but who needs another domain model for the portal ?  :)
 
------------------------------------------------- Restful Services ------------------------------------------------------
+-- Restful Services --
 Assuming the server is running @ http://localhost:8080
 
 NOTE: These URL's are subject to change.  To obtain data from the server you should use the client API's.
@@ -52,7 +52,7 @@ Navigation Management Services
         http://localhost:8080/management/rest/pomdata/portal/navigation/administration/registry?ownerType=group&ownerId=/platform/administrators
 
 
-------------------------------------------------- Client API's ---------------------------------------------------------
+-- Client API's --
 
 PomDataClient is the client interface to 'manage' the portal artifacts of the portal.
 

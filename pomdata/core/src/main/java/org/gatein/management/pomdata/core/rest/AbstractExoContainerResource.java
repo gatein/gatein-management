@@ -78,7 +78,7 @@ public abstract class AbstractExoContainerResource<T>
    {
       if (ownerId == null)
       {
-         throw new WebApplicationException(new Exception("ownerId is required for this request. Make sure it's specified as parameter in the URL."), Response.Status.BAD_REQUEST);
+         throw new WebApplicationException(new Exception("ownerId is required for this request."), Response.Status.BAD_REQUEST);
       }
    }
 

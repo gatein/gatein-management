@@ -49,17 +49,23 @@ public interface PomDataClient
 
    PageData getPage(String ownerType, String ownerId, String pageName) throws ClientException;
 
+   PageData createPage(String ownerType, String ownerId, String pageName, String title) throws ClientException;
+
+   void deletePage(String ownerType, String ownerId, String pageName) throws ClientException;
+
+   void updatePage(PageData page) throws ClientException;
+
    NavigationData getNavigation(String ownerType, String ownerId) throws ClientException;
 
    NavigationData getNavigation(String ownerType, String ownerId, String navigationPath) throws ClientException;
 
-   public void exportToFile(PortalData data, File file) throws IOException;
+   void exportToFile(PortalData data, File file) throws IOException;
 
-   public void exportToFile(PageData data, File file) throws IOException;
+   void exportToFile(PageData data, File file) throws IOException;
 
-   public void exportToFile(List<PageData> data, File file) throws IOException;
+   void exportToFile(List<PageData> data, File file) throws IOException;
 
-   public void exportToFile(NavigationData data, File file) throws IOException;
+   void exportToFile(NavigationData data, File file) throws IOException;
 
    public static class Factory
    {

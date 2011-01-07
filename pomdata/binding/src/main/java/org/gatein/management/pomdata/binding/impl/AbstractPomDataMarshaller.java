@@ -28,6 +28,7 @@ import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -346,7 +347,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       }
 
       return new ApplicationData<Portlet>(null, null, ApplicationType.PORTLET, state, null, title, icon, description,
-         showInfoBar, showApplicationState, showApplicationMode, theme, width, height, null, accessPermissions);
+         showInfoBar, showApplicationState, showApplicationMode, theme, width, height, Collections.<String, String>emptyMap(), accessPermissions);
    }
 
    private ApplicationState<Portlet> unmarshalPortletApplicationState(StaxReader reader)

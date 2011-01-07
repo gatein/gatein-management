@@ -188,7 +188,7 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
                break;
          }
       }
-
+      if (components == null) components = Collections.emptyList();
       return new PageData(null, null, name, null, null, null, title, description, null, null, accessPermissions, components, "", "", editPermission, showMaxWindow);
    }
 }

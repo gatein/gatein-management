@@ -25,11 +25,15 @@ package org.gatein.management.pomdata.core.api;
 
 import org.exoplatform.commons.utils.LazyPageList;
 import org.exoplatform.portal.config.Query;
+import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PageKey;
+import org.exoplatform.portal.pom.data.PortalData;
+import org.gatein.management.DataNotFoundException;
 import org.gatein.management.ManagementException;
 import org.gatein.management.pomdata.api.PageManagementService;
+import org.gatein.management.pomdata.api.SiteManagementService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,10 +46,12 @@ import java.util.List;
 public class PageManagementServiceImpl implements PageManagementService
 {
    private ModelDataStorage modelDataStorage;
+   private SiteManagementService siteManagementService;
 
-   public PageManagementServiceImpl(ModelDataStorage modelDataStorage)
+   public PageManagementServiceImpl(ModelDataStorage modelDataStorage, SiteManagementService siteManagementService)
    {
       this.modelDataStorage = modelDataStorage;
+      this.siteManagementService = siteManagementService;
    }
 
    @Override
@@ -71,20 +77,89 @@ public class PageManagementServiceImpl implements PageManagementService
       }
       catch (Exception e)
       {
-         throw new ManagementException("Could not retrieve all pages for ownerType " + ownerType + " and ownerId " + ownerId, e);
+         throw new ManagementException("Exception getting pages for ownerType=" + ownerType + ", ownerId=" + ownerId, e);
       }
    }
 
    @Override
    public PageData getPage(String ownerType, String ownerId, String pageName) throws ManagementException
    {
+      PageKey pageKey = new PageKey(ownerType, ownerId, pageName);
       try
       {
-         return modelDataStorage.getPage(new PageKey(ownerType, ownerId, pageName));
+         return modelDataStorage.getPage(pageKey);
       }
       catch (Exception e)
       {
-         throw new ManagementException("Could not get page for ownerType " + ownerType + " and ownerId " + ownerId + " and pageName " + pageName, e);
+         throw new ManagementException("Exception getting page " + keyToString(pageKey), e);
       }
+   }
+
+   @Override
+   public PageData createPage(String ownerType, String ownerId, String pageName, String title) throws ManagementException
+   {
+      PortalData portalData = siteManagementService.getPortalData(ownerType, ownerId);
+      if (portalData == null) throw new DataNotFoundException("Cannot create page.  Site with ownerType=" + ownerType + " and ownerId=" + ownerId + " does not exist.");
+
+      PageData existingPage = getPage(ownerType, ownerId, pageName);
+      if (existingPage != null) throw new ManagementException("Cannot create page. " + pageToString(existingPage) + " already exists.");
+
+      PageData page = new PageData(null, null, pageName, null, null, null, title, null, null, null,
+         portalData.getAccessPermissions(), new ArrayList<ComponentData>(), ownerType, ownerId, portalData.getEditPermission(), false);
+      try
+      {
+         modelDataStorage.create(page);
+         return page;
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception creating " + pageToString(page), e);
+      }
+   }
+
+   @Override
+   public void updatePage(PageData page) throws ManagementException
+   {
+      PageData existingPage = getPage(page.getOwnerType(), page.getOwnerId(), page.getName());
+      if (existingPage == null) throw new DataNotFoundException("Cannot update page. " + pageToString(page) + " does not exist.");
+
+      try
+      {
+         modelDataStorage.save(page);
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception updating " + pageToString(page), e);
+      }
+   }
+
+   @Override
+   public void deletePage(String ownerType, String ownerId, String pageName) throws ManagementException
+   {
+      PageData page = getPage(ownerType, ownerId, pageName);
+      if (page == null) throw new DataNotFoundException("Cannot delete page. " + keyToString(new PageKey(ownerType, ownerId, pageName)) +
+         " does not exist.");
+
+      try
+      {
+         modelDataStorage.remove(page);
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception deleting " + pageToString(page), e);
+      }
+   }
+
+   private String keyToString(PageKey pageKey)
+   {
+      return new StringBuilder().append("Page[ownerType=").append(pageKey.getType()).
+         append(", ownerId=").append(pageKey.getId()).
+         append(", name=").append(pageKey.getName()).
+         append("]").toString();
+   }
+
+   private String pageToString(PageData page)
+   {
+      return keyToString(new PageKey(page.getOwnerType(), page.getOwnerId(), page.getName()));
    }
 }

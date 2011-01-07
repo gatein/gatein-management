@@ -21,27 +21,32 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.pomdata.api;
+package org.gatein.management;
 
-import org.exoplatform.portal.pom.data.PageData;
-import org.exoplatform.portal.pom.data.PageKey;
 import org.gatein.management.ManagementException;
-
-import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface PageManagementService
+public class DataNotFoundException extends ManagementException
 {
-   List<PageData> getPages(String ownerType, String ownerId) throws ManagementException;
+   public DataNotFoundException()
+   {
+   }
 
-   PageData getPage(String ownerType, String ownerId, String pageName) throws ManagementException;
+   public DataNotFoundException(final String message)
+   {
+      super(message);
+   }
 
-   PageData createPage(String ownerType, String ownerId, String pageName, String title) throws ManagementException;
+   public DataNotFoundException(final Throwable cause)
+   {
+      super(cause);
+   }
 
-   void updatePage(PageData page) throws ManagementException;
-
-   void deletePage(String ownerType, String ownerId, String pageName) throws ManagementException;
+   public DataNotFoundException(final String message, final Throwable cause)
+   {
+      super(message, cause);
+   }
 }

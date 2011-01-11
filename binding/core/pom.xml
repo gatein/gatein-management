@@ -53,8 +53,8 @@
          <artifactId>common-logging</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
-         <artifactId>exo.kernel.container</artifactId>
+         <groupId>picocontainer</groupId>
+         <artifactId>picocontainer</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.staxbuilder</groupId>

@@ -50,6 +50,7 @@
       <org.chromattic.version>1.0.4</org.chromattic.version>
       <org.gatein.portal.version>3.2.0-Beta01-SNAPSHOT</org.gatein.portal.version>
       <org.exoplatform.kernel.version>2.2.5-GA</org.exoplatform.kernel.version>
+      <org.slf4j.version>1.6.1</org.slf4j.version>
    </properties>
 
    <dependencyManagement>
@@ -143,11 +144,11 @@
             <!--<artifactId>exo.portal.component.management</artifactId>-->
             <!--<version>${org.gatein.portal.version}</version>-->
          <!--</dependency>-->
-         <dependency>
-            <groupId>org.exoplatform.kernel</groupId>
-            <artifactId>exo.kernel.container</artifactId>
-            <version>${org.exoplatform.kernel.version}</version>
-         </dependency>
+         <!--<dependency>-->
+            <!--<groupId>org.exoplatform.kernel</groupId>-->
+            <!--<artifactId>exo.kernel.container</artifactId>-->
+            <!--<version>${org.exoplatform.kernel.version}</version>-->
+         <!--</dependency>-->
 
          <!-- Staxbuilder TODO: include this in this project -->
          <dependency>
@@ -188,6 +189,13 @@
             <scope>compile</scope>
          </dependency>
 
+         <!-- picocontainer -->
+         <dependency>
+            <groupId>picocontainer</groupId>
+            <artifactId>picocontainer</artifactId>
+            <version>1.1</version>
+         </dependency>
+
          <!-- jax-rs -->
          <dependency>
             <groupId>javax.ws.rs</groupId>
@@ -206,7 +214,13 @@
          <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <version>${org.slf4j.version}</version>
+         </dependency>
+         
+         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>${org.slf4j.version}</version>
          </dependency>
 
          <!-- Testing -->

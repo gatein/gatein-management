@@ -109,7 +109,8 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writeOptionalDateTime(writer, Element.START_PUBLICATION_DATE, node.getStartPublicationDate());
       writeOptionalDateTime(writer, Element.END_PUBLICATION_DATE, node.getEndPublicationDate());
 
-      writer.writeOptionalElement(Element.VISIBILITY, node.getVisibility().name());
+      String visiblity = (node.getVisibility() == null) ? null : node.getVisibility().name();
+      writer.writeOptionalElement(Element.VISIBILITY, visiblity);
       writer.writeOptionalElement(Element.PAGE_REFERENCE, node.getPageReference());
 
       // Marshall children

@@ -33,7 +33,7 @@ import javax.ws.rs.PathParam;
 @Path("/pomdata") // TODO: Not sure if i really like this path, find suitable base URL for these resources
 public class POMDataResource
 {
-   @Path("/{container-name}/navigation")
+   @Path("/{container-name}/navigations")
    public NavigationResource getNavigationResource(@PathParam("container-name") String containerName)
    {
       return new NavigationResource(containerName);

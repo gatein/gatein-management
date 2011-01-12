@@ -38,8 +38,8 @@ Page Management Services
         http://localhost:8080/management/rest/pomdata/portal/pages/registry?ownerType=group&ownerId=/platform/administrators
 
 Navigation Management Services
-    http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigation?ownerType={ownerType}&ownerId={ownerId}
-    http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigation/{path}?ownerType={ownerType}&ownerId={ownerId}
+    http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigations?ownerType={ownerType}&ownerId={ownerId}
+    http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigations/{path}?ownerType={ownerType}&ownerId={ownerId}
 
     Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include
           the ownerType as such ownerType=group or ownerType=user as a URL parameter.
@@ -48,11 +48,11 @@ Navigation Management Services
 
     Examples
     All portal navigation:
-        http://localhost:8080/management/rest/pomdata/portal/navigation?ownerId=classic
+        http://localhost:8080/management/rest/pomdata/portal/navigations?ownerId=classic
     Portal navigation homepage:
-        http://localhost:8080/management/rest/pomdata/portal/navigation/home?ownerId=classic
+        http://localhost:8080/management/rest/pomdata/portal/navigations/home?ownerId=classic
     Application Registry navigation:
-        http://localhost:8080/management/rest/pomdata/portal/navigation/administration/registry?ownerType=group&ownerId=/platform/administrators
+        http://localhost:8080/management/rest/pomdata/portal/navigations/administration/registry?ownerType=group&ownerId=/platform/administrators
 
 
 -- Client API's --

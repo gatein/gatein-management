@@ -363,7 +363,7 @@ public class RestfulPomDataClient implements PomDataClient
                                 @PathParam("page-name") String pageName);
    }
 
-   @Path("/navigation")
+   @Path("/navigations")
    private static interface NavigationClientStub
    {
       @GET

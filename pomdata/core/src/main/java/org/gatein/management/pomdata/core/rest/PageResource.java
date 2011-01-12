@@ -53,7 +53,7 @@ import java.util.List;
 //TODO: Add debugging
 public class PageResource extends AbstractExoContainerResource<PageManagementService>
 {
-   private static final Logger log = LoggerFactory.getLogger(SiteResource.class);
+   private static final Logger log = LoggerFactory.getLogger(PageResource.class);
 
    public PageResource(String containerName)
    {
@@ -68,89 +68,70 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
 
    @GET
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public GenericEntity<List<PageData>> getPages(@Context UriInfo uriInfo,
-                                                 @QueryParam("ownerType") String ownerType,
-                                                 @QueryParam("ownerId") String ownerId)
+   public Response getPages(@Context UriInfo uriInfo,
+                            @QueryParam("ownerType") String ownerType,
+                            @QueryParam("ownerId") String ownerId)
    {
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
-
-      List<PageData> pages = null;
-      try
+      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<PageManagementService, GenericEntity<List<PageData>>>()
       {
-         pages = getService().getPages(ownerType, ownerId);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
-
-      if (pages == null || pages.isEmpty()) pages = null;
-      checkNullResult(pages, uriInfo);
-
-      return new GenericEntity<List<PageData>>(pages){};
+         @Override
+         public GenericEntity<List<PageData>> doService(PageManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            List<PageData> pages = service.getPages(ownerType, ownerId);
+            if (pages == null || pages.isEmpty())
+            {
+               return null;
+            }
+            else
+            {
+               // This ensures that the generic information can be retrieved at runtime
+               return new GenericEntity<List<PageData>>(pages)
+               {
+               };
+            }
+         }
+      });
    }
 
    @GET
    @Path("/{page-name}")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public PageData getPage(@Context UriInfo uriInfo,
+   public Response getPage(@Context UriInfo uriInfo,
                            @QueryParam("ownerType") String ownerType,
                            @QueryParam("ownerId") String ownerId,
-                           @PathParam("page-name") String pageName)
+                           @PathParam("page-name") final String pageName)
    {
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
-
-      PageData data = null;
-      try
+      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<PageManagementService, PageData>()
       {
-         data = getService().getPage(ownerType, ownerId, pageName);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
-
-      checkNullResult(data, uriInfo);
-      return data;
+         @Override
+         public PageData doService(PageManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            return service.getPage(ownerType, ownerId, pageName);
+         }
+      });
    }
 
+   // This method doesn't follow RESTful guidelines for a create. We should be returning the location of the newly created
+   // resource as part of the response.
    @POST
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public PageData createPage(@Context UriInfo uriInfo,
-                          @QueryParam("ownerType") String ownerType,
-                          @QueryParam("ownerId") String ownerId,
-                          @QueryParam("name") String pageName,
-                          @QueryParam("title") String title)
+   public Response createPage(@Context UriInfo uriInfo,
+                              @QueryParam("ownerType") String ownerType,
+                              @QueryParam("ownerId") String ownerId,
+                              @QueryParam("name") final String pageName,
+                              @QueryParam("title") final String title)
    {
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
+      validateNonNullParameter(pageName, "name");
+      validateNonNullParameter(title, "title");
 
-      PageData page = null;
-      try
+      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<PageManagementService, PageData>()
       {
-         page = getService().createPage(ownerType, ownerId, pageName, title);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
-
-      checkNullResult(page, uriInfo);
-      return page;
+         @Override
+         public PageData doService(PageManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            return service.createPage(ownerType, ownerId, pageName, title);
+         }
+      });
    }
 
    @PUT
@@ -162,32 +143,18 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
                               @PathParam("page-name") String pageName,
                               PageData page)
    {
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
-
-      page = updateData(ownerType, ownerId, pageName, page);
-
       if (!page.getName().equals(pageName)) throw new WebApplicationException(new Exception("URI page name is not same as page name in data."), Response.Status.BAD_REQUEST);
 
-      if (log.isDebugEnabled())
-      {
-         log.debug("Updating page " + pageName + " with ownerType " + ownerType + " and ownerId " + ownerId);
-      }
-      try
-      {
-         getService().updatePage(page);
-         return Response.ok().build();
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
+      final PageData pageData = updateData(ownerType, ownerId, page);
 
-      return Response.serverError().build();
+      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<PageManagementService>()
+      {
+         @Override
+         public void doServiceNoResult(PageManagementService service, String ownerType, String ownerId)
+         {
+            service.updatePage(pageData);
+         }
+      });
    }
 
    @DELETE
@@ -196,30 +163,21 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
    public Response deletePage(@Context UriInfo uriInfo,
                               @QueryParam("ownerType") String ownerType,
                               @QueryParam("ownerId") String ownerId,
-                              @PathParam("page-name") String pageName)
+                              @PathParam("page-name") final String pageName)
    {
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
-
-      try
+      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<PageManagementService>()
       {
-         getService().deletePage(ownerType, ownerId, pageName);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
-
-      return Response.ok().build();
+         @Override
+         public void doServiceNoResult(PageManagementService service, String ownerType, String ownerId)
+         {
+            service.deletePage(ownerType, ownerId, pageName);
+         }
+      });
    }
 
-   private PageData updateData(String ownerType, String ownerId, String pageName, PageData originalPage)
+   private PageData updateData(String ownerType, String ownerId, PageData originalPage)
    {
-      return new PageData(originalPage.getStorageId(), originalPage.getId(), pageName, originalPage.getIcon(),
+      return new PageData(originalPage.getStorageId(), originalPage.getId(), originalPage.getName(), originalPage.getIcon(),
          originalPage.getTemplate(), originalPage.getFactoryId(), originalPage.getTitle(), originalPage.getDescription(),
          originalPage.getWidth(), originalPage.getHeight(), originalPage.getAccessPermissions(), originalPage.getChildren(),
          ownerType, ownerId, originalPage.getEditPermission(), originalPage.isShowMaxWindow());

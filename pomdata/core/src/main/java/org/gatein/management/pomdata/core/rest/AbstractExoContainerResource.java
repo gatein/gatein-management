@@ -30,6 +30,7 @@ import org.gatein.common.logging.Logger;
 import org.gatein.management.ManagementException;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.lang.reflect.ParameterizedType;
@@ -41,21 +42,21 @@ import java.util.Set;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractExoContainerResource<T>
+public abstract class AbstractExoContainerResource<S>
 {
-   private T service;
+   private S service;
 
    @SuppressWarnings("unchecked")
    public AbstractExoContainerResource(String containerName)
    {
-      Class<T> serviceType = getServiceClass();
+      Class<S> serviceType = getServiceClass();
       if (serviceType == null) throw new RuntimeException("Could not determine service class from type parameter.");
 
       RootContainer container = (RootContainer) ExoContainerContext.getTopContainer();
       ExoContainer exoContainer = container.getPortalContainer(containerName);
       if (exoContainer == null) throw new RuntimeException("Could not retrieve portal container for " + containerName + " portal.");
 
-      service = (T) exoContainer.getComponentInstanceOfType(serviceType);
+      service = (S) exoContainer.getComponentInstanceOfType(serviceType);
 
       if (service == null) throw new RuntimeException("Could not retrieve resource service " + serviceType + " from portal container " + containerName);
    }
@@ -82,13 +83,25 @@ public abstract class AbstractExoContainerResource<T>
       }
    }
 
-   protected void checkNullResult(Object result, UriInfo uriInfo)
+   protected void validateNonNullParameter(String parameter, String parameterName)
+   {
+      if (parameter == null) throw new WebApplicationException(new Exception(parameterName + " is a required parameter for this request."), Response.Status.BAD_REQUEST);
+   }
+
+   protected Response checkNullResult(Object result, UriInfo uriInfo)
    {
       if (result == null)
       {
          String message = "No data found for request " + uriInfo.getRequestUri();
-         getLogger().error(message);
-         throw new WebApplicationException(new Exception(message), Response.Status.NOT_FOUND);
+         if (getLogger().isDebugEnabled())
+         {
+            getLogger().debug(message);
+         }
+         return Response.status(Response.Status.NOT_FOUND).entity(message).type(MediaType.TEXT_PLAIN).build();
+      }
+      else
+      {
+         return Response.ok().entity(result).build();
       }
    }
 
@@ -106,20 +119,62 @@ public abstract class AbstractExoContainerResource<T>
          Response.Status.INTERNAL_SERVER_ERROR);
    }
 
-   protected T getService()
+   protected S getService()
    {
       return service;
+   }
+
+   protected <T> Response handleRequest(String ownerType, UriInfo uriInfo, RestfulManagementServiceCallback<S,T> callback)
+   {
+      return _handleRequest(ownerType, null, uriInfo, callback);
+   }
+
+   protected <T> Response handleRequest(String ownerType, String ownerId, UriInfo uriInfo, RestfulManagementServiceCallback<S, T> callback)
+   {
+      ownerType = checkOwnerType(ownerType);
+      checkOwnerId(ownerId);
+
+      return _handleRequest(ownerType, ownerId, uriInfo, callback);
+   }
+
+   private <T> Response _handleRequest(String ownerType, String ownerId, UriInfo uriInfo, RestfulManagementServiceCallback<S, T> callback)
+   {
+      try
+      {
+         T result = callback.doService(service, ownerType, ownerId);
+         if (callback instanceof AbstractMgmtServiceCallbackNoResult) // sort of a hack...
+         {
+            return Response.ok().build();
+         }
+         else
+         {
+            return checkNullResult(result, uriInfo);
+         }
+      }
+      //TODO: Do we want to build an exception XML message body writer/reader or just send errors back as plain text ?
+      catch (ManagementException e)
+      {
+         getLogger().error("Management exception occurred for request " + uriInfo.getRequestUri(), e);
+         return Response.serverError().entity("Management exception occurred for this request. " + e.getLocalizedMessage())
+            .type(MediaType.TEXT_PLAIN).build();
+      }
+      catch (Throwable t)
+      {
+         getLogger().error("Unknown exception occurred for request " + uriInfo.getRequestUri(), t);
+         return Response.serverError().entity("Unknown error for this request.  See server log for more details.")
+            .type(MediaType.TEXT_PLAIN).build();
+      }
    }
 
    public abstract Logger getLogger();
 
    @SuppressWarnings("unchecked")
-   private Class<T> getServiceClass()
+   private Class<S> getServiceClass()
    {
       Type t = getClass().getGenericSuperclass();
       if (t instanceof ParameterizedType)
       {
-         return (Class<T>) ((ParameterizedType) t).getActualTypeArguments()[0];
+         return (Class<S>) ((ParameterizedType) t).getActualTypeArguments()[0];
       }
 
       return null;

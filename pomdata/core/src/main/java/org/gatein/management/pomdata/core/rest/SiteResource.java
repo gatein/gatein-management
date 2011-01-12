@@ -37,6 +37,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
@@ -62,57 +63,56 @@ public class SiteResource extends AbstractExoContainerResource<SiteManagementSer
 
    @GET
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public GenericEntity<List<PortalData>> getPortalData(@Context UriInfo uriInfo, @QueryParam("ownerType") String ownerType)
+   public Response getPortalData(@Context UriInfo uriInfo, @QueryParam("ownerType") String ownerType)
    {
-      ownerType = checkOwnerType(ownerType);
-
-      List<PortalData> data = null;
-      try
+      return handleRequest(ownerType, uriInfo, new RestfulManagementServiceCallback<SiteManagementService, GenericEntity<List<PortalData>>>()
       {
-         data = getService().getPortalData(ownerType);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
-
-      if (data == null || data.isEmpty()) data = null;
-      checkNullResult(data, uriInfo);
-
-      return new GenericEntity<List<PortalData>>(data){};
+         @Override
+         public GenericEntity<List<PortalData>> doService(SiteManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            List<PortalData> data = service.getPortalData(ownerType);
+            if (data == null || data.isEmpty())
+            {
+               return null;
+            }
+            else
+            {
+               return new GenericEntity<List<PortalData>>(data)
+               {
+               };
+            }
+         }
+      });
    }
 
    @GET
    @Path("/{owner-id:.*}")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public PortalData getPortalData(@Context UriInfo uriInfo, @QueryParam("ownerType") String ownerType,
-                                   @PathParam("owner-id") String ownerId)
+   public Response getPortalData(@Context UriInfo uriInfo,
+                                 @QueryParam("ownerType") String ownerType,
+                                 @PathParam("owner-id") String ownerId)
    {
-      ownerType = checkOwnerType(ownerType);
+      ownerId = fixOwnerId(ownerType, ownerId);
+
+      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<SiteManagementService, PortalData>()
+      {
+         @Override
+         public PortalData doService(SiteManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            return service.getPortalData(ownerType, ownerId);
+         }
+      });
+   }
+
+   private String fixOwnerId(String ownerType, String ownerId)
+   {
       if ("group".equals(ownerType) && ownerId.indexOf(0) != '/')
       {
-         ownerId = "/" + ownerId;
+         return '/' + ownerId;
       }
-
-      PortalData data = null;
-      try
+      else
       {
-         data = getService().getPortalData(ownerType, ownerId);
+         return ownerId;
       }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
-      }
-
-      checkNullResult(data, uriInfo);
-      return data;
    }
 }

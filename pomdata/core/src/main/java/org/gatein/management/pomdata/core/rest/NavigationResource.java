@@ -36,6 +36,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -45,7 +46,7 @@ import javax.ws.rs.core.UriInfo;
 //TODO: Add debugging
 public class NavigationResource extends AbstractExoContainerResource<NavigationManagementService>
 {
-   private static final Logger log = LoggerFactory.getLogger(SiteResource.class);
+   private static final Logger log = LoggerFactory.getLogger(NavigationResource.class);
 
    public NavigationResource(String containerName)
    {
@@ -60,60 +61,57 @@ public class NavigationResource extends AbstractExoContainerResource<NavigationM
 
    @GET
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public NavigationData getNavigation(@Context UriInfo uriInfo,
-                                       @QueryParam("ownerType") String ownerType,
-                                       @QueryParam("ownerId") String ownerId)
+   public Response getNavigation(@Context UriInfo uriInfo,
+                                 @QueryParam("ownerType") String ownerType,
+                                 @QueryParam("ownerId") String ownerId)
    {
 
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
-
-      NavigationData data = null;
-      try
+      if (log.isDebugEnabled())
       {
-         data = getService().getNavigation(ownerType, ownerId);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
+         log.debug("RESTful resource retrieving navigation for ownerType " + ownerType + " and ownerId " + ownerId);
       }
 
-      checkNullResult(data, uriInfo);
-      return data;
+      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<NavigationManagementService, NavigationData>()
+      {
+         @Override
+         public NavigationData doService(NavigationManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            return service.getNavigation(ownerType, ownerId);
+         }
+      });
    }
 
    @GET
    @Path("/{nav-path:.*}")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public NavigationData getNavigation(@Context UriInfo uriInfo,
-                                       @QueryParam("ownerType") String ownerType,
-                                       @QueryParam("ownerId") String ownerId,
-                                       @PathParam("nav-path") String navigationPath)
+   public Response getNavigation(@Context UriInfo uriInfo,
+                                 @QueryParam("ownerType") String ownerType,
+                                 @QueryParam("ownerId") String ownerId,
+                                 @PathParam("nav-path") String navigationPath)
    {
-      ownerType = checkOwnerType(ownerType);
-      checkOwnerId(ownerId);
-
-      if (navigationPath.charAt(0) != '/') navigationPath = "/" + navigationPath;
-
-      NavigationData data = null;
-      try
+      if (log.isDebugEnabled())
       {
-         data = getService().getNavigation(ownerType, ownerId, navigationPath);
-      }
-      catch (ManagementException e)
-      {
-         handleManagementException(e, uriInfo);
-      }
-      catch (Throwable t)
-      {
-         handleUnknownError(t, uriInfo);
+         log.debug("RESTful resource retrieving navigation for ownerType " + ownerType + " and ownerId " + ownerId + " and navigation path " + navigationPath);
       }
 
-      checkNullResult(data, uriInfo);
-      return data;
+      // Ensure we have a leading '/'
+      final String path = fixPath(navigationPath);
+
+      // Call service and return the response.
+      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<NavigationManagementService, NavigationData>()
+      {
+         @Override
+         public NavigationData doService(NavigationManagementService service, String ownerType, String ownerId) throws ManagementException
+         {
+            return service.getNavigation(ownerType, ownerId, path);
+         }
+      });
+   }
+
+   private String fixPath(String originalPath)
+   {
+      if (originalPath.charAt(0) == '/') return originalPath;
+
+      return '/' + originalPath;
    }
 }

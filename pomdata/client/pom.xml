@@ -73,6 +73,10 @@
          <groupId>org.gatein.management.pomdata</groupId>
          <artifactId>pomdata-binding</artifactId>
       </dependency>
+      <dependency>
+         <groupId>org.gatein.management.pomdata</groupId>
+         <artifactId>pomdata-core</artifactId>
+      </dependency>
 
       <!-- Resteasy -->
       <dependency>

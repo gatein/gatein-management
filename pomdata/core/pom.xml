@@ -45,6 +45,10 @@
          <artifactId>management-api</artifactId>
       </dependency>
       <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>management-domain</artifactId>
+      </dependency>
+      <dependency>
          <groupId>org.gatein.management.binding</groupId>
          <artifactId>binding-api</artifactId>
       </dependency>

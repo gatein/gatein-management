@@ -31,8 +31,9 @@ import org.exoplatform.portal.pom.data.NavigationData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
-import org.gatein.management.binding.api.Marshaller;
 import org.gatein.management.binding.rest.BindingRestProvider;
+import org.gatein.management.domain.PortalArtifacts;
+import org.gatein.management.pomdata.api.ExportImportHandler;
 import org.gatein.management.pomdata.client.api.ClientException;
 import org.gatein.management.pomdata.client.api.PomDataClient;
 import org.jboss.resteasy.client.ClientRequestFactory;
@@ -55,11 +56,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,16 +74,16 @@ public class RestfulPomDataClient implements PomDataClient
 {
    private static final String BASE_URI = "/management/rest/pomdata";
 
-   private final BindingProvider bindingProvider;
+   private final ExportImportHandler exportImportHandler;
 
    // Restful client stubs
    private final SiteClientStub siteClientStub;
    private final PageClientStub pageClientStub;
    private final NavigationClientStub navigationClientStub;
 
-   public RestfulPomDataClient(InetAddress address, int port, String containerName, BindingProvider bindingProvider)
+   public RestfulPomDataClient(InetAddress address, int port, String containerName, BindingProvider bindingProvider, ExportImportHandler exportImportHandler)
    {
-      this.bindingProvider = bindingProvider;
+      this.exportImportHandler = exportImportHandler;
 
       //TODO: Configure authentication
       Credentials credentials = new UsernamePasswordCredentials("root", "gtn");
@@ -170,15 +173,13 @@ public class RestfulPomDataClient implements PomDataClient
    }
 
    @Override
-   public void exportToFile(PortalData data, File file) throws IOException
+   public void exportAsZip(PortalArtifacts artifacts, File file) throws IOException
    {
-      FileOutputStream fos = new FileOutputStream(file);
-
+      FileOutputStream fos = null;
       try
       {
-         Marshaller<PortalData> marshaller = bindingProvider.createContext(PortalData.class).createMarshaller();
-         marshaller.marshal(data, fos);
-         fos.flush();
+         fos = new FileOutputStream(file);
+         exportImportHandler.exportPortalArtifacts(artifacts, fos);
       }
       finally
       {
@@ -187,42 +188,17 @@ public class RestfulPomDataClient implements PomDataClient
    }
 
    @Override
-   public void exportToFile(PageData data, File file) throws IOException
+   public PortalArtifacts importFromZip(File file) throws IOException
    {
-      exportToFile(Collections.singletonList(data), file);
-   }
-
-   @Override
-   public void exportToFile(List<PageData> data, File file) throws IOException
-   {
-      FileOutputStream fos = new FileOutputStream(file);
-
+      FileInputStream fis = null;
       try
       {
-         Marshaller<PageData> marshaller = bindingProvider.createContext(PageData.class).createMarshaller();
-         marshaller.marshalObjects(data, fos);
-         fos.flush();
+         fis = new FileInputStream(file);
+         return exportImportHandler.importPortalArtifacts(fis);
       }
       finally
       {
-         close(fos);
-      }
-   }
-
-   @Override
-   public void exportToFile(NavigationData data, File file) throws IOException
-   {
-      FileOutputStream fos = new FileOutputStream(file);
-
-      try
-      {
-         Marshaller<NavigationData> marshaller = bindingProvider.createContext(NavigationData.class).createMarshaller();
-         marshaller.marshal(data, fos);
-         fos.flush();
-      }
-      finally
-      {
-         close(fos);
+         close(fis);
       }
    }
 
@@ -279,7 +255,11 @@ public class RestfulPomDataClient implements PomDataClient
    @SuppressWarnings("unchecked")
    private <T> T fixOwner(String ownerType, String ownerId, T data)
    {
-      if (data instanceof PageData)
+      if (data instanceof Collection)
+      {
+         return fixOwnerCollection(ownerType, ownerId, data);
+      }
+      else if (data instanceof PageData)
       {
          PageData page = (PageData) data;
          return (T) new PageData(page.getStorageId(), page.getId(), page.getName(), page.getIcon(),
@@ -302,6 +282,21 @@ public class RestfulPomDataClient implements PomDataClient
       {
          return data;
       }
+   }
+
+   @SuppressWarnings("unchecked")
+   private <T> T fixOwnerCollection(String ownerType, String ownerId, T data)
+   {
+      Collection collection = (Collection) data;
+      Object[] objects = collection.toArray();
+      for (int i=0; i<objects.length; i++)
+      {
+         objects[i] = fixOwner(ownerType, ownerId, objects[i]);
+      }
+      collection.clear();
+      Collections.addAll(collection, objects);
+
+      return (T) collection;
    }
 
    private void close(Closeable closeable)

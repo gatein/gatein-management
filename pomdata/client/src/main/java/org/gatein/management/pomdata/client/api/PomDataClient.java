@@ -28,7 +28,9 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.binding.core.api.BindingProviderImpl;
+import org.gatein.management.domain.PortalArtifacts;
 import org.gatein.management.pomdata.client.impl.RestfulPomDataClient;
+import org.gatein.management.pomdata.core.api.ExportImportHandlerImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,13 +61,9 @@ public interface PomDataClient
 
    NavigationData getNavigation(String ownerType, String ownerId, String navigationPath) throws ClientException;
 
-   void exportToFile(PortalData data, File file) throws IOException;
+   void exportAsZip(PortalArtifacts artifacts, File file) throws IOException;
 
-   void exportToFile(PageData data, File file) throws IOException;
-
-   void exportToFile(List<PageData> data, File file) throws IOException;
-
-   void exportToFile(NavigationData data, File file) throws IOException;
+   PortalArtifacts importFromZip(File file) throws IOException;
 
    public static class Factory
    {
@@ -73,7 +71,7 @@ public interface PomDataClient
       {
          BindingProvider bindingProvider = new BindingProviderImpl();
          bindingProvider.load();
-         return new RestfulPomDataClient(address, port, portalContainerName, bindingProvider);
+         return new RestfulPomDataClient(address, port, portalContainerName, bindingProvider, new ExportImportHandlerImpl(bindingProvider));
       }
    }
 }

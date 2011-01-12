@@ -21,48 +21,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.pomdata.xi;
+package org.gatein.management.pomdata.api;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.gatein.management.domain.PortalArtifacts;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Scope
+public interface ExportImportHandler
 {
-   PORTAL("portal"),
-   GROUP("group"),
-   USER("user");
+   void exportPortalArtifacts(PortalArtifacts data, OutputStream output) throws IOException;
 
-   private static final Map<String, Scope> MAP;
-
-   static
-   {
-      final Map<String, Scope> map = new HashMap<String, Scope>();
-      for (Scope scope : values())
-      {
-         final String name = scope.getName();
-         if (name != null) map.put(name, scope);
-      }
-      MAP = map;
-   }
-
-   public static Scope forName(String name)
-   {
-      return MAP.get(name);
-   }
-
-   private String name;
-
-   Scope(String name)
-   {
-      this.name = name;
-   }
-
-   public String getName()
-   {
-      return name;
-   }
+   PortalArtifacts importPortalArtifacts(InputStream input) throws IOException;
 }

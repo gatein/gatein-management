@@ -36,6 +36,10 @@
    <name>GateIn Management - Domain</name>
    
    <dependencies>
+      <dependency>
+         <groupId>org.exoplatform.portal</groupId>
+         <artifactId>exo.portal.component.portal</artifactId>
+      </dependency>
    </dependencies>
 
 </project>

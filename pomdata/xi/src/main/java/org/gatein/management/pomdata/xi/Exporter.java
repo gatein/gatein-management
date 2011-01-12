@@ -26,6 +26,7 @@ package org.gatein.management.pomdata.xi;
 import org.exoplatform.portal.pom.data.NavigationData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
+import org.gatein.management.domain.PortalArtifacts;
 import org.gatein.management.pomdata.client.api.PomDataClient;
 import org.kohsuke.args4j.Option;
 
@@ -88,6 +89,7 @@ public class Exporter
    private PomDataClient client;
    private File exportDir;
    private int level;
+   private PortalArtifacts portalArtifacts = new PortalArtifacts();
 
    void init(Properties properties) throws Exception
    {
@@ -121,6 +123,7 @@ public class Exporter
          portalContainer = getUserInput("Container name (ie portal)");
       }
 
+      //TODO: Pass credentials
       client = PomDataClient.Factory.create(InetAddress.getByName(host), port, portalContainer);
 
       // Process scopes for export
@@ -129,6 +132,8 @@ public class Exporter
       {
          processScope(s);
       }
+
+      client.exportAsZip(portalArtifacts, new File(exportDir, "epp-export.zip"));
    }
 
    private Scope[] getScopes()
@@ -146,7 +151,7 @@ public class Exporter
       }
       else
       {
-         return new Scope[]{Scope.valueOf(scope.toUpperCase())};
+         return new Scope[]{Scope.forName(scope)};
       }
    }
    private String[] getOwnerIds(Scope scope, String inputString)
@@ -165,16 +170,16 @@ public class Exporter
          switch (scope)
          {
             case PORTAL:
-               ownerIds = getSiteNames("portal");
+               ownerIds = getSiteNames(Scope.PORTAL.getName());
                return ownerIds.toArray(new String[ownerIds.size()]);
             case GROUP:
-               ownerIds = getSiteNames("group");
+               ownerIds = getSiteNames(Scope.GROUP.getName());
                return ownerIds.toArray(new String[ownerIds.size()]);
             case USER:
-               ownerIds = getSiteNames("user");
+               ownerIds = getSiteNames(Scope.USER.getName());
                return ownerIds.toArray(new String[ownerIds.size()]);
             default:
-               throw new RuntimeException("Scope " + scope + " not supported.");
+               throw new RuntimeException("Scope " + scope.getName() + " not supported.");
          }
       }
       else
@@ -246,7 +251,15 @@ public class Exporter
             level++;
             indent();
             System.out.print("--- Current data type '" + datatype + "' ---\n");
-            processExport(scope, ownerId, datatype);
+            try
+            {
+               writeData(scope, ownerId, datatype);
+            }
+            catch (IOException e)
+            {
+               System.out.println("Exception writing data.");
+               e.printStackTrace();
+            }
             level--;
          }
          level--;
@@ -255,69 +268,18 @@ public class Exporter
       level--;
    }
 
-   private void processExport(Scope scope, String ownerId, DataType dataType)
-   {
-      try
-      {
-         File currentDir = exportDir;
-         switch (scope)
-         {
-            case PORTAL:
-            {
-               File dataDir = createDataDir(currentDir, "portal", ownerId);
-               writeData(scope, ownerId, dataType, dataDir);
-               break;
-            }
-            case GROUP:
-            {
-               File dataDir = createDataDir(currentDir, "group", ownerId);
-               writeData(scope, ownerId, dataType, dataDir);
-               break;
-            }
-            case USER:
-            {
-               File dataDir = createDataDir(currentDir, "user", ownerId);
-               writeData(scope, ownerId, dataType, dataDir);
-               break;
-            }
-            default:
-               throw new RuntimeException("Unsupported scope " + scope);
-         }
-      }
-      catch (IOException ioex)
-      {
-         throw new RuntimeException("IOException while exporting scope " + scope + " and ownerId " + ownerId + " and data type " + dataType);
-      }
-   }
-
-   //TODO: Refactor this since we refactored client interface (a lot of dup code)
-   private void writeData(Scope scope, String ownerId, DataType dataType, File dataDir) throws IOException
+   private void writeData(Scope scope, String ownerId, DataType dataType) throws IOException
    {
       switch (dataType)
       {
          case SITE:
          {
-            PortalData data;
-            switch (scope)
-            {
-               case PORTAL:
-                  data = client.getPortalConfig("portal", ownerId);
-                  break;
-               case GROUP:
-                  data = client.getPortalConfig("group", ownerId);
-                  break;
-               case USER:
-                  data = client.getPortalConfig("user", ownerId);
-                  break;
-               default:
-                  throw new RuntimeException("Scope " + scope + " not supported");
-            }
+            PortalData data = client.getPortalConfig(scope.getName(), ownerId);
             indent();
             if (data != null)
             {
-               File xml = new File(dataDir, "portal.xml");
-               System.out.println("Exporting site to " + xml.getAbsolutePath());
-               client.exportToFile(data, xml);
+               portalArtifacts.addPortalData(data);
+               System.out.println("Successfully exported.");
             }
             else
             {
@@ -328,59 +290,32 @@ public class Exporter
          case PAGE:
          {
             String name = (itemName == null) ? getUserInput("Page name ('*' for all)") : itemName;
-            List<PageData> pages = null;
-            PageData page = null;
-            switch (scope)
+            if ("*".endsWith(name))
             {
-               case PORTAL:
-                  if ("*".equals(name))
-                  {
-                     pages = client.getPages("portal", ownerId);
-                  }
-                  else
-                  {
-                     page = client.getPage("portal", ownerId, name);
-                  }
-                  break;
-               case GROUP:
-                  if ("*".equals(name))
-                  {
-                     pages = client.getPages("group", ownerId);
-                  }
-                  else
-                  {
-                     page = client.getPage("group", ownerId, name);
-                  }
-                  break;
-               case USER:
-                  if ("*".equals(name))
-                  {
-                     pages = client.getPages("user", ownerId);
-                  }
-                  else
-                  {
-                     page = client.getPage("user", ownerId, name);
-                  }
-                  break;
-               default:
-                  throw new RuntimeException("Scope " + scope + " not supported");
-            }
-            indent();
-            if (page == null && pages == null)
-            {
-               System.out.println("Nothing to export.");
-            }
-            else
-            {
-               File xml = new File(dataDir, "pages.xml");
-               System.out.println("Exporting page(s) to " + xml.getAbsolutePath());
+               List<PageData> pages = client.getPages(scope.getName(), ownerId);
+               indent();
                if (pages != null)
                {
-                  client.exportToFile(pages, xml);
+                  portalArtifacts.addPages(pages);
+                  System.out.println("Successfully exported.");
                }
                else
                {
-                  client.exportToFile(page, xml);
+                  System.out.println("Nothing to export.");
+               }
+            }
+            else
+            {
+               PageData page = client.getPage(scope.getName(), ownerId, name);
+               indent();
+               if (page != null)
+               {
+                  portalArtifacts.addPage(page);
+                  System.out.println("Successfully exported.");
+               }
+               else
+               {
+                  System.out.println("Nothing to export.");
                }
             }
             break;
@@ -389,51 +324,24 @@ public class Exporter
          {
             String name = (itemName == null) ? getUserInput("Navigation path ('*' for all)") : itemName;
             NavigationData data;
-            switch (scope)
+            if ("*".equals(name))
             {
-               case PORTAL:
-                  if ("*".equals(name))
-                  {
-                     data = client.getNavigation("portal", ownerId);
-                  }
-                  else
-                  {
-                     data = client.getNavigation("portal", ownerId, name);
-                  }
-                  break;
-               case GROUP:
-                  if ("*".equals(name))
-                  {
-                     data = client.getNavigation("group", ownerId);
-                  }
-                  else
-                  {
-                     data = client.getNavigation("group", ownerId, name);
-                  }
-                  break;
-               case USER:
-                  if ("*".equals(name))
-                  {
-                     data = client.getNavigation("user", ownerId);
-                  }
-                  else
-                  {
-                     data = client.getNavigation("user", ownerId, name);
-                  }
-                  break;
-               default:
-                  throw new RuntimeException("Scope " + scope + " not supported");
-            }
-            indent();
-            if (data == null)
-            {
-               System.out.println("Nothing to export.");
+               data = client.getNavigation(scope.getName(), ownerId);
             }
             else
             {
-               File xml = new File(dataDir, "navigation.xml");
-               System.out.println("Exporting navigation(s) to " + xml.getAbsolutePath());
-               client.exportToFile(data, xml);
+               data = client.getNavigation(scope.getName(), ownerId, name);
+            }
+
+            indent();
+            if (data != null)
+            {
+               portalArtifacts.addNavigation(data);
+               System.out.println("Successfully exported.");
+            }
+            else
+            {
+               System.out.println("Nothing to export.");
             }
             break;
          }

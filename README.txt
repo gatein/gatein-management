@@ -39,12 +39,12 @@ Page Management Services
 
 Navigation Management Services
     http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigations?ownerType={ownerType}&ownerId={ownerId}
-    http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigations/{path}?ownerType={ownerType}&ownerId={ownerId}
+    http://localhost:8080/management/rest/pomdata/{portal-container-name}/navigations/{nav-uri}?ownerType={ownerType}&ownerId={ownerId}
 
     Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include
           the ownerType as such ownerType=group or ownerType=user as a URL parameter.
 
-    Note: path is the path of the navigation, so if you have a nav of 'home-1' under home the path would be home/home-1
+    Note: nav-uri is the uri of the navigation, so if you have a nav of 'home-1' under home the nav-uri would be home/home-1
 
     Examples
     All portal navigation:
@@ -66,4 +66,4 @@ To get the homepage
 PageData page = client.getPage("portal", "classic", "homepage");
 
 To get homepage navigation
-NavigationData navigation = client.getNavigation("portal", "classic", "home");
+NavigationNodeData navigation = client.getNavigationNode("portal", "classic", "home");

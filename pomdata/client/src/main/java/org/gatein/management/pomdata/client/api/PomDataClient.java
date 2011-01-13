@@ -59,7 +59,13 @@ public interface PomDataClient
 
    NavigationData getNavigation(String ownerType, String ownerId) throws ClientException;
 
-   NavigationData getNavigation(String ownerType, String ownerId, String navigationPath) throws ClientException;
+   NavigationData getNavigation(String ownerType, String ownerId, String navigationUri) throws ClientException;
+
+   NavigationData createNavigation(String ownerType, String ownerId, String parentNavigationUri, String name, String label) throws ClientException;
+
+   void updateNavigation(NavigationData navigation) throws ClientException;
+
+   void deleteNavigation(String ownerType, String ownerId, String navigationUri) throws ClientException;
 
    void exportAsZip(PortalArtifacts artifacts, File file) throws IOException;
 

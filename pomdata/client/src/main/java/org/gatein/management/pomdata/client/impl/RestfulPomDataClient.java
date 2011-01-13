@@ -28,6 +28,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.exoplatform.portal.pom.data.NavigationData;
+import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
@@ -167,9 +168,27 @@ public class RestfulPomDataClient implements PomDataClient
    }
 
    @Override
-   public NavigationData getNavigation(String ownerType, String ownerId, String navigationPath) throws ClientException
+   public NavigationData getNavigation(String ownerType, String ownerId, String navigationUri) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, navigationClientStub.getNavigation(ownerType, ownerId, navigationPath));
+      return handleResponse(ownerType, ownerId, navigationClientStub.getNavigation(ownerType, ownerId, navigationUri));
+   }
+
+   @Override
+   public NavigationData createNavigation(String ownerType, String ownerId, String parentNavigationUri, String name, String label) throws ClientException
+   {
+      return handleResponse(ownerType, ownerId, navigationClientStub.createNavigation(ownerType, ownerId, parentNavigationUri, name, label));
+   }
+
+   @Override
+   public void updateNavigation(NavigationData navigation) throws ClientException
+   {
+      handleNoEntityResponse(navigationClientStub.updateNavigation(navigation.getOwnerType(), navigation.getOwnerId(), navigation));
+   }
+
+   @Override
+   public void deleteNavigation(String ownerType, String ownerId, String navigationUri) throws ClientException
+   {
+      handleNoEntityResponse(navigationClientStub.deleteNavigation(ownerType, ownerId, navigationUri));
    }
 
    @Override
@@ -289,7 +308,7 @@ public class RestfulPomDataClient implements PomDataClient
    {
       Collection collection = (Collection) data;
       Object[] objects = collection.toArray();
-      for (int i=0; i<objects.length; i++)
+      for (int i = 0; i < objects.length; i++)
       {
          objects[i] = fixOwner(ownerType, ownerId, objects[i]);
       }
@@ -377,5 +396,41 @@ public class RestfulPomDataClient implements PomDataClient
       ClientResponse<NavigationData> getNavigation(@QueryParam("ownerType") String ownerType,
                                                    @QueryParam("ownerId") String ownerId,
                                                    @Encoded @PathParam("nav-path") String navigationPath);
+
+      @POST
+      @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+      ClientResponse<NavigationData> createNavigation(@QueryParam("ownerType") String ownerType,
+                                                      @QueryParam("ownerId") String ownerId,
+                                                      @QueryParam("priority") Integer priority);
+
+      @PUT
+      @Path("/{parent-nav-uri:.*}")
+      @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+      ClientResponse<NavigationData> createNavigation(@QueryParam("ownerType") String ownerType,
+                                                      @QueryParam("ownerId") String ownerId,
+                                                      @PathParam("parent-nav-uri") String parentUri,
+                                                      @QueryParam("name") final String name,
+                                                      @QueryParam("label") final String label);
+
+      @PUT
+      @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+      public ClientResponse updateNavigation(@QueryParam("ownerType") String ownerType,
+                                             @QueryParam("ownerId") String ownerId,
+                                             final NavigationData data);
+
+      @PUT
+      @Path("/{nav-uri:.*}")
+      @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+      public ClientResponse updateNavigation(@QueryParam("ownerType") String ownerType,
+                                             @QueryParam("ownerId") String ownerId,
+                                             @PathParam("nav-uri") final String navigationPath,
+                                             final NavigationData data);
+
+      @DELETE
+      @Path("/{nav-uri:.*}")
+      @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+      public ClientResponse deleteNavigation(@QueryParam("ownerType") String ownerType,
+                                             @QueryParam("ownerId") String ownerId,
+                                             @PathParam("nav-uri") final String navigationUri);
    }
 }

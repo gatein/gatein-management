@@ -30,14 +30,13 @@ import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.gatein.management.ManagementException;
 import org.gatein.management.pomdata.api.NavigationManagementService;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-//TODO: Add debugging
 public class NavigationManagementServiceImpl implements NavigationManagementService
 {
    private ModelDataStorage dataStorage;
@@ -56,45 +55,248 @@ public class NavigationManagementServiceImpl implements NavigationManagementServ
       }
       catch (Exception e)
       {
-         throw new ManagementException("Could not retrieve navigation for ownerType " + ownerType + " and ownerId " + ownerId, e);
+         throw new ManagementException("Could not retrieve " + navigationToString(ownerType, ownerId, null), e);
       }
    }
 
    @Override
-   public NavigationData getNavigation(String ownerType, String ownerId, String navigationPath) throws ManagementException
+   public NavigationNodeData getNavigationNode(String ownerType, String ownerId, String uri) throws ManagementException
    {
-      if (navigationPath.charAt(0) == '/') navigationPath = navigationPath.substring(1);
+      uri = fixNavigationPath(uri);
 
       NavigationData defaultNav = getNavigation(ownerType, ownerId);
+      return getNavigationNodeByUri(defaultNav.getNodes(), uri);
+   }
 
-      NavigationNodeData node = getNavigationByPath(defaultNav.getNodes(), navigationPath);
-      if (node != null)
+   @Override
+   public NavigationData createNavigation(String ownerType, String ownerId, Integer priority) throws ManagementException
+   {
+      NavigationData defaultNav = getNavigation(ownerType, ownerId);
+      if (defaultNav != null)
       {
-         List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>(1);
-         nodes.add(node);
-         return new NavigationData(defaultNav.getOwnerType(), defaultNav.getOwnerId(), defaultNav.getPriority(), nodes);
+         throw new ManagementException("Cannot create navigation.  " +
+            navigationToString(ownerType, ownerId, null) + " already exists.");
       }
-      else
+
+      try
       {
-         return null;
+         dataStorage.create(new NavigationData(ownerType, ownerId, priority, Collections.<NavigationNodeData>emptyList()));
+         return dataStorage.getPageNavigation(new NavigationKey(ownerType, ownerId));
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception creating " + navigationToString(ownerType, ownerId, null));
       }
    }
 
-   private NavigationNodeData getNavigationByPath(List<NavigationNodeData> nodes, String path)
+   @Override
+   public NavigationNodeData createNavigationNode(String ownerType, String ownerId, String uri, String label) throws ManagementException
    {
-      int index = path.indexOf('/');
+      NavigationData defaultNav = getNavigation(ownerType, ownerId);
+      if (defaultNav == null)
+      {
+         throw new ManagementException("Cannot create navigation node. " +
+            navigationToString(ownerType, ownerId, null) + " does not exist.");
+      }
+      uri = fixNavigationPath(uri);
+
+      // Ensure navigation with uri doesn't already exist.
+      if (getNavigationNodeByUri(defaultNav.getNodes(), uri) != null)
+      {
+         throw new ManagementException("Cannot create navigation. " +
+            navigationToString(ownerType, ownerId, uri) + " already exists.");
+      }
+
+      // Ensure parent exists
+      String parentPath = getParentUri(uri);
+      NavigationNodeData parent = getNavigationNodeByUri(defaultNav.getNodes(), parentPath);
+      if (parent == null)
+      {
+         throw new ManagementException("Cannot create navigation. " +
+            navigationToString(ownerType, ownerId, uri) + "'s parent does not exist.");
+      }
+
+      // Create new node with no children, add to parent.
+      String name = getNameFromUri(uri);
+      NavigationNodeData node = new NavigationNodeData(uri, label, null, name, null, null, null, null, Collections.<NavigationNodeData>emptyList());
+      parent.getNodes().add(node);
+
+      // Save navigation
+      try
+      {
+         dataStorage.save(defaultNav);
+         return node;
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception creating " + navigationToString(ownerType, ownerId, uri), e);
+      }
+   }
+
+   @Override
+   public void updateNavigation(NavigationData navigation) throws ManagementException
+   {
+      try
+      {
+         dataStorage.save(navigation);
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception updating " + navigationToString(navigation.getOwnerType(), navigation.getOwnerId(), null), e);
+      }
+   }
+
+   @Override
+   public void updateNavigationNode(String ownerType, String ownerId, NavigationNodeData node) throws ManagementException
+   {
+      NavigationData defaultNav = getNavigation(ownerType, ownerId);
+      if (defaultNav == null)
+      {
+         throw new ManagementException("Cannot update navigation node. " +
+            navigationToString(ownerType, ownerId, null) + " does not exist.");
+      }
+
+      // Ensure the node exists
+      if (getNavigationNodeByUri(defaultNav.getNodes(), node.getURI()) == null)
+      {
+         throw new ManagementException("Cannot update navigation. " +
+            navigationToString(ownerType, ownerId, node.getURI()) + " does not exist.");
+      }
+
+      // Get the parent
+      String parentUri = getParentUri(node.getURI());
+      NavigationNodeData parent = getNavigationNodeByUri(defaultNav.getNodes(), parentUri);
+      List<NavigationNodeData> children = parent.getNodes();
+
+      // Get the name of the child.
+      String name = getNameFromUri(node.getURI());
+      for (int i=0; i<children.size(); i++)
+      {
+         if (children.get(i).getName().equals(name))
+         {
+            // Replace child
+            children.set(i, node);
+            break;
+         }
+      }
+
+      // Save navigation
+      try
+      {
+         dataStorage.save(defaultNav);
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception updating " + navigationToString(ownerType, ownerId, node.getURI()), e);
+      }
+   }
+
+   @Override
+   public void deleteNavigation(String ownerType, String ownerId) throws ManagementException
+   {
+      NavigationData defaultNav = getNavigation(ownerType, ownerId);
+      if (defaultNav == null)
+      {
+         throw new ManagementException("Cannot delete navigation. " + navigationToString(ownerType, ownerId, null) + " does not exist.");
+      }
+
+      // Delete navigation
+      try
+      {
+         dataStorage.remove(defaultNav);
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception deleting " + navigationToString(ownerType, ownerId, null), e);
+      }
+   }
+
+   @Override
+   public void deleteNavigationNode(String ownerType, String ownerId, String uri) throws ManagementException
+   {
+      NavigationData defaultNav = getNavigation(ownerType, ownerId);
+      if (defaultNav == null)
+      {
+         throw new ManagementException("Cannot delete navigation. " + navigationToString(ownerType, ownerId, null) + " does not exist.");
+      }
+
+      // Ensure the node exists
+      NavigationNodeData node = getNavigationNodeByUri(defaultNav.getNodes(), uri);
+      if (node == null)
+      {
+         throw new ManagementException("Cannot delete navigation. " +
+            navigationToString(ownerType, ownerId, uri) + " does not exist.");
+      }
+
+      // Get the parent
+      String parentUri = getParentUri(node.getURI());
+      NavigationNodeData parent = getNavigationNodeByUri(defaultNav.getNodes(), parentUri);
+      List<NavigationNodeData> children = parent.getNodes();
+
+      // Get the name of the child.
+      String name = getNameFromUri(node.getURI());
+      NavigationNodeData found = null;
+      for (NavigationNodeData child : children)
+      {
+         if (child.getName().equals(name))
+         {
+            found = child;
+         }
+      }
+      if (found == null)
+      {
+         throw new ManagementException("Cannot delete navigation. Could not find child once parent was located for " +
+            navigationToString(ownerType, ownerId, node.getURI()));
+      }
+      if (!children.remove(found))
+      {
+         throw new ManagementException("Cannot delete navigation. Could not remove node from parent.");
+      }
+
+      // Save navigation
+      try
+      {
+         dataStorage.save(defaultNav);
+      }
+      catch (Exception e)
+      {
+         throw new ManagementException("Exception deleting  " + navigationToString(ownerType, ownerId, node.getURI()), e);
+      }
+   }
+
+   private String fixNavigationPath(String navigationPath)
+   {
+      if (navigationPath.charAt(0) == '/') navigationPath = navigationPath.substring(1);
+      if (navigationPath.endsWith("/")) navigationPath = navigationPath.substring(0, navigationPath.length() - 1);
+
+      return navigationPath;
+   }
+
+   private String getNameFromUri(String uri)
+   {
+      return uri.substring(uri.lastIndexOf('/') + 1, uri.length());
+   }
+
+   private String getParentUri(String uri)
+   {
+      return uri.substring(0, uri.lastIndexOf('/'));
+   }
+
+   private NavigationNodeData getNavigationNodeByUri(List<NavigationNodeData> nodes, String uri)
+   {
+      int index = uri.indexOf('/');
       if (index != -1)
       {
-         String childName = path.substring(0, index);
-         String grandChildren = path.substring(index+1, path.length());
+         String childName = uri.substring(0, index);
+         String grandChildren = uri.substring(index+1, uri.length());
          NavigationNodeData child = findChild(nodes, childName);
          if (child == null) return null;
 
-         return getNavigationByPath(child.getNodes(), grandChildren);
+         return getNavigationNodeByUri(child.getNodes(), grandChildren);
       }
       else
       {
-         return findChild(nodes, path);
+         return findChild(nodes, uri);
       }
    }
 
@@ -109,5 +311,18 @@ public class NavigationManagementServiceImpl implements NavigationManagementServ
       }
 
       return null;
+   }
+
+   private String navigationToString(String ownerType, String ownerId, String uri)
+   {
+      StringBuilder sb = new StringBuilder().append("Navigation[ownerType=").append(ownerType);
+      sb.append(", ownerId=").append(ownerId);
+      if (uri != null)
+      {
+         sb.append(", uri=").append(uri);
+      }
+      sb.append("]");
+
+      return sb.toString();
    }
 }

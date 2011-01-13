@@ -109,7 +109,7 @@ public class PageManagementServiceImpl implements PageManagementService
       try
       {
          modelDataStorage.create(page);
-         return page;
+         return modelDataStorage.getPage(new PageKey(ownerType, ownerId, pageName));
       }
       catch (Exception e)
       {

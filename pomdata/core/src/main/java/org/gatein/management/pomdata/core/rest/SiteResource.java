@@ -28,6 +28,7 @@ import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.ManagementException;
 import org.gatein.management.pomdata.api.SiteManagementService;
+import org.gatein.management.pomdata.core.Utils;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -92,7 +93,7 @@ public class SiteResource extends AbstractExoContainerResource<SiteManagementSer
                                  @QueryParam("ownerType") String ownerType,
                                  @PathParam("owner-id") String ownerId)
    {
-      ownerId = fixOwnerId(ownerType, ownerId);
+      ownerId = Utils.fixOwnerId(ownerType, ownerId);
 
       return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<SiteManagementService, PortalData>()
       {
@@ -102,17 +103,5 @@ public class SiteResource extends AbstractExoContainerResource<SiteManagementSer
             return service.getPortalData(ownerType, ownerId);
          }
       });
-   }
-
-   private String fixOwnerId(String ownerType, String ownerId)
-   {
-      if ("group".equals(ownerType) && ownerId.indexOf(0) != '/')
-      {
-         return '/' + ownerId;
-      }
-      else
-      {
-         return ownerId;
-      }
    }
 }

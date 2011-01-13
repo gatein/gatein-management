@@ -28,6 +28,7 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -76,7 +77,7 @@ public class PortalArtifacts
       list.add(page);
    }
 
-   public void addPages(List<PageData> pages)
+   public void addPages(Collection<PageData> pages)
    {
       for (PageData page : pages)
       {

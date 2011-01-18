@@ -98,23 +98,23 @@
          
          <!-- Management Modules -->
          <dependency>
-            <groupId>org.gatein.management.pomdata</groupId>
-            <artifactId>pomdata-api</artifactId>
+            <groupId>org.gatein.management.portalobjects</groupId>
+            <artifactId>portalobjects-api</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
-            <groupId>org.gatein.management.pomdata</groupId>
-            <artifactId>pomdata-binding</artifactId>
+            <groupId>org.gatein.management.portalobjects</groupId>
+            <artifactId>portalobjects-binding</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
-            <groupId>org.gatein.management.pomdata</groupId>
-            <artifactId>pomdata-core</artifactId>
+            <groupId>org.gatein.management.portalobjects</groupId>
+            <artifactId>portalobjects-core</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
-            <groupId>org.gatein.management.pomdata</groupId>
-            <artifactId>pomdata-client</artifactId>
+            <groupId>org.gatein.management.portalobjects</groupId>
+            <artifactId>portalobjects-client</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
@@ -237,7 +237,7 @@
       <module>api</module>
       <module>domain</module>
       <module>binding</module>
-      <module>pomdata</module>
+      <module>portalobjects</module>
       <module>web</module>
       <module>packaging</module>
    </modules>

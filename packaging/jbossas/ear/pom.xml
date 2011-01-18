@@ -60,16 +60,16 @@
          <artifactId>binding-core</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.gatein.management.pomdata</groupId>
-         <artifactId>pomdata-api</artifactId>
+         <groupId>org.gatein.management.portalobjects</groupId>
+         <artifactId>portalobjects-api</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.gatein.management.pomdata</groupId>
-         <artifactId>pomdata-binding</artifactId>
+         <groupId>org.gatein.management.portalobjects</groupId>
+         <artifactId>portalobjects-binding</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.gatein.management.pomdata</groupId>
-         <artifactId>pomdata-core</artifactId>
+         <groupId>org.gatein.management.portalobjects</groupId>
+         <artifactId>portalobjects-core</artifactId>
       </dependency>
    </dependencies>
 

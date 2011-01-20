@@ -37,6 +37,10 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.binding.rest.BindingRestProvider;
+import org.gatein.management.portalobjects.api.exportimport.ExportContext;
+import org.gatein.management.portalobjects.api.exportimport.ExportHandler;
+import org.gatein.management.portalobjects.api.exportimport.ImportContext;
+import org.gatein.management.portalobjects.api.exportimport.ImportHandler;
 import org.gatein.management.portalobjects.client.api.ClientException;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
@@ -86,6 +90,10 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
    private final PageClientStub pageClientStub;
    private final NavigationClientStub navigationClientStub;
 
+   // Export/Import handlers
+   private ExportHandler exportHandler;
+   private ImportHandler importHandler;
+
    public RestfulPortalObjectsMgmtClient(InetAddress address, int port, String containerName, BindingProvider bindingProvider)
    {
       this.bindingProvider = bindingProvider;
@@ -121,6 +129,8 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       instance.registerProviderInstance(new BindingRestProvider(bindingProvider));
       RegisterBuiltin.register(instance);
    }
+
+
 
    @Override
    public List<PortalConfig> getPortalConfig(String ownerType) throws ClientException
@@ -247,31 +257,25 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
    }
 
    @Override
-   public void exportAsZip(PortalObjectsContext context, File file) throws IOException
+   public ExportHandler getExportHandler()
    {
-      ExportImportUtils.exportAsZip(bindingProvider, context, new FileOutputStream(file));
+      return exportHandler;
+   }
+
+   public void setExportHandler(ExportHandler exportHandler)
+   {
+      this.exportHandler = exportHandler;
    }
 
    @Override
-   public void importFromZip(File file) throws IOException
+   public ImportHandler getImportHandler()
    {
-      //TODO: Add import rules capability
-      PortalObjectsContext context = ExportImportUtils.importFromZip(bindingProvider, new FileInputStream(file));
-      for (PortalConfig portalConfig : context.getPortalConfigs())
-      {
-         updatePortalConfig(portalConfig);
-      }
-      for (List<Page> pages : context.getPages())
-      {
-         for (Page page : pages)
-         {
-            updatePage(page);
-         }
-      }
-      for (PageNavigation navigation : context.getNavigations())
-      {
-         updateNavigation(navigation);
-      }
+      return importHandler;
+   }
+
+   public void setImportHandler(ImportHandler importHandler)
+   {
+      this.importHandler = importHandler;
    }
 
    private void handleNoEntityResponse(ClientResponse<?> response)
@@ -279,14 +283,11 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       if (response.getResponseStatus() == Response.Status.OK)
       {
       }
-      else if (response.getResponseStatus() == Response.Status.CREATED)
-      {
-      }
-      else if (response.getStatus() >= 400)
+      else if (response.getResponseStatus().getFamily() == Response.Status.Family.SERVER_ERROR)
       {
          String message = response.getEntity(String.class);
          Exception e = new Exception(message);
-         throw new ClientException("HTTP Error status " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.", e);
+         throw new ClientException("Internal server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.", e);
       }
       else
       {
@@ -294,19 +295,12 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       }
    }
 
-   //TODO: Fix handle response to be more clean, add callback instead of methods calling this
-
    private <T> T handleResponse(String ownerType, String ownerId, ClientResponse<T> response)
    {
       if (response.getResponseStatus() == Response.Status.OK)
       {
          T t = response.getEntity();
          return PortalObjectsUtils.fixOwner(ownerType, ownerId, t);
-      }
-      else if (response.getResponseStatus() == Response.Status.CREATED)
-      {
-         // entity created
-         return null;
       }
       else if (response.getResponseStatus() == Response.Status.NOT_FOUND)
       {
@@ -316,7 +310,7 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       {
          String message = response.getEntity(String.class);
          Exception e = new Exception(message);
-         throw new ClientException("HTTP Error status " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.", e);
+         throw new ClientException("Internal server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.", e);
       }
       else
       {
@@ -345,20 +339,6 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       nodeDataList.add(nodeData);
 
       return new NavigationData(ownerType, ownerId, null, nodeDataList);
-   }
-
-   private void close(Closeable closeable)
-   {
-      if (closeable != null)
-      {
-         try
-         {
-            closeable.close();
-         }
-         catch (IOException ioex)
-         {
-         }
-      }
    }
 
    @Path("/sites")

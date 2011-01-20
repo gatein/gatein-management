@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.exportimport;
+package org.gatein.management.portalobjects.common.exportimport;
 
 import org.gatein.management.binding.api.BindingProvider;
 

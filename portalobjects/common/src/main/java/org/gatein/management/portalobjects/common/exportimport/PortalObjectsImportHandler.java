@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.exportimport;
+package org.gatein.management.portalobjects.common.exportimport;
 
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.model.Page;
@@ -33,8 +33,6 @@ import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.portalobjects.api.exportimport.ImportContext;
 import org.gatein.management.portalobjects.api.exportimport.ImportHandler;
-import org.gatein.management.portalobjects.common.exportimport.ExportImportUtils;
-import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
 import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
 import java.io.IOException;

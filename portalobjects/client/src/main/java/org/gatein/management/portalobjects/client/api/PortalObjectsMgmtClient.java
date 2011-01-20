@@ -29,8 +29,15 @@ import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.binding.core.api.BindingProviderImpl;
+import org.gatein.management.portalobjects.api.exportimport.ExportContext;
+import org.gatein.management.portalobjects.api.exportimport.ExportHandler;
+import org.gatein.management.portalobjects.api.exportimport.ImportContext;
+import org.gatein.management.portalobjects.api.exportimport.ImportHandler;
+import org.gatein.management.portalobjects.client.impl.ClientDataStorageImpl;
 import org.gatein.management.portalobjects.client.impl.RestfulPortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
+import org.gatein.management.portalobjects.common.exportimport.PortalObjectsExportHandler;
+import org.gatein.management.portalobjects.common.exportimport.PortalObjectsImportHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,9 +82,9 @@ public interface PortalObjectsMgmtClient
 
    void deleteNavigationNode(String ownerType, String ownerId, String navigationUri) throws ClientException;
 
-   void exportAsZip(PortalObjectsContext context, File file) throws IOException;
+   ExportHandler getExportHandler();
 
-   void importFromZip(File file) throws IOException;
+   ImportHandler getImportHandler();
 
    public static class Factory
    {
@@ -85,7 +92,16 @@ public interface PortalObjectsMgmtClient
       {
          BindingProvider bindingProvider = new BindingProviderImpl();
          bindingProvider.load();
-         return new RestfulPortalObjectsMgmtClient(address, port, portalContainerName, bindingProvider);
+         RestfulPortalObjectsMgmtClient client =
+            new RestfulPortalObjectsMgmtClient(address, port, portalContainerName, bindingProvider);
+
+         ExportHandler exportHandler = new PortalObjectsExportHandler(bindingProvider);
+         ImportHandler importHandler = new PortalObjectsImportHandler(bindingProvider, new ClientDataStorageImpl(client));
+
+         client.setExportHandler(exportHandler);
+         client.setImportHandler(importHandler);
+
+         return client;
       }
    }
 }

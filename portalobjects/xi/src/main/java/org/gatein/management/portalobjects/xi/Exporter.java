@@ -27,11 +27,13 @@ import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.management.portalobjects.api.exportimport.ExportContext;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -88,7 +90,8 @@ public class Exporter
    private PortalObjectsMgmtClient client;
    private File exportDir;
    private int level;
-   private PortalObjectsContext context = new PortalObjectsContext();
+
+   private ExportContext context;
 
    void init(Properties properties) throws Exception
    {
@@ -125,6 +128,7 @@ public class Exporter
       //TODO: Pass credentials
       client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, portalContainer);
 
+      context = client.getExportHandler().createExportContext();
       // Process scopes for export
       Scope[] scopes = getScopes();
       for (Scope s : scopes)
@@ -132,7 +136,9 @@ public class Exporter
          processScope(s);
       }
 
-      client.exportAsZip(context, new File(exportDir, "epp-export.zip"));
+      String fileName = new StringBuilder().append("portal-objects_").append(System.currentTimeMillis()).append(".zip").toString();
+      File exportFile = new File(exportDir, fileName);
+      client.getExportHandler().exportContext(context, new FileOutputStream(exportFile));
    }
 
    private Scope[] getScopes()
@@ -277,7 +283,7 @@ public class Exporter
             indent();
             if (data != null)
             {
-               context.addPortalConfig(data);
+               context.addToContext(data);
                System.out.println("Successfully exported.");
             }
             else
@@ -295,7 +301,7 @@ public class Exporter
                indent();
                if (pages != null)
                {
-                  context.addPages(pages);
+                  context.addToContext(pages);
                   System.out.println("Successfully exported.");
                }
                else
@@ -309,7 +315,7 @@ public class Exporter
                indent();
                if (page != null)
                {
-                  context.addPage(page);
+                  context.addToContext(page);
                   System.out.println("Successfully exported.");
                }
                else
@@ -341,7 +347,7 @@ public class Exporter
             indent();
             if (data != null)
             {
-               context.addNavigation(data);
+               context.addToContext(data);
                System.out.println("Successfully exported.");
             }
             else

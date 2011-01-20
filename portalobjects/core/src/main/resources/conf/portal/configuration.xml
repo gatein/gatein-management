@@ -32,12 +32,12 @@
 
    <component>
       <key>org.gatein.management.portalobjects.api.exportimport.ExportHandler</key>
-      <type>org.gatein.management.portalobjects.core.exportimport.PortalObjectsExportHandler</type>
+      <type>org.gatein.management.portalobjects.common.exportimport.PortalObjectsExportHandler</type>
    </component>
 
    <component>
       <key>org.gatein.management.portalobjects.api.exportimport.ImportHandler</key>
-      <type>org.gatein.management.portalobjects.core.exportimport.PortalObjectsImportHandler</type>
+      <type>org.gatein.management.portalobjects.common.exportimport.PortalObjectsImportHandler</type>
    </component>
 
 </configuration>

@@ -47,6 +47,15 @@ public class PortalObjectsUtils
 {
    private PortalObjectsUtils(){}
 
+   private static final Set<String> validOwnerTypes;
+   static {
+      Set<String> set = new HashSet<String>();
+      set.add("portal");
+      set.add("group");
+      set.add("user");
+      validOwnerTypes = set;
+   }
+
    @SuppressWarnings("unchecked")
    public static <T> T fixOwner(String ownerType, String ownerId, T data)
    {
@@ -237,12 +246,51 @@ public class PortalObjectsUtils
       return new NavigationData(ownerType, ownerId, null, nodeDataList);
    }
 
-   private static final Set<String> validOwnerTypes;
-   static {
-      Set<String> set = new HashSet<String>();
-      set.add("portal");
-      set.add("group");
-      set.add("user");
-      validOwnerTypes = set;
+   public static PageNode getNode(List<PageNode> nodes, String name)
+   {
+      for (PageNode node : nodes)
+      {
+         if (node.getName().equals(name))
+         {
+            return node;
+         }
+      }
+
+      return null;
+   }
+
+   public static PageNode findNodeByUri(List<PageNode> nodes, String uri)
+   {
+      if (uri.charAt(0) == '/') uri = uri.substring(1);
+      if (uri.charAt(uri.length()-1) == '/') uri = uri.substring(0, uri.length() - 1);
+
+      int index = uri.indexOf('/');
+      if (index != -1)
+      {
+         String childName = uri.substring(0, index);
+         String grandChildren = uri.substring(index+1, uri.length());
+         PageNode child = getNode(nodes, childName);
+         if (child == null) return null;
+
+         return findNodeByUri(child.getNodes(), grandChildren);
+      }
+      else
+      {
+         return getNode(nodes, uri);
+      }
+   }
+
+   public static String getNameForUri(String uri)
+   {
+      return uri.substring(uri.lastIndexOf('/') + 1, uri.length());
+   }
+
+   public static String getParentUri(String uri)
+   {
+      if (!uri.contains("/"))
+      {
+         return null;
+      }
+      return uri.substring(0, uri.lastIndexOf('/'));
    }
 }

@@ -27,8 +27,11 @@ import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.management.portalobjects.api.exportimport.ExportContext;
+import org.gatein.management.portalobjects.api.exportimport.ImportContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,17 +40,20 @@ import java.util.Map;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PortalObjectsContext
+public class PortalObjectsContext implements ExportContext, ImportContext
 {
    private Map<String, PortalConfig> portalConfigMap = new LinkedHashMap<String, PortalConfig>();
    private Map<String, List<Page>> pageMap = new LinkedHashMap<String, List<Page>>();
    private Map<String, PageNavigation> navigationMap = new LinkedHashMap<String, PageNavigation>();
+   private Map<String, PageNode> navigationNodeMap = new LinkedHashMap<String, PageNode>();
 
    private List<PortalConfig> portalConfigs;
    private List<List<Page>> pages;
    private List<PageNavigation> navigations;
+   private List<PageNode> navigationNodes;
 
-   public void addPortalConfig(PortalConfig portalConfig)
+   @Override
+   public void addToContext(PortalConfig portalConfig)
    {
       String key = createKey(portalConfig.getType(), portalConfig.getName());
 
@@ -59,7 +65,8 @@ public class PortalObjectsContext
       portalConfigs = new ArrayList<PortalConfig>(portalConfigMap.values());
    }
 
-   public void addPage(Page page)
+   @Override
+   public void addToContext(Page page)
    {
       String key = createKey(page.getOwnerType(), page.getOwnerId());
       List<Page> pages = pageMap.get(key);
@@ -82,82 +89,72 @@ public class PortalObjectsContext
       this.pages = new ArrayList<List<Page>>(pageMap.values());
    }
 
-   public void addPages(List<Page> pages)
+   @Override
+   public void addToContext(List<Page> pages)
    {
       for (Page page : pages)
       {
-         addPage(page);
+         addToContext(page);
       }
    }
 
-   public void addNavigation(PageNavigation navigation)
+   @Override
+   public void addToContext(PageNavigation navigation)
    {
       String key = createKey(navigation.getOwnerType(), navigation.getOwnerId());
-      PageNavigation nav = navigationMap.get(key);
-      if (nav == null)
-      {
-         navigationMap.put(key, navigation);
-      }
-      else if (navigation.getNodes() != null)
-      {
-         for (PageNode node : navigation.getNodes())
-         {
-            _addNavigationNode(navigation, node);
-         }
-      }
+      navigationMap.put(key, navigation);
       navigations = new ArrayList<PageNavigation>(navigationMap.values());
    }
 
-   public void addNavigationNode(String ownerType, String ownerId, PageNode node)
+   @Override
+   public void addToContext(String ownerType, String ownerId, PageNode node)
    {
-      String key = createKey(ownerType, ownerId);
-      PageNavigation nav = navigationMap.get(key);
-      if (nav == null)
-      {
-         PageNavigation pageNavigation = new PageNavigation();
-         pageNavigation.setOwnerType(ownerType);
-         pageNavigation.setOwnerId(ownerId);
-         ArrayList<PageNode> nodes = new ArrayList<PageNode>();
-         nodes.add(node);
-         pageNavigation.setNodes(nodes);
-         navigationMap.put(key, pageNavigation);
-      }
-      else
-      {
-         _addNavigationNode(nav, node);
-      }
+      String key = createKey(ownerType, ownerId, node.getUri());
+      navigationNodeMap.put(key, node);
 
-      navigations = new ArrayList<PageNavigation>(navigationMap.values());
+      navigationNodes = new ArrayList<PageNode>(navigationNodeMap.values());
    }
 
+   @Override
    public List<PortalConfig> getPortalConfigs()
    {
       return portalConfigs;
    }
 
+   @Override
    public List<List<Page>> getPages()
    {
       return pages;
    }
 
+   @Override
    public List<PageNavigation> getNavigations()
    {
       return navigations;
    }
 
-   private void _addNavigationNode(PageNavigation navigation, PageNode node)
+   @Override
+   public List<PageNode> getNavigationNodes()
    {
-      PageNode existing = navigation.getNode(node.getName());
-      if (existing == null)
+      return navigationNodes;
+   }
+
+   @Override
+   public String[] getOwnerInfoForNode(PageNode pageNode)
+   {
+      for (Map.Entry<String, PageNode> entry : navigationNodeMap.entrySet())
       {
-         navigation.addNode(node);
+         if (entry.getValue() == pageNode)
+         {
+            String[] tmp = entry.getKey().split("::");
+            String[] ownerInfo = new String[2];
+            ownerInfo[0] = tmp[0];
+            ownerInfo[1] = tmp[1];
+            return ownerInfo;
+         }
       }
-      else
-      {
-         List<PageNode> nodes = navigation.getNodes();
-         int index = nodes.indexOf(existing);
-         nodes.set(index, node);
-      }
+
+      return null;
    }
 
    private Page findPage(List<Page> pages, String name)
@@ -176,5 +173,10 @@ public class PortalObjectsContext
    private String createKey(String ownerType, String ownerId)
    {
       return new StringBuilder().append(ownerType).append("::").append(ownerId).toString();
+   }
+
+   private String createKey(String ownerType, String ownerId, String uri)
+   {
+      return new StringBuilder().append(ownerType).append("::").append(ownerId).append("::").append(uri).toString();
    }
 }

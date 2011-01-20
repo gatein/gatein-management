@@ -69,6 +69,10 @@
          <artifactId>portalobjects-common</artifactId>
       </dependency>
       <dependency>
+         <groupId>org.gatein.management.portalobjects</groupId>
+         <artifactId>portalobjects-binding</artifactId>
+      </dependency>
+      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.portal</artifactId>
       </dependency>

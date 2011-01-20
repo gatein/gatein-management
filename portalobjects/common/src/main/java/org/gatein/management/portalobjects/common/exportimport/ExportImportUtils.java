@@ -31,7 +31,8 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.binding.api.Marshaller;
-import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
+import org.gatein.management.portalobjects.api.exportimport.ExportContext;
+import org.gatein.management.portalobjects.api.exportimport.ImportContext;
 import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
 import java.io.BufferedInputStream;
@@ -58,7 +59,7 @@ public class ExportImportUtils
 
    private ExportImportUtils(){}
 
-   public static void exportAsZip(BindingProvider bindingProvider, PortalObjectsContext context, OutputStream out) throws IOException
+   public static void exportAsZip(BindingProvider bindingProvider, ExportContext context, OutputStream out) throws IOException
    {
       if (!(out instanceof BufferedOutputStream))
       {
@@ -108,7 +109,7 @@ public class ExportImportUtils
       zos.close();
    }
 
-   public static PortalObjectsContext importFromZip(BindingProvider bindingProvider, InputStream in) throws IOException
+   public static ImportContext importFromZip(BindingProvider bindingProvider, InputStream in) throws IOException
    {
       if (!(in instanceof BufferedInputStream))
       {
@@ -134,7 +135,7 @@ public class ExportImportUtils
                   throw new IOException("Corrupt data for portal file " + entry.getName() + ". Name of portal should be " + ownerId);
                }
                data = PortalObjectsUtils.fixOwner(ownerType, ownerId, data);
-               context.addPortalConfig(new PortalConfig(data));
+               context.addToContext(new PortalConfig(data));
             }
             else if (PAGES_FILE.equals(file))
             {
@@ -142,14 +143,14 @@ public class ExportImportUtils
                pages = PortalObjectsUtils.fixOwner(ownerType, ownerId, pages);
                for (PageData page : pages)
                {
-                  context.addPage(new Page(page));
+                  context.addToContext(new Page(page));
                }
             }
             else if (NAVIGATION_FILE.equals(file))
             {
                NavigationData navigation = bindingProvider.createContext(NavigationData.class).createMarshaller().unmarshal(zis);
                navigation = PortalObjectsUtils.fixOwner(ownerType, ownerId, navigation);
-               context.addNavigation(new PageNavigation(navigation));
+               context.addToContext(new PageNavigation(navigation));
             }
             else
             {

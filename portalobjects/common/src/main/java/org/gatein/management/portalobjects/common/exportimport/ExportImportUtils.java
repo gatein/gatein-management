@@ -21,15 +21,17 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.api;
+package org.gatein.management.portalobjects.common.exportimport;
 
+import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PortalConfig;
 import org.exoplatform.portal.pom.data.NavigationData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.binding.api.Marshaller;
-import org.gatein.management.domain.PortalArtifacts;
-import org.gatein.management.portalobjects.api.ExportImportHandler;
+import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
 import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
 import java.io.BufferedInputStream;
@@ -37,8 +39,8 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -48,34 +50,27 @@ import java.util.zip.ZipOutputStream;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class ExportImportHandlerImpl implements ExportImportHandler
+public class ExportImportUtils
 {
    private static final String PORTAL_FILE = "portal.xml";
    private static final String PAGES_FILE = "pages.xml";
    private static final String NAVIGATION_FILE = "navigation.xml";
 
-   private BindingProvider bindingProvider;
+   private ExportImportUtils(){}
 
-   public ExportImportHandlerImpl(BindingProvider bindingProvider)
+   public static void exportAsZip(BindingProvider bindingProvider, PortalObjectsContext context, OutputStream out) throws IOException
    {
-      this.bindingProvider = bindingProvider;
-   }
-
-   @Override
-   public void exportPortalArtifacts(PortalArtifacts artifacts, OutputStream output) throws IOException
-   {
-      if (!(output instanceof BufferedOutputStream))
+      if (!(out instanceof BufferedOutputStream))
       {
-         output = new BufferedOutputStream(output);
+         out = new BufferedOutputStream(out);
       }
-      ZipOutputStream zos = new ZipOutputStream(output);
+      ZipOutputStream zos = new ZipOutputStream(out);
 
       // Write portal.xml files to zip
       Marshaller<PortalData> portalDataMarshaller = bindingProvider.createContext(PortalData.class).createMarshaller();
-      Iterator<PortalData> portalDataIter = artifacts.getPortalDataIterator();
-      while (portalDataIter.hasNext())
+      for (PortalConfig pc : context.getPortalConfigs())
       {
-         PortalData portalData = portalDataIter.next();
+         PortalData portalData = pc.build();
          createZipEntry(portalData.getType(), portalData.getName(), PORTAL_FILE, zos);
 
          portalDataMarshaller.marshal(portalData, zos);
@@ -84,10 +79,13 @@ public class ExportImportHandlerImpl implements ExportImportHandler
 
       // Write pages.xml files to zip
       Marshaller<PageData> pageMarshaller = bindingProvider.createContext(PageData.class).createMarshaller();
-      Iterator<List<PageData>> pageIter = artifacts.getPageDataIterator();
-      while (pageIter.hasNext())
+      for (List<Page> pageList : context.getPages())
       {
-         List<PageData> pages = pageIter.next();
+         List<PageData> pages = new ArrayList<PageData>(pageList.size());
+         for (Page p : pageList)
+         {
+            pages.add(p.build());
+         }
          PageData page = pages.get(0);
          createZipEntry(page.getOwnerType(), page.getOwnerId(), PAGES_FILE, zos);
 
@@ -97,10 +95,9 @@ public class ExportImportHandlerImpl implements ExportImportHandler
 
       // Write navigation.xml files to zip
       Marshaller<NavigationData> navMarshaller = bindingProvider.createContext(NavigationData.class).createMarshaller();
-      Iterator<NavigationData> navIter = artifacts.getNavigationDataIterator();
-      while (navIter.hasNext())
+      for (PageNavigation pageNav : context.getNavigations())
       {
-         NavigationData navigation = navIter.next();
+         NavigationData navigation = pageNav.build();
          createZipEntry(navigation.getOwnerType(), navigation.getOwnerId(), NAVIGATION_FILE, zos);
 
          navMarshaller.marshal(navigation, zos);
@@ -111,55 +108,65 @@ public class ExportImportHandlerImpl implements ExportImportHandler
       zos.close();
    }
 
-   @Override
-   public PortalArtifacts importPortalArtifacts(InputStream input) throws IOException
+   public static PortalObjectsContext importFromZip(BindingProvider bindingProvider, InputStream in) throws IOException
    {
-      if (!(input instanceof BufferedInputStream))
+      if (!(in instanceof BufferedInputStream))
       {
-         input = new BufferedInputStream(input);
+         in = new BufferedInputStream(in);
       }
-      PortalArtifacts artifacts = new PortalArtifacts();
-      NonCloseableZipInputStream zis = new NonCloseableZipInputStream(input);
+      NonCloseableZipInputStream zis = new NonCloseableZipInputStream(in);
       ZipEntry entry;
-      while ( (entry = zis.getNextEntry()) != null)
+      try
       {
-         String[] parts = parseEntry(entry);
-         String ownerType = parts[0];
-         String ownerId = parts[1];
-         String file = parts[2];
-
-         if (PORTAL_FILE.equals(file))
+         PortalObjectsContext context = new PortalObjectsContext();
+         while ( (entry = zis.getNextEntry()) != null)
          {
-            PortalData data = bindingProvider.createContext(PortalData.class).createMarshaller().unmarshal(zis);
-            if (!data.getName().equals(ownerId))
+            String[] parts = parseEntry(entry);
+            String ownerType = parts[0];
+            String ownerId = parts[1];
+            String file = parts[2];
+
+            if (PORTAL_FILE.equals(file))
             {
-               throw new IOException("Corrupt data for portal file " + entry.getName() + ". Name of portal should be " + ownerId);
+               PortalData data = bindingProvider.createContext(PortalData.class).createMarshaller().unmarshal(zis);
+               if (!data.getName().equals(ownerId))
+               {
+                  throw new IOException("Corrupt data for portal file " + entry.getName() + ". Name of portal should be " + ownerId);
+               }
+               data = PortalObjectsUtils.fixOwner(ownerType, ownerId, data);
+               context.addPortalConfig(new PortalConfig(data));
             }
-            artifacts.addPortalData(PortalObjectsUtils.fixOwner(ownerType, ownerId, data));
-         }
-         else if (PAGES_FILE.equals(file))
-         {
-            Collection<PageData> pages = bindingProvider.createContext(PageData.class).createMarshaller().unmarshalObjects(zis);
-            artifacts.addPages(PortalObjectsUtils.fixOwner(ownerType, ownerId, pages));
-         }
-         else if (NAVIGATION_FILE.equals(file))
-         {
-            NavigationData navigation = bindingProvider.createContext(NavigationData.class).createMarshaller().unmarshal(zis);
-            artifacts.addNavigation(PortalObjectsUtils.fixOwner(ownerType, ownerId, navigation));
-         }
-         else
-         {
-            throw new IOException("Unknown entry encountered in zip file: " + entry.getName());
-         }
+            else if (PAGES_FILE.equals(file))
+            {
+               Collection<PageData> pages = bindingProvider.createContext(PageData.class).createMarshaller().unmarshalObjects(zis);
+               pages = PortalObjectsUtils.fixOwner(ownerType, ownerId, pages);
+               for (PageData page : pages)
+               {
+                  context.addPage(new Page(page));
+               }
+            }
+            else if (NAVIGATION_FILE.equals(file))
+            {
+               NavigationData navigation = bindingProvider.createContext(NavigationData.class).createMarshaller().unmarshal(zis);
+               navigation = PortalObjectsUtils.fixOwner(ownerType, ownerId, navigation);
+               context.addNavigation(new PageNavigation(navigation));
+            }
+            else
+            {
+               throw new IOException("Unknown entry encountered in zip file: " + entry.getName());
+            }
 
-         zis.closeEntry();
+            zis.closeEntry();
+         }
+         return context;
       }
-      zis.reallyClose();
-
-      return artifacts;
+      finally
+      {
+         zis.reallyClose();
+      }
    }
 
-   private void createZipEntry(String ownerType, String ownerId, String file, ZipOutputStream zos) throws IOException
+   private static void createZipEntry(String ownerType, String ownerId, String file, ZipOutputStream zos) throws IOException
    {
       StringBuilder path = new StringBuilder().append(ownerType);
       if (!ownerId.startsWith("/")) path.append("/");
@@ -168,7 +175,7 @@ public class ExportImportHandlerImpl implements ExportImportHandler
       zos.putNextEntry(new ZipEntry(path.toString()));
    }
 
-   private String[] parseEntry(ZipEntry entry) throws IOException
+   private static String[] parseEntry(ZipEntry entry) throws IOException
    {
       String name = entry.getName();
       if (name.endsWith(PORTAL_FILE) || name.endsWith(PAGES_FILE) || name.endsWith(NAVIGATION_FILE))
@@ -186,7 +193,8 @@ public class ExportImportHandlerImpl implements ExportImportHandler
    }
 
    // Bug in SUN's JDK XMLStreamReader implementation closes the underlying stream when
-   // it finishes reading an XML document. http://bugs.sun.com/view_bug.do?bug_id=6539065
+   // it finishes reading an XML document. This is no good when we are using a ZipInputStream.
+   // See http://bugs.sun.com/view_bug.do?bug_id=6539065 for more information.
    private static class NonCloseableZipInputStream extends ZipInputStream
    {
       private NonCloseableZipInputStream(InputStream in)

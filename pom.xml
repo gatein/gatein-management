@@ -1,6 +1,6 @@
 <!--
   ~ JBoss, a division of Red Hat
-  ~ Copyright 2010, Red Hat Middleware, LLC, and individual
+  ~ Copyright 2011, Red Hat Middleware, LLC, and individual
   ~ contributors as indicated by the @authors tag. See the
   ~ copyright.txt in the distribution for a full listing of
   ~ individual contributors.
@@ -46,8 +46,6 @@
 
    <properties>
       <org.gatein.common.version>2.0.3-GA</org.gatein.common.version>
-      <org.gatein.mop.version>1.0.3-GA</org.gatein.mop.version>
-      <org.chromattic.version>1.0.4</org.chromattic.version>
       <org.gatein.portal.version>3.2.0-Beta01-SNAPSHOT</org.gatein.portal.version>
       <org.exoplatform.kernel.version>2.2.5-GA</org.exoplatform.kernel.version>
       <org.slf4j.version>1.6.1</org.slf4j.version>
@@ -55,16 +53,7 @@
 
    <dependencyManagement>
       <dependencies>
-         <!-- GateIn Dependencies -->
-         <dependency>
-            <groupId>org.gatein</groupId>
-            <artifactId>gatein-dep</artifactId>
-            <version>1.0.2-GA</version>
-            <type>pom</type>
-            <scope>import</scope>
-         </dependency>
-         
-         <!-- GateIn Management Modules -->
+         <!-- GateIn Management -->
          <dependency>
             <groupId>org.gatein.management</groupId>
             <artifactId>management-api</artifactId>
@@ -75,6 +64,13 @@
             <artifactId>management-domain</artifactId>
             <version>${project.version}</version>
          </dependency>
+         <dependency>
+            <groupId>org.gatein.management</groupId>
+            <artifactId>management-core</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+
+         <!-- GateIn Management Binding Modules -->
          <dependency>
             <groupId>org.gatein.management.binding</groupId>
             <artifactId>binding-api</artifactId>
@@ -96,10 +92,15 @@
             <version>${project.version}</version>
          </dependency>
          
-         <!-- Management Modules -->
+         <!-- GateIn Management Portal Objects Modules -->
          <dependency>
             <groupId>org.gatein.management.portalobjects</groupId>
             <artifactId>portalobjects-api</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management.portalobjects</groupId>
+            <artifactId>portalobjects-common</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
@@ -117,6 +118,8 @@
             <artifactId>portalobjects-client</artifactId>
             <version>${project.version}</version>
          </dependency>
+
+         <!-- GateIn Management Web Modules -->
          <dependency>
             <groupId>org.gatein.management</groupId>
             <artifactId>management-web</artifactId>
@@ -124,11 +127,6 @@
          </dependency>
 
          <!-- GateIn Runtime Dependencies -->
-         <!--<dependency>-->
-            <!--<groupId>org.gatein.mop</groupId>-->
-            <!--<artifactId>mop-api</artifactId>-->
-            <!--<version>${org.gatein.mop.version}</version>-->
-         <!--</dependency>-->
          <dependency>
             <groupId>org.gatein.common</groupId>
             <artifactId>common-logging</artifactId>
@@ -138,55 +136,23 @@
             <groupId>org.exoplatform.portal</groupId>
             <artifactId>exo.portal.component.portal</artifactId>
             <version>${org.gatein.portal.version}</version>
+            <exclusions>
+               <exclusion>
+                  <groupId>org.gatein.mop</groupId>
+                  <artifactId>mop-core</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.gatein.mop</groupId>
+                  <artifactId>mop-spi</artifactId>
+               </exclusion>
+            </exclusions>
          </dependency>
-         <!--<dependency>-->
-            <!--<groupId>org.exoplatform.portal</groupId>-->
-            <!--<artifactId>exo.portal.component.management</artifactId>-->
-            <!--<version>${org.gatein.portal.version}</version>-->
-         <!--</dependency>-->
-         <!--<dependency>-->
-            <!--<groupId>org.exoplatform.kernel</groupId>-->
-            <!--<artifactId>exo.kernel.container</artifactId>-->
-            <!--<version>${org.exoplatform.kernel.version}</version>-->
-         <!--</dependency>-->
 
          <!-- Staxbuilder TODO: include this in this project -->
          <dependency>
             <groupId>org.gatein.staxbuilder</groupId>
             <artifactId>stax-builder</artifactId>
             <version>1.0.0.SNAPSHOT</version>
-         </dependency>
-
-         <!-- Chromattic -->
-         <dependency>
-            <groupId>org.chromattic</groupId>
-            <artifactId>chromattic.api</artifactId>
-            <version>${org.chromattic.version}</version>
-         </dependency>
-
-         <dependency>
-            <groupId>org.chromattic</groupId>
-            <artifactId>chromattic.ext</artifactId>
-            <version>${org.chromattic.version}</version>
-         </dependency>
-
-         <dependency>
-            <groupId>org.chromattic</groupId>
-            <artifactId>chromattic.core</artifactId>
-            <version>${org.chromattic.version}</version>
-         </dependency>
-
-         <dependency>
-            <groupId>org.chromattic</groupId>
-            <artifactId>chromattic.exo</artifactId>
-            <version>${org.chromattic.version}</version>
-         </dependency>
-
-         <dependency>
-            <groupId>org.chromattic</groupId>
-            <artifactId>chromattic.apt</artifactId>
-            <version>${org.chromattic.version}</version>
-            <scope>compile</scope>
          </dependency>
 
          <!-- picocontainer -->
@@ -237,6 +203,7 @@
       <module>api</module>
       <module>domain</module>
       <module>binding</module>
+      <module>core</module>
       <module>portalobjects</module>
       <module>web</module>
       <module>packaging</module>

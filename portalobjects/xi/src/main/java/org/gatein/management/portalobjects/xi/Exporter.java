@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -23,16 +23,15 @@
 
 package org.gatein.management.portalobjects.xi;
 
-import org.exoplatform.portal.pom.data.NavigationData;
-import org.exoplatform.portal.pom.data.PageData;
-import org.exoplatform.portal.pom.data.PortalData;
-import org.gatein.management.domain.PortalArtifacts;
-import org.gatein.management.portalobjects.client.api.PomDataClient;
+import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
+import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
+import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
 import org.kohsuke.args4j.Option;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -86,10 +85,10 @@ public class Exporter
    @Option(name = "--help")
    boolean help;
 
-   private PomDataClient client;
+   private PortalObjectsMgmtClient client;
    private File exportDir;
    private int level;
-   private PortalArtifacts portalArtifacts = new PortalArtifacts();
+   private PortalObjectsContext context = new PortalObjectsContext();
 
    void init(Properties properties) throws Exception
    {
@@ -124,7 +123,7 @@ public class Exporter
       }
 
       //TODO: Pass credentials
-      client = PomDataClient.Factory.create(InetAddress.getByName(host), port, portalContainer);
+      client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, portalContainer);
 
       // Process scopes for export
       Scope[] scopes = getScopes();
@@ -133,7 +132,7 @@ public class Exporter
          processScope(s);
       }
 
-      client.exportAsZip(portalArtifacts, new File(exportDir, "epp-export.zip"));
+      client.exportAsZip(context, new File(exportDir, "epp-export.zip"));
    }
 
    private Scope[] getScopes()
@@ -190,11 +189,11 @@ public class Exporter
 
    private Collection<String> getSiteNames(String ownerType)
    {
-      List<PortalData> list = client.getPortalConfig(ownerType);
+      List<PortalConfig> list = client.getPortalConfig(ownerType);
       Collection<String> names = new ArrayList<String>(list.size());
-      for (PortalData data : list)
+      for (PortalConfig config : list)
       {
-         names.add(data.getName());
+         names.add(config.getName());
       }
 
       return names;
@@ -274,11 +273,11 @@ public class Exporter
       {
          case SITE:
          {
-            PortalData data = client.getPortalConfig(scope.getName(), ownerId);
+            PortalConfig data = client.getPortalConfig(scope.getName(), ownerId);
             indent();
             if (data != null)
             {
-               portalArtifacts.addPortalData(data);
+               context.addPortalConfig(data);
                System.out.println("Successfully exported.");
             }
             else
@@ -292,11 +291,11 @@ public class Exporter
             String name = (itemName == null) ? getUserInput("Page name ('*' for all)") : itemName;
             if ("*".endsWith(name))
             {
-               List<PageData> pages = client.getPages(scope.getName(), ownerId);
+               List<Page> pages = client.getPages(scope.getName(), ownerId);
                indent();
                if (pages != null)
                {
-                  portalArtifacts.addPages(pages);
+                  context.addPages(pages);
                   System.out.println("Successfully exported.");
                }
                else
@@ -306,11 +305,11 @@ public class Exporter
             }
             else
             {
-               PageData page = client.getPage(scope.getName(), ownerId, name);
+               Page page = client.getPage(scope.getName(), ownerId, name);
                indent();
                if (page != null)
                {
-                  portalArtifacts.addPage(page);
+                  context.addPage(page);
                   System.out.println("Successfully exported.");
                }
                else
@@ -323,20 +322,26 @@ public class Exporter
          case NAVIGATION:
          {
             String name = (itemName == null) ? getUserInput("Navigation path ('*' for all)") : itemName;
-            NavigationData data;
+            PageNavigation data;
             if ("*".equals(name))
             {
                data = client.getNavigation(scope.getName(), ownerId);
             }
             else
             {
-               data = client.getNavigation(scope.getName(), ownerId, name);
+               PageNode node = client.getNavigationNode(scope.getName(), ownerId, name);
+               data = new PageNavigation();
+               data.setOwnerType(scope.getName());
+               data.setOwnerId(ownerId);
+               ArrayList<PageNode> nodes = new ArrayList<PageNode>(1);
+               nodes.add(node);
+               data.setNodes(nodes);
             }
 
             indent();
             if (data != null)
             {
-               portalArtifacts.addNavigation(data);
+               context.addNavigation(data);
                System.out.println("Successfully exported.");
             }
             else
@@ -348,59 +353,6 @@ public class Exporter
          default:
             throw new RuntimeException("Unsupported data type " + dataType);
       }
-   }
-
-   private File createDataDir(File parent, String scope, String ownerId) throws IOException
-   {
-      File cd = new File(parent, scope);
-      if (!cd.exists())
-      {
-         if (!cd.mkdir())
-         {
-            throw new RuntimeException("Could not create directory " + cd.getAbsolutePath());
-         }
-      }
-      cd = new File(cd, ownerId);
-      if (!cd.exists())
-      {
-         if (!cd.mkdirs())
-         {
-            throw new RuntimeException("Could not create directory " + cd.getAbsolutePath());
-         }
-      }
-      return cd;
-   }
-
-   private void writeBytesToFile(File file, byte[] bytes) throws IOException
-   {
-      if (bytes == null) return;
-
-      BufferedOutputStream bos = null;
-      try
-      {
-         FileOutputStream fos = new FileOutputStream(file);
-         bos = new BufferedOutputStream(fos);
-         bos.write(bytes);
-      }
-      finally
-      {
-         if (bos != null)
-         {
-            try
-            {
-               bos.flush();
-               bos.close();
-            }
-            catch (Exception e)
-            {
-            }
-         }
-      }
-   }
-
-   private String getPageName()
-   {
-      return getUserInput("Page name");
    }
 
    private String getUserInput(String label)
@@ -419,7 +371,7 @@ public class Exporter
       return value;
    }
 
-   private String getProperty(String propertyName, Properties properties) throws Exception
+   private String getRequiredProperty(String propertyName, Properties properties) throws Exception
    {
       String value = getProperty(propertyName, null, properties);
       if (value == null) throw new Exception("Configuration property " + propertyName + " is required.");

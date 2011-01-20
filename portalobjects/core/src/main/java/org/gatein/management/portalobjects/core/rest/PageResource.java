@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -23,11 +23,19 @@
 
 package org.gatein.management.portalobjects.core.rest;
 
+import org.exoplatform.commons.utils.LazyPageList;
+import org.exoplatform.portal.config.Query;
+import org.exoplatform.portal.pom.data.ComponentData;
+import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.PageData;
+import org.exoplatform.portal.pom.data.PageKey;
+import org.exoplatform.portal.pom.data.PortalData;
+import org.exoplatform.portal.pom.data.PortalKey;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
-import org.gatein.management.ManagementException;
-import org.gatein.management.portalobjects.api.PageManagementService;
+import org.gatein.management.core.rest.ComponentRequestCallback;
+import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -44,14 +52,18 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static javax.ws.rs.core.Response.*;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 //TODO: Add debugging
-public class PageResource extends AbstractExoContainerResource<PageManagementService>
+public class PageResource extends BasePortalObjectsResource
 {
    private static final Logger log = LoggerFactory.getLogger(PageResource.class);
 
@@ -69,26 +81,36 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
    @GET
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPages(@Context UriInfo uriInfo,
-                            @QueryParam("ownerType") String ownerType,
-                            @QueryParam("ownerId") String ownerId)
+                            @QueryParam("ownerType") String type,
+                            @QueryParam("ownerId") String id)
    {
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<PageManagementService, GenericEntity<List<PageData>>>()
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, GenericEntity<List<PageData>>>()
       {
          @Override
-         public GenericEntity<List<PageData>> doService(PageManagementService service, String ownerType, String ownerId) throws ManagementException
+         public GenericEntity<List<PageData>> inRequest(ModelDataStorage modelDataStorage) throws Exception
          {
-            List<PageData> pages = service.getPages(ownerType, ownerId);
-            if (pages == null || pages.isEmpty())
+            Query<PageData> query = new Query<PageData>(ownerType, ownerId, PageData.class);
+            LazyPageList<PageData> results = modelDataStorage.find(query);
+
+            List<PageData> list = new ArrayList<PageData>(results.getAll());
+            if (list.isEmpty())
             {
                return null;
             }
-            else
-            {
-               // This ensures that the generic information can be retrieved at runtime
-               return new GenericEntity<List<PageData>>(pages)
-               {
-               };
-            }
+
+            //TODO: Do we want to sort on page name or accept the order of what's returned from data storage ?
+//               Collections.sort(list, new Comparator<PageData>()
+//               {
+//                  @Override
+//                  public int compare(PageData page1, PageData page2)
+//                  {
+//                     return page1.getName().compareTo(page2.getName());
+//                  }
+//               });
+               return new GenericEntity<List<PageData>>(list){};
          }
       });
    }
@@ -97,16 +119,19 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
    @Path("/{page-name}")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPage(@Context UriInfo uriInfo,
-                           @QueryParam("ownerType") String ownerType,
-                           @QueryParam("ownerId") String ownerId,
+                           @QueryParam("ownerType") String type,
+                           @QueryParam("ownerId") String id,
                            @PathParam("page-name") final String pageName)
    {
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<PageManagementService, PageData>()
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, PageData>()
       {
          @Override
-         public PageData doService(PageManagementService service, String ownerType, String ownerId) throws ManagementException
+         public PageData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            return service.getPage(ownerType, ownerId, pageName);
+            return dataStorage.getPage(new PageKey(ownerType, ownerId, pageName));
          }
       });
    }
@@ -116,20 +141,37 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
    @POST
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response createPage(@Context UriInfo uriInfo,
-                              @QueryParam("ownerType") String ownerType,
-                              @QueryParam("ownerId") String ownerId,
+                              @QueryParam("ownerType") String type,
+                              @QueryParam("ownerId") String id,
                               @QueryParam("name") final String pageName,
                               @QueryParam("title") final String title)
    {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
       validateNonNullParameter(pageName, "name");
       validateNonNullParameter(title, "title");
 
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<PageManagementService, PageData>()
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, PageData>()
       {
          @Override
-         public PageData doService(PageManagementService service, String ownerType, String ownerId) throws ManagementException
+         public PageData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            return service.createPage(ownerType, ownerId, pageName, title);
+            PortalData portalData = dataStorage.getPortalConfig(new PortalKey(ownerType, ownerId));
+            if (portalData == null)
+            {
+               throw ownerException("Site does not exist, cannot create page", ownerType, ownerId, pageName, Status.NOT_FOUND);
+            }
+            ensurePageDoesNotExist(ownerType, ownerId, pageName, dataStorage);
+
+            // Create new page with same permissions of the site
+            PageData page = new PageData(null, null, pageName, null, null, null, title, null, null, null,
+               portalData.getAccessPermissions(), Collections.<ComponentData>emptyList(), ownerType, ownerId,
+               portalData.getEditPermission(), false);
+            dataStorage.create(page);
+
+            // Return the newly saved page
+            return getPage(ownerType, ownerId, pageName, dataStorage);
          }
       });
    }
@@ -138,21 +180,29 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
    @Path("/{page-name}")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updatePage(@Context UriInfo uriInfo,
-                              @QueryParam("ownerType") String ownerType,
-                              @QueryParam("ownerId") String ownerId,
-                              @PathParam("page-name") String pageName,
+                              @QueryParam("ownerType") String type,
+                              @QueryParam("ownerId") String id,
+                              @PathParam("page-name") final String pageName,
                               PageData page)
    {
-      if (!page.getName().equals(pageName)) throw new WebApplicationException(new Exception("URI page name is not same as page name in data."), Response.Status.BAD_REQUEST);
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
 
-      final PageData pageData = updateData(ownerType, ownerId, page);
+      if (!page.getName().equals(pageName))
+      {
+         throw ownerException("Invalid page name " + page.getName() +
+            " within the body of the request. Cannot update page", ownerType, ownerId, pageName, Status.BAD_REQUEST);
+      }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<PageManagementService>()
+      final PageData pageData = PortalObjectsUtils.fixOwner(ownerType, ownerId, page);
+
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
-         public void doServiceNoResult(PageManagementService service, String ownerType, String ownerId)
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            service.updatePage(pageData);
+            ensurePageExists(ownerType, ownerId, pageName, dataStorage);
+            dataStorage.save(pageData);
          }
       });
    }
@@ -161,25 +211,59 @@ public class PageResource extends AbstractExoContainerResource<PageManagementSer
    @Path("/{page-name}")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response deletePage(@Context UriInfo uriInfo,
-                              @QueryParam("ownerType") String ownerType,
-                              @QueryParam("ownerId") String ownerId,
+                              @QueryParam("ownerType") String type,
+                              @QueryParam("ownerId") String id,
                               @PathParam("page-name") final String pageName)
    {
-      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<PageManagementService>()
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
-         public void doServiceNoResult(PageManagementService service, String ownerType, String ownerId)
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            service.deletePage(ownerType, ownerId, pageName);
+            PageData page = ensurePageExists(ownerType, ownerId, pageName, dataStorage);
+            dataStorage.remove(page);
          }
       });
    }
 
-   private PageData updateData(String ownerType, String ownerId, PageData originalPage)
+   private PageData getPage(String ownerType, String ownerId, String name, ModelDataStorage dataStorage) throws Exception
    {
-      return new PageData(originalPage.getStorageId(), originalPage.getId(), originalPage.getName(), originalPage.getIcon(),
-         originalPage.getTemplate(), originalPage.getFactoryId(), originalPage.getTitle(), originalPage.getDescription(),
-         originalPage.getWidth(), originalPage.getHeight(), originalPage.getAccessPermissions(), originalPage.getChildren(),
-         ownerType, ownerId, originalPage.getEditPermission(), originalPage.isShowMaxWindow());
+      return dataStorage.getPage(new PageKey(ownerType, ownerId, name));
+   }
+
+   private PageData ensurePageExists(String ownerType, String ownerId, String name, ModelDataStorage dataStorage) throws Exception
+   {
+      PageData page = getPage(ownerType, ownerId, name, dataStorage);
+      if (page == null)
+      {
+         throw ownerException("Page does not exist", ownerType, ownerId, name, Status.NOT_FOUND);
+      }
+
+      return null;
+   }
+
+   private void ensurePageDoesNotExist(String ownerType, String ownerId, String name, ModelDataStorage dataStorage) throws Exception
+   {
+      PageData page = getPage(ownerType, ownerId, name, dataStorage);
+      if (page != null)
+      {
+         throw ownerException("Page already exists", ownerType, ownerId, name, Status.NOT_FOUND);
+      }
+   }
+
+   private WebApplicationException ownerException(String message, String ownerType, String ownerId, String pageName, Response.Status status)
+   {
+      return exception(createMessage(message, ownerType, ownerId, pageName), status);
+   }
+
+   private String createMessage(String message, String ownerType, String ownerId, String uri)
+   {
+      return new StringBuilder().append(message).append(" for ownerType ").append(ownerType)
+         .append(" and ownerId ").append(ownerId)
+         .append(" and pageName ").append(uri)
+         .toString();
    }
 }

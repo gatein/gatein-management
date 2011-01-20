@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -23,12 +23,18 @@
 
 package org.gatein.management.portalobjects.core.rest;
 
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.portal.config.DataStorage;
+import org.exoplatform.portal.config.UserPortalConfigService;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.NavigationData;
+import org.exoplatform.portal.pom.data.NavigationKey;
 import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
-import org.gatein.management.ManagementException;
-import org.gatein.management.portalobjects.api.NavigationManagementService;
+import org.gatein.management.core.rest.ComponentRequestCallback;
+import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -45,13 +51,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static javax.ws.rs.core.Response.*;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class NavigationResource extends AbstractExoContainerResource<NavigationManagementService>
+public class NavigationResource extends BasePortalObjectsResource
 {
    private static final Logger log = LoggerFactory.getLogger(NavigationResource.class);
 
@@ -69,20 +78,23 @@ public class NavigationResource extends AbstractExoContainerResource<NavigationM
    @GET
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getNavigation(@Context UriInfo uriInfo,
-                                 @QueryParam("ownerType") String ownerType,
-                                 @QueryParam("ownerId") String ownerId)
+                                 @QueryParam("ownerType") String type,
+                                 @QueryParam("ownerId") String id)
    {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
       if (log.isDebugEnabled())
       {
-         log.debug("Navigation RESTful resource retrieving navigation for ownerType " + ownerType + " and ownerId " + ownerId);
+         log.debug(createMessage("Retrieving navigation", ownerType, ownerId));
       }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<NavigationManagementService, NavigationData>()
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, NavigationData>()
       {
          @Override
-         public NavigationData doService(NavigationManagementService service, String ownerType, String ownerId) throws ManagementException
+         public NavigationData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            return service.getNavigation(ownerType, ownerId);
+            return ensureNavigationExists(ownerType, ownerId, dataStorage);
          }
       });
    }
@@ -91,58 +103,78 @@ public class NavigationResource extends AbstractExoContainerResource<NavigationM
    @Path("/{nav-uri:.*}")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getNavigation(@Context UriInfo uriInfo,
-                                 @QueryParam("ownerType") String ownerType,
-                                 @QueryParam("ownerId") String ownerId,
+                                 @QueryParam("ownerType") String type,
+                                 @QueryParam("ownerId") String id,
                                  @PathParam("nav-uri") final String navigationUri)
    {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
       if (log.isDebugEnabled())
       {
-         log.debug("Navigation RESTful resource retrieving navigation for ownerType " +
-            ownerType + " and ownerId " + ownerId + " and navigation uri " + navigationUri);
+         log.debug(createMessage("Retrieving navigation", ownerType, ownerId, navigationUri));
       }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<NavigationManagementService, NavigationData>()
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, NavigationData>()
       {
          @Override
-         public NavigationData doService(NavigationManagementService service, String ownerType, String ownerId) throws ManagementException
+         public NavigationData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            NavigationNodeData node = service.getNavigationNode(ownerType, ownerId, navigationUri);
-            return buildNavigationData(ownerType, ownerId, node);
+            return getNavigation(ownerType, ownerId, navigationUri, dataStorage);
          }
       });
    }
 
+   // Since you can either create a default navigation, or a navigation node at the default level, this
+   // method will handle both.
    @PUT
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response createNavigation(@Context UriInfo uriInfo,
-                                    @QueryParam("ownerType") String ownerType,
-                                    @QueryParam("ownerId") String ownerId,
-                                    @QueryParam("priority") String priorityString)
+                                    @QueryParam("ownerType") String type,
+                                    @QueryParam("ownerId") String id,
+                                    @QueryParam("priority") final Integer priority,
+                                    @QueryParam("name") final String name,
+                                    @QueryParam("label") final String label)
    {
-      validateNonNullParameter(priorityString, "priority");
-      final Integer priority;
-      try
+      // If priority wasn't specified as a query parameter, then we can assume it's a navigation node create.
+      if (priority == null)
       {
-         priority = Integer.parseInt(priorityString);
-      }
-      catch (NumberFormatException nfe)
-      {
-         throw new WebApplicationException(new Exception("Invalid value " +
-            priorityString + " for priority. This must be an integer."), Response.Status.BAD_REQUEST);
+         return createNavigation(uriInfo, type, id, (String) null, name, label);
       }
 
-      if (log.isDebugEnabled())
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
+      // This check ensures the client didn't accidentally include a priority parameter when it wanted a node create
+      if (name != null || label != null)
       {
-         log.debug("Navigation RESTful resource creating navigation for ownerType " +
-            ownerType + " and ownerId " + ownerId + " and priority " + priority);
+         throw ownerException("Cannot create navigation when name or label is specified along with priority",
+            ownerType, ownerId, Status.BAD_REQUEST);
       }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<NavigationManagementService, NavigationData>()
+      // Validate priority
+      String s = String.valueOf(priority);
+      validateNonNullParameter(s, "priority");
+
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, NavigationData>()
       {
          @Override
-         public NavigationData doService(NavigationManagementService service, String ownerType, String ownerId) throws ManagementException
+         public NavigationData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            return service.createNavigation(ownerType, ownerId, priority);
+            ensureNavigationDoesNotExist(ownerType, ownerId, dataStorage);
+
+            NavigationData navigation = new NavigationData(ownerType, ownerId, priority, Collections.<NavigationNodeData>emptyList());
+
+            if (log.isDebugEnabled())
+            {
+               log.debug(createMessage("Creating navigation with priority", ownerType, ownerId));
+            }
+
+            // Create navigation
+            dataStorage.create(navigation);
+
+            // Fetch and return the navigation recently created
+            return getNavigation(ownerType, ownerId, dataStorage);
          }
       });
    }
@@ -151,29 +183,34 @@ public class NavigationResource extends AbstractExoContainerResource<NavigationM
    @Path("/{parent-nav-uri:.*}")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response createNavigation(@Context UriInfo uriInfo,
-                                    @QueryParam("ownerType") String ownerType,
-                                    @QueryParam("ownerId") String ownerId,
-                                    @PathParam("parent-nav-uri") String parentNavigationUri,
+                                    @QueryParam("ownerType") String type,
+                                    @QueryParam("ownerId") String id,
+                                    @PathParam("parent-nav-uri") final String parentNavigationUri,
                                     @QueryParam("name") final String name,
                                     @QueryParam("label") final String label)
    {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
       validateNonNullParameter(name, "name");
       validateNonNullParameter(label, "label");
 
-      final String uri = parentNavigationUri + "/" + name;
-      if (log.isDebugEnabled())
-      {
-         log.debug("Navigation RESTful resource creating navigation for ownerType " +
-            ownerType + " and ownerId " + ownerId + " and navigation uri " + uri + " and label " + label);
-      }
-
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<NavigationManagementService, NavigationData>()
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, NavigationData>()
       {
          @Override
-         public NavigationData doService(NavigationManagementService service, String ownerType, String ownerId) throws ManagementException
+         public NavigationData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            NavigationNodeData node = service.createNavigationNode(ownerType, ownerId, uri, label);
-            return buildNavigationData(ownerType, ownerId, node);
+            NavigationData navigation = ensureNavigationExists(ownerType, ownerId, dataStorage);
+            NavigationNodeData node = createChild(navigation, parentNavigationUri, name, label);
+
+            if (log.isDebugEnabled())
+            {
+               log.debug(createMessage("Creating navigation", ownerType, ownerId, node.getURI()));
+            }
+
+            // Save navigation
+            dataStorage.save(navigation);
+            return getNavigation(ownerType, ownerId, node.getURI(), dataStorage);
          }
       });
    }
@@ -181,32 +218,24 @@ public class NavigationResource extends AbstractExoContainerResource<NavigationM
    @POST
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updateNavigation(@Context UriInfo uriInfo,
-                                    @QueryParam("ownerType") String ownerType,
-                                    @QueryParam("ownerId") String ownerId,
+                                    @QueryParam("ownerType") String type,
+                                    @QueryParam("ownerId") String id,
                                     final NavigationData data)
    {
-      final boolean debug = log.isDebugEnabled();
-      final List<NavigationNodeData> nodes = data.getNodes();
-      if (nodes == null)
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+      if (log.isDebugEnabled())
       {
-         throw new WebApplicationException(
-            new Exception("Cannot update navigation. No nodes were supplied in request."), Response.Status.BAD_REQUEST);
+         log.debug(createMessage("Updating navigation", ownerType, ownerId));
       }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<NavigationManagementService>()
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
-         public void doServiceNoResult(NavigationManagementService service, String ownerType, String ownerId)
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            for (NavigationNodeData node : nodes)
-            {
-               if (debug)
-               {
-                  log.debug("Navigation RESTful resource updating navigation for ownerType " +
-                     ownerType + " and ownerId " + ownerId + " and navigation uri " + node.getURI());
-               }
-               service.updateNavigationNode(ownerType, ownerId, node);
-            }
+            ensureNavigationExists(ownerType, ownerId, dataStorage);
+            dataStorage.save(data);
          }
       });
    }
@@ -215,97 +244,309 @@ public class NavigationResource extends AbstractExoContainerResource<NavigationM
    @Path("/{nav-uri:.*}")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updateNavigation(@Context UriInfo uriInfo,
-                                    @QueryParam("ownerType") String ownerType,
-                                    @QueryParam("ownerId") String ownerId,
+                                    @QueryParam("ownerType") String type,
+                                    @QueryParam("ownerId") String id,
                                     @PathParam("nav-uri") final String navigationUri,
                                     final NavigationData data)
    {
-      if (log.isDebugEnabled())
-      {
-         log.debug("Navigation RESTful resource updating navigation for ownerType " +
-            ownerType + " and ownerId " + ownerId + " and navigation uri " + navigationUri);
-      }
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
 
       // Validate request data
       List<NavigationNodeData> nodes = data.getNodes();
       if (nodes == null)
       {
-         throw new WebApplicationException(new Exception("Cannot update navigation for navigation uri " +
-            navigationUri + ". No nodes were supplied in request."), Response.Status.BAD_REQUEST);
+         throw ownerException("No navigation nodes found in requst, cannot update navigation", ownerType, ownerId, navigationUri, Status.BAD_REQUEST);
       }
       if (nodes.size() != 1)
       {
-         throw new WebApplicationException(new Exception("Cannot update navigation for navigation uri " +
-            navigationUri + ". Only one root node should be defined in this request."), Response.Status.BAD_REQUEST);
+         throw ownerException("Only one navigation node aloud for request, cannot update navigation", ownerType, ownerId, navigationUri, Status.BAD_REQUEST);
       }
 
       // Ensure URI of request data matches URI of URL Scheme
       final NavigationNodeData node = nodes.get(0);
       if (!node.getURI().equals(navigationUri))
       {
-         throw new WebApplicationException(new Exception("Cannot delete navigation for navigation uri " +
-            navigationUri + ". Node uri defined in data of request does not match nav URI of the request."), Response.Status.BAD_REQUEST);
+         throw ownerException("Invalid node uri " + node.getURI() +
+            " within the body of the request. Cannot update navigation", ownerType, ownerId, navigationUri, Status.BAD_REQUEST);
       }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<NavigationManagementService>()
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Updating navigation", ownerType, ownerId, navigationUri));
+      }
+
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
-         public void doServiceNoResult(NavigationManagementService service, String ownerType, String ownerId)
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            service.updateNavigationNode(ownerType, ownerId, node);
+            NavigationData navigation = ensureNavigationExists(ownerType, ownerId, dataStorage);
+
+            // Replace node in navigation
+            updateNavigationNode(navigation, node);
+
+            DataStorage ds = (DataStorage) ExoContainerContext.getCurrentContainer().
+               getComponentInstanceOfType(DataStorage.class);
+
+            ds.save(new PageNavigation(navigation));
+
+            // Save
+            //dataStorage.save(navigation);
          }
       });
    }
 
    //TODO: Do want to allow the ability to delete the default navigation for a site ?
-//   @DELETE
-//   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-//   public Response deleteNavigation(@Context UriInfo uriInfo,
-//                                    @QueryParam("ownerType") String ownerType,
-//                                    @QueryParam("ownerId") String ownerId)
-//   {
-//      log.debug("Navigation RESTful resource deleting navigation for ownerType " + ownerType + " and ownerId " + ownerId);
-//
-//      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<NavigationManagementService>()
-//      {
-//         @Override
-//         public void doServiceNoResult(NavigationManagementService service, String ownerType, String ownerId)
-//         {
-//            service.deleteNavigation(ownerType, ownerId);
-//         }
-//      });
-//   }
+   @DELETE
+   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+   public Response deleteNavigation(@Context UriInfo uriInfo,
+                                    @QueryParam("ownerType") String type,
+                                    @QueryParam("ownerId") String id)
+   {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Deleting navigation", ownerType, ownerId));
+      }
+
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
+      {
+         @Override
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
+         {
+            NavigationData navigation = ensureNavigationExists(ownerType, ownerId, dataStorage);
+            dataStorage.remove(navigation);
+         }
+      });
+   }
 
    @DELETE
    @Path("/{nav-uri:.*}")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response deleteNavigation(@Context UriInfo uriInfo,
-                                    @QueryParam("ownerType") String ownerType,
-                                    @QueryParam("ownerId") String ownerId,
+                                    @QueryParam("ownerType") String type,
+                                    @QueryParam("ownerId") String id,
                                     @PathParam("nav-uri") final String navigationUri)
    {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
       if (log.isDebugEnabled())
       {
-         log.debug("Navigation RESTful resource deleting navigation for ownerType " +
-            ownerType + " and ownerId " + ownerId + " and navigation uri " + navigationUri);
+         log.debug(createMessage("Deleting navigation", ownerType, ownerId, navigationUri));
       }
 
-      return handleRequest(ownerType, ownerId, uriInfo, new AbstractMgmtServiceCallbackNoResult<NavigationManagementService>()
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
-         public void doServiceNoResult(NavigationManagementService service, String ownerType, String ownerId)
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            service.deleteNavigationNode(ownerType, ownerId, navigationUri);
+            NavigationData navigation = ensureNavigationExists(ownerType, ownerId, dataStorage);
+
+            String parentUri = getParentUri(navigationUri);
+            List<NavigationNodeData> siblings;
+            if (parentUri == null)
+            {
+               siblings = navigation.getNodes();
+            }
+            else
+            {
+               NavigationNodeData parent = ensureNodeExists(navigation, parentUri);
+               siblings = parent.getNodes();
+            }
+            String name = getNameForUri(navigationUri);
+            NavigationNodeData node = getNode(siblings, name);
+            if (node == null)
+            {
+               throw ownerException("Node does not exist, cannot delete navigation", ownerType, ownerId, navigationUri, Status.NOT_FOUND);
+            }
+
+            siblings.remove(node);
+            dataStorage.save(navigation);
          }
       });
    }
 
-   private NavigationData buildNavigationData(String ownerType, String ownerId, NavigationNodeData node)
+   private NavigationData getNavigation(String ownerType, String ownerId, ModelDataStorage dataStorage)
    {
-      if (node == null) return null;
+      try
+      {
+         return dataStorage.getPageNavigation(new NavigationKey(ownerType, ownerId));
+      }
+      catch (Exception e)
+      {
+         throw ownerException("Unknown error getting navigation", ownerType, ownerId, Status.INTERNAL_SERVER_ERROR);
+      }
+   }
 
-      List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
-      nodes.add(node);
-      return new NavigationData(ownerType, ownerId, null, nodes);
+   private NavigationData getNavigation(String ownerType, String ownerId, String uri, ModelDataStorage dataStorage)
+   {
+      try
+      {
+         NavigationData navigation = ensureNavigationExists(ownerType, ownerId, dataStorage);
+         NavigationNodeData node = findNodeByUri(navigation.getNodes(), uri);
+         if (node == null) return null;
+
+         List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
+         nodes.add(node);
+         return new NavigationData(navigation.getStorageId(), navigation.getOwnerType(), navigation.getOwnerId(), navigation.getPriority(), nodes);
+      }
+      catch (Exception e)
+      {
+         throw ownerException("Unknown error getting navigation", ownerType, ownerId, Status.INTERNAL_SERVER_ERROR);
+      }
+   }
+
+   private NavigationData ensureNavigationExists(String ownerType, String ownerId, ModelDataStorage dataStorage) throws WebApplicationException
+   {
+      NavigationData navigationData = getNavigation(ownerType, ownerId, dataStorage);
+      if (navigationData == null)
+      {
+         throw ownerException("Navigation does not exist", ownerType, ownerId, Status.NOT_FOUND);
+      }
+
+      return navigationData;
+   }
+
+   private void ensureNavigationDoesNotExist(String ownerType, String ownerId, ModelDataStorage dataStorage) throws WebApplicationException
+   {
+      NavigationData navigationData = getNavigation(ownerType, ownerId, dataStorage);
+      if (navigationData != null) throw ownerException("Navigation already exists", ownerType, ownerId, Status.FORBIDDEN);
+   }
+
+   private NavigationNodeData ensureNodeExists(NavigationData navigation, String uri)
+   {
+      NavigationNodeData existing = findNodeByUri(navigation.getNodes(), uri);
+      if (existing == null)
+      {
+         throw ownerException("Navigation node does not exist", navigation.getOwnerType(), navigation.getOwnerId(), uri, Status.NOT_FOUND);
+      }
+
+      return existing;
+   }
+
+   private NavigationNodeData createChild(NavigationData navigation, String parentUri, String name, String label)
+   {
+      String ownerType = navigation.getOwnerType();
+      String ownerId = navigation.getOwnerId();
+
+      List<NavigationNodeData> siblings;
+      String uri;
+      if (parentUri == null)
+      {
+         uri = name;
+         siblings = navigation.getNodes();
+      }
+      else
+      {
+         // Ensure parent exists, before attempting ot create new node
+         NavigationNodeData parent = ensureNodeExists(navigation, parentUri);
+         uri = parent.getURI() + "/" + name;
+         siblings = parent.getNodes();
+      }
+
+      // Ensure child doesn't already exist
+      if (getNode(siblings, name) != null)
+      {
+         throw ownerException("Node already exists, cannot create navigation", ownerType, ownerId, uri, Status.FORBIDDEN);
+      }
+
+      // Create new node, with no children
+      NavigationNodeData newNode =
+         new NavigationNodeData(uri, label, null, name, null, null, null, null, Collections.<NavigationNodeData>emptyList());
+
+      // Add it to the list
+      siblings.add(newNode);
+
+      return newNode;
+   }
+
+   private void updateNavigationNode(NavigationData navigation, NavigationNodeData node)
+   {
+      String parentUri = getParentUri(node.getURI());
+      List<NavigationNodeData> siblings;
+      if (parentUri == null)
+      {
+         siblings = navigation.getNodes();
+      }
+      else
+      {
+         NavigationNodeData parent = ensureNodeExists(navigation, parentUri);
+         siblings = parent.getNodes();
+      }
+
+      NavigationNodeData existing = getNode(siblings, node.getName());
+      if (existing == null)
+      {
+         throw ownerException("Node does not exist, cannot update navigation",
+            navigation.getOwnerType(), navigation.getOwnerId(), node.getURI(), Status.NOT_FOUND);
+      }
+
+      int index = siblings.indexOf(existing);
+      siblings.set(index, node);
+   }
+
+   private WebApplicationException ownerException(String message, String ownerType, String ownerId, String uri, Response.Status status)
+   {
+      return exception(createMessage(message, ownerType, ownerId, uri), status);
+   }
+
+   private String createMessage(String message, String ownerType, String ownerId, String uri)
+   {
+      return new StringBuilder().append(message).append(" for ownerType ").append(ownerType)
+         .append(" and ownerId ").append(ownerId)
+         .append(" and uri ").append(uri)
+         .toString();
+   }
+
+   private NavigationNodeData getNode(List<NavigationNodeData> nodes, String name)
+   {
+      for (NavigationNodeData node : nodes)
+      {
+         if (node.getName().equals(name))
+         {
+            return node;
+         }
+      }
+
+      return null;
+   }
+
+   private NavigationNodeData findNodeByUri(List<NavigationNodeData> nodes, String uri)
+   {
+      if (uri.charAt(0) == '/') uri = uri.substring(1);
+      if (uri.charAt(uri.length()-1) == '/') uri = uri.substring(0, uri.length() - 1);
+
+      int index = uri.indexOf('/');
+      if (index != -1)
+      {
+         String childName = uri.substring(0, index);
+         String grandChildren = uri.substring(index+1, uri.length());
+         NavigationNodeData child = getNode(nodes, childName);
+         if (child == null) return null;
+
+         return findNodeByUri(child.getNodes(), grandChildren);
+      }
+      else
+      {
+         return getNode(nodes, uri);
+      }
+   }
+
+   private String getNameForUri(String uri)
+   {
+      return uri.substring(uri.lastIndexOf('/') + 1, uri.length());
+   }
+
+   private String getParentUri(String uri)
+   {
+      if (!uri.contains("/"))
+      {
+         return null;
+      }
+      return uri.substring(0, uri.lastIndexOf('/'));
    }
 }

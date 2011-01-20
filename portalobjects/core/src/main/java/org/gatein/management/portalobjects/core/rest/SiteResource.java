@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -23,14 +23,19 @@
 
 package org.gatein.management.portalobjects.core.rest;
 
+import org.exoplatform.commons.utils.LazyPageList;
+import org.exoplatform.portal.config.Query;
+import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.PortalData;
+import org.exoplatform.portal.pom.data.PortalKey;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
-import org.gatein.management.ManagementException;
-import org.gatein.management.portalobjects.api.SiteManagementService;
-import org.gatein.management.portalobjects.core.Utils;
+import org.gatein.management.core.rest.ComponentRequestCallback;
+import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -40,6 +45,7 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,7 +53,7 @@ import java.util.List;
  * @version $Revision$
  */
 //TODO: Add debugging
-public class SiteResource extends AbstractExoContainerResource<SiteManagementService>
+public class SiteResource extends BasePortalObjectsResource
 {
    private static final Logger log = LoggerFactory.getLogger(SiteResource.class);
 
@@ -64,24 +70,29 @@ public class SiteResource extends AbstractExoContainerResource<SiteManagementSer
 
    @GET
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
-   public Response getPortalData(@Context UriInfo uriInfo, @QueryParam("ownerType") String ownerType)
+   public Response getPortalData(@Context UriInfo uriInfo, @QueryParam("ownerType") String type)
    {
-      return handleRequest(ownerType, uriInfo, new RestfulManagementServiceCallback<SiteManagementService, GenericEntity<List<PortalData>>>()
+      final String ownerType = checkOwnerType(type);
+
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, GenericEntity<List<PortalData>>>()
       {
          @Override
-         public GenericEntity<List<PortalData>> doService(SiteManagementService service, String ownerType, String ownerId) throws ManagementException
+         public GenericEntity<List<PortalData>> inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            List<PortalData> data = service.getPortalData(ownerType);
-            if (data == null || data.isEmpty())
-            {
-               return null;
-            }
-            else
-            {
-               return new GenericEntity<List<PortalData>>(data)
-               {
-               };
-            }
+            Query<PortalData> query = new Query<PortalData>(ownerType, null, PortalData.class);
+            LazyPageList<PortalData> results = dataStorage.find(query);
+
+            List<PortalData> sites = new ArrayList<PortalData>(results.getAll());
+            //TODO: Do we want sort on site name, or accept order from data storage
+//            Collections.sort(sites, new Comparator<PortalData>()
+//            {
+//               @Override
+//               public int compare(PortalData data1, PortalData data2)
+//               {
+//                  return data1.getName().compareTo(data2.getName());
+//               }
+//            });
+            return new GenericEntity<List<PortalData>>(sites){};
          }
       });
    }
@@ -90,17 +101,45 @@ public class SiteResource extends AbstractExoContainerResource<SiteManagementSer
    @Path("/{owner-id:.*}")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPortalData(@Context UriInfo uriInfo,
-                                 @QueryParam("ownerType") String ownerType,
-                                 @PathParam("owner-id") String ownerId)
+                                 @QueryParam("ownerType") String type,
+                                 @PathParam("owner-id") String id)
    {
-      ownerId = Utils.fixOwnerId(ownerType, ownerId);
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
 
-      return handleRequest(ownerType, ownerId, uriInfo, new RestfulManagementServiceCallback<SiteManagementService, PortalData>()
+      return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, PortalData>()
       {
          @Override
-         public PortalData doService(SiteManagementService service, String ownerType, String ownerId) throws ManagementException
+         public PortalData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            return service.getPortalData(ownerType, ownerId);
+            return dataStorage.getPortalConfig(new PortalKey(ownerType, ownerId));
+         }
+      });
+   }
+
+   @POST
+   @Path("/{owner-id:.*}")
+   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+   public Response updatePortalData(@Context UriInfo uriInfo,
+                                    @QueryParam("ownerType") String type,
+                                    @PathParam("owner-id") String id,
+                                    final PortalData data)
+   {
+      final String ownerType = checkOwnerType(type);
+      final String ownerId = checkOwnerId(ownerType, id);
+
+      return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
+      {
+         @Override
+         public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
+         {
+            PortalData portalData = dataStorage.getPortalConfig(new PortalKey(ownerType, ownerId));
+            if (portalData == null)
+            {
+               throw ownerException("Site does not exist", ownerType, ownerId, Response.Status.NOT_FOUND);
+            }
+
+            dataStorage.save(data);
          }
       });
    }

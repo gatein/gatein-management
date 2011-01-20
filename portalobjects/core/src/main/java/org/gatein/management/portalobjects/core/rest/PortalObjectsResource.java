@@ -21,30 +21,33 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management;
+package org.gatein.management.portalobjects.core.rest;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class DataNotFoundException extends ManagementException
+@Path("/portalobjects")
+public class PortalObjectsResource
 {
-   public DataNotFoundException()
+   @Path("/{container-name}/navigations")
+   public NavigationResource getNavigationResource(@PathParam("container-name") String containerName)
    {
+      return new NavigationResource(containerName);
    }
 
-   public DataNotFoundException(final String message)
+   @Path("/{container-name}/pages")
+   public PageResource getPageResource(@PathParam("container-name") String containerName)
    {
-      super(message);
+      return new PageResource(containerName);
    }
 
-   public DataNotFoundException(final Throwable cause)
+   @Path("/{container-name}/sites")
+   public SiteResource getSiteResource(@PathParam("container-name") String containerName)
    {
-      super(cause);
-   }
-
-   public DataNotFoundException(final String message, final Throwable cause)
-   {
-      super(message, cause);
+      return new SiteResource(containerName);
    }
 }

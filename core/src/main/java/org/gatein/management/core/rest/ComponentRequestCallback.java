@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -21,22 +21,17 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.rest;
+package org.gatein.management.core.rest;
 
 import org.gatein.management.ManagementException;
+
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractMgmtServiceCallbackNoResult<S> implements RestfulManagementServiceCallback<S, Object>
+public interface ComponentRequestCallback<C, D>
 {
-   @Override
-   public Object doService(S service, String ownerType, String ownerId) throws ManagementException
-   {
-      doServiceNoResult(service, ownerType, ownerId);
-      return null;
-   }
-
-   public abstract void doServiceNoResult(S service, String ownerType, String ownerId);
+   D inRequest(C component) throws Exception;
 }

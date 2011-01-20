@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -27,15 +27,21 @@ import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
+import org.exoplatform.portal.config.model.PortalConfig;
 import org.exoplatform.portal.pom.data.NavigationData;
+import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.binding.api.BindingProvider;
 import org.gatein.management.binding.rest.BindingRestProvider;
-import org.gatein.management.domain.PortalArtifacts;
-import org.gatein.management.portalobjects.api.ExportImportHandler;
 import org.gatein.management.portalobjects.client.api.ClientException;
-import org.gatein.management.portalobjects.client.api.PomDataClient;
+import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
+import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
+import org.gatein.management.portalobjects.common.exportimport.ExportImportUtils;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.client.core.executors.ApacheHttpClientExecutor;
@@ -62,28 +68,27 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class RestfulPomDataClient implements PomDataClient
+public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
 {
-   private static final String BASE_URI = "/management/rest/pomdata";
+   private static final String BASE_URI = "/management/rest/portalobjects";
 
-   private final ExportImportHandler exportImportHandler;
+   private final BindingProvider bindingProvider;
 
    // Restful client stubs
    private final SiteClientStub siteClientStub;
    private final PageClientStub pageClientStub;
    private final NavigationClientStub navigationClientStub;
 
-   public RestfulPomDataClient(InetAddress address, int port, String containerName, BindingProvider bindingProvider, ExportImportHandler exportImportHandler)
+   public RestfulPortalObjectsMgmtClient(InetAddress address, int port, String containerName, BindingProvider bindingProvider)
    {
-      this.exportImportHandler = exportImportHandler;
+      this.bindingProvider = bindingProvider;
 
       //TODO: Configure authentication
       Credentials credentials = new UsernamePasswordCredentials("root", "gtn");
@@ -118,40 +123,58 @@ public class RestfulPomDataClient implements PomDataClient
    }
 
    @Override
-   public List<PortalData> getPortalConfig(String ownerType) throws ClientException
+   public List<PortalConfig> getPortalConfig(String ownerType) throws ClientException
    {
-      return handleResponse(ownerType, null, siteClientStub.getPortalData(ownerType));
+      List<PortalData> data = handleResponse(ownerType, null, siteClientStub.getPortalData(ownerType));
+
+      return PortalObjectsUtils.toPortalConfigList(data);
    }
 
    @Override
-   public PortalData getPortalConfig(String ownerType, String ownerId) throws ClientException
+   public PortalConfig getPortalConfig(String ownerType, String ownerId) throws ClientException
    {
       if (ownerId.charAt(0) == '/') ownerId = ownerId.substring(1);
-      return handleResponse(ownerType, ownerId, siteClientStub.getPortalData(ownerType, ownerId));
+      PortalData data = handleResponse(ownerType, ownerId, siteClientStub.getPortalData(ownerType, ownerId));
+
+      return PortalObjectsUtils.toPortalConfig(data);
    }
 
    @Override
-   public List<PageData> getPages(String ownerType, String ownerId) throws ClientException
+   public void updatePortalConfig(PortalConfig portalConfig) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, pageClientStub.getPages(ownerType, ownerId));
+      String ownerId = portalConfig.getName();
+      if (ownerId.charAt(0) == '/') ownerId = ownerId.substring(1);
+
+      PortalData data = PortalObjectsUtils.toPortalData(portalConfig);
+      handleNoEntityResponse(siteClientStub.updatePortalData(portalConfig.getType(), ownerId, data));
    }
 
    @Override
-   public PageData getPage(String ownerType, String ownerId, String pageName) throws ClientException
+   public List<Page> getPages(String ownerType, String ownerId) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, pageClientStub.getPage(ownerType, ownerId, pageName));
+      List<PageData> data = handleResponse(ownerType, ownerId, pageClientStub.getPages(ownerType, ownerId));
+      return PortalObjectsUtils.toPageList(data);
    }
 
    @Override
-   public PageData createPage(String ownerType, String ownerId, String pageName, String title) throws ClientException
+   public Page getPage(String ownerType, String ownerId, String pageName) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, pageClientStub.createPage(ownerType, ownerId, pageName, title));
+      PageData data = handleResponse(ownerType, ownerId, pageClientStub.getPage(ownerType, ownerId, pageName));
+      return PortalObjectsUtils.toPage(data);
    }
 
    @Override
-   public void updatePage(PageData page) throws ClientException
+   public Page createPage(String ownerType, String ownerId, String pageName, String title) throws ClientException
    {
-      handleNoEntityResponse(pageClientStub.updatePage(page.getOwnerType(), page.getOwnerId(), page.getName(), page));
+      PageData data = handleResponse(ownerType, ownerId, pageClientStub.createPage(ownerType, ownerId, pageName, title));
+      return PortalObjectsUtils.toPage(data);
+   }
+
+   @Override
+   public void updatePage(Page page) throws ClientException
+   {
+      PageData data = PortalObjectsUtils.toPageData(page);
+      handleNoEntityResponse(pageClientStub.updatePage(data.getOwnerType(), data.getOwnerId(), data.getName(), data));
    }
 
    @Override
@@ -161,62 +184,93 @@ public class RestfulPomDataClient implements PomDataClient
    }
 
    @Override
-   public NavigationData getNavigation(String ownerType, String ownerId) throws ClientException
+   public PageNavigation getNavigation(String ownerType, String ownerId) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, navigationClientStub.getNavigation(ownerType, ownerId));
+      NavigationData data = handleResponse(ownerType, ownerId, navigationClientStub.getNavigation(ownerType, ownerId));
+      return PortalObjectsUtils.toPageNavigation(data);
    }
 
    @Override
-   public NavigationData getNavigation(String ownerType, String ownerId, String navigationUri) throws ClientException
+   public PageNode getNavigationNode(String ownerType, String ownerId, String navigationUri) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, navigationClientStub.getNavigation(ownerType, ownerId, navigationUri));
+      NavigationData data = handleResponse(ownerType, ownerId,
+         navigationClientStub.getNavigation(ownerType, ownerId, navigationUri));
+
+      return toPageNode(data);
    }
 
    @Override
-   public NavigationData createNavigation(String ownerType, String ownerId, String parentNavigationUri, String name, String label) throws ClientException
+   public PageNavigation createNavigation(String ownerType, String ownerId, int priority) throws ClientException
    {
-      return handleResponse(ownerType, ownerId, navigationClientStub.createNavigation(ownerType, ownerId, parentNavigationUri, name, label));
+      NavigationData data = handleResponse(ownerType, ownerId,
+         navigationClientStub.createNavigation(ownerType, ownerId, priority, null, null));
+
+      return PortalObjectsUtils.toPageNavigation(data);
    }
 
    @Override
-   public void updateNavigation(NavigationData navigation) throws ClientException
+   public PageNode createNavigationNode(String ownerType, String ownerId, String name, String label) throws ClientException
    {
-      handleNoEntityResponse(navigationClientStub.updateNavigation(navigation.getOwnerType(), navigation.getOwnerId(), navigation));
+      NavigationData data = handleResponse(ownerType, ownerId,
+         navigationClientStub.createNavigation(ownerType, ownerId, (String) null, name, label));
+
+      return toPageNode(data);
    }
 
    @Override
-   public void deleteNavigation(String ownerType, String ownerId, String navigationUri) throws ClientException
+   public PageNode createNavigationNode(String ownerType, String ownerId, String parentNavigationUri, String name, String label) throws ClientException
+   {
+      NavigationData data = handleResponse(ownerType, ownerId,
+         navigationClientStub.createNavigation(ownerType, ownerId, parentNavigationUri, name, label));
+
+      return toPageNode(data);
+   }
+
+   @Override
+   public void updateNavigation(PageNavigation navigation) throws ClientException
+   {
+      NavigationData data = PortalObjectsUtils.toNavigationData(navigation);
+      handleNoEntityResponse(navigationClientStub.updateNavigation(navigation.getOwnerType(), navigation.getOwnerId(), data));
+   }
+
+   @Override
+   public void updateNavigationNode(String ownerType, String ownerId, PageNode node) throws ClientException
+   {
+      NavigationData data = toNavigationData(ownerType, ownerId, node);
+      handleNoEntityResponse(navigationClientStub.updateNavigation(ownerType, ownerId, node.getUri(), data));
+   }
+
+   @Override
+   public void deleteNavigationNode(String ownerType, String ownerId, String navigationUri) throws ClientException
    {
       handleNoEntityResponse(navigationClientStub.deleteNavigation(ownerType, ownerId, navigationUri));
    }
 
    @Override
-   public void exportAsZip(PortalArtifacts artifacts, File file) throws IOException
+   public void exportAsZip(PortalObjectsContext context, File file) throws IOException
    {
-      FileOutputStream fos = null;
-      try
-      {
-         fos = new FileOutputStream(file);
-         exportImportHandler.exportPortalArtifacts(artifacts, fos);
-      }
-      finally
-      {
-         close(fos);
-      }
+      ExportImportUtils.exportAsZip(bindingProvider, context, new FileOutputStream(file));
    }
 
    @Override
-   public PortalArtifacts importFromZip(File file) throws IOException
+   public void importFromZip(File file) throws IOException
    {
-      FileInputStream fis = null;
-      try
+      //TODO: Add import rules capability
+      PortalObjectsContext context = ExportImportUtils.importFromZip(bindingProvider, new FileInputStream(file));
+      for (PortalConfig portalConfig : context.getPortalConfigs())
       {
-         fis = new FileInputStream(file);
-         return exportImportHandler.importPortalArtifacts(fis);
+         updatePortalConfig(portalConfig);
       }
-      finally
+      for (List<Page> pages : context.getPages())
       {
-         close(fis);
+         for (Page page : pages)
+         {
+            updatePage(page);
+         }
+      }
+      for (PageNavigation navigation : context.getNavigations())
+      {
+         updateNavigation(navigation);
       }
    }
 
@@ -247,7 +301,7 @@ public class RestfulPomDataClient implements PomDataClient
       if (response.getResponseStatus() == Response.Status.OK)
       {
          T t = response.getEntity();
-         return fixOwner(ownerType, ownerId, t);
+         return PortalObjectsUtils.fixOwner(ownerType, ownerId, t);
       }
       else if (response.getResponseStatus() == Response.Status.CREATED)
       {
@@ -270,51 +324,27 @@ public class RestfulPomDataClient implements PomDataClient
       }
    }
 
-   @SuppressWarnings("unchecked")
-   private <T> T fixOwner(String ownerType, String ownerId, T data)
+   private PageNode toPageNode(NavigationData data)
    {
-      if (data instanceof Collection)
-      {
-         return fixOwnerCollection(ownerType, ownerId, data);
-      }
-      else if (data instanceof PageData)
-      {
-         PageData page = (PageData) data;
-         return (T) new PageData(page.getStorageId(), page.getId(), page.getName(), page.getIcon(),
-            page.getTemplate(), page.getFactoryId(), page.getTitle(), page.getDescription(),
-            page.getWidth(), page.getHeight(), page.getAccessPermissions(), page.getChildren(),
-            ownerType, ownerId, page.getEditPermission(), page.isShowMaxWindow());
-      }
-      else if (data instanceof NavigationData)
-      {
-         NavigationData nav = (NavigationData) data;
-         return (T) new NavigationData(nav.getStorageId(), ownerType, ownerId, nav.getPriority(), nav.getNodes());
-      }
-      else if (data instanceof PortalData)
-      {
-         PortalData pd = (PortalData) data;
-         return (T) new PortalData(pd.getStorageId(), pd.getName(), ownerType, pd.getLocale(),
-            pd.getAccessPermissions(), pd.getEditPermission(), pd.getProperties(), pd.getSkin(), pd.getPortalLayout());
-      }
-      else
-      {
-         return data;
-      }
+      if (data == null) return null;
+
+      PageNavigation navigation = PortalObjectsUtils.toPageNavigation(data);
+      int size = navigation.getNodes().size();
+      if (size == 0) throw new ClientException("No data returned from response.");
+      if (size > 1) throw new ClientException("Multiple navigation nodes returned from response. This is likely an error on the server.");
+
+      return navigation.getNodes().get(0);
    }
 
-   @SuppressWarnings("unchecked")
-   private <T> T fixOwnerCollection(String ownerType, String ownerId, T data)
+   private NavigationData toNavigationData(String ownerType, String ownerId, PageNode node)
    {
-      Collection collection = (Collection) data;
-      Object[] objects = collection.toArray();
-      for (int i = 0; i < objects.length; i++)
-      {
-         objects[i] = fixOwner(ownerType, ownerId, objects[i]);
-      }
-      collection.clear();
-      Collections.addAll(collection, objects);
+      if (node == null) return null;
 
-      return (T) collection;
+      NavigationNodeData nodeData = PortalObjectsUtils.toNavigationNodeData(node);
+      List<NavigationNodeData> nodeDataList = new ArrayList<NavigationNodeData>(1);
+      nodeDataList.add(nodeData);
+
+      return new NavigationData(ownerType, ownerId, null, nodeDataList);
    }
 
    private void close(Closeable closeable)
@@ -343,6 +373,13 @@ public class RestfulPomDataClient implements PomDataClient
       @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       ClientResponse<PortalData> getPortalData(@QueryParam("ownerType") String ownerType,
                                                @Encoded @PathParam("ownerId") String ownerId);
+
+      @POST
+      @Path("/{owner-id:.*}")
+      @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
+      ClientResponse updatePortalData(@QueryParam("ownerType") String ownerType,
+                                      @PathParam("ownerId") @Encoded String ownerId,
+                                      PortalData data);
    }
 
    @Path("/pages")
@@ -400,36 +437,38 @@ public class RestfulPomDataClient implements PomDataClient
       @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       ClientResponse<NavigationData> createNavigation(@QueryParam("ownerType") String ownerType,
                                                       @QueryParam("ownerId") String ownerId,
-                                                      @QueryParam("priority") Integer priority);
+                                                      @QueryParam("priority") Integer priority,
+                                                      @QueryParam("name") String name,
+                                                      @QueryParam("label") String label);
 
       @PUT
       @Path("/{parent-nav-uri:.*}")
       @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       ClientResponse<NavigationData> createNavigation(@QueryParam("ownerType") String ownerType,
                                                       @QueryParam("ownerId") String ownerId,
-                                                      @PathParam("parent-nav-uri") String parentUri,
-                                                      @QueryParam("name") final String name,
-                                                      @QueryParam("label") final String label);
+                                                      @PathParam("parent-nav-uri") String parentNavigationUri,
+                                                      @QueryParam("name") String name,
+                                                      @QueryParam("label") String label);
 
-      @PUT
+      @POST
       @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       public ClientResponse updateNavigation(@QueryParam("ownerType") String ownerType,
                                              @QueryParam("ownerId") String ownerId,
-                                             final NavigationData data);
+                                             NavigationData data);
 
-      @PUT
+      @POST
       @Path("/{nav-uri:.*}")
       @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       public ClientResponse updateNavigation(@QueryParam("ownerType") String ownerType,
                                              @QueryParam("ownerId") String ownerId,
-                                             @PathParam("nav-uri") final String navigationPath,
-                                             final NavigationData data);
+                                             @PathParam("nav-uri") String navigationPath,
+                                             NavigationData data);
 
       @DELETE
       @Path("/{nav-uri:.*}")
       @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       public ClientResponse deleteNavigation(@QueryParam("ownerType") String ownerType,
                                              @QueryParam("ownerId") String ownerId,
-                                             @PathParam("nav-uri") final String navigationUri);
+                                             @PathParam("nav-uri") String navigationUri);
    }
 }

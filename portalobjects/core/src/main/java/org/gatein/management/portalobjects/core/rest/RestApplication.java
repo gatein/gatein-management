@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -34,12 +34,11 @@ import java.util.Set;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-//TODO: Make this extensible and move out of pomdata module
-public class POMDataRestApplication extends Application
+public class RestApplication extends Application
 {
    private BindingProvider bindingProvider;
 
-   public POMDataRestApplication(BindingProvider bindingProvider)
+   public RestApplication(BindingProvider bindingProvider)
    {
       this.bindingProvider = bindingProvider;
    }
@@ -57,7 +56,7 @@ public class POMDataRestApplication extends Application
    public Set<Class<?>> getClasses()
    {
       Set<Class<?>> classes = new HashSet<Class<?>>();
-      classes.add(POMDataResource.class);
+      classes.add(PortalObjectsResource.class);
 
       return classes;
    }

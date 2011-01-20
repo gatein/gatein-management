@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -21,33 +21,12 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.rest;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+package org.gatein.management;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Path("/pomdata") // TODO: Not sure if i really like this path, find suitable base URL for these resources
-public class POMDataResource
+public interface ManagementApi
 {
-   @Path("/{container-name}/navigations")
-   public NavigationResource getNavigationResource(@PathParam("container-name") String containerName)
-   {
-      return new NavigationResource(containerName);
-   }
-
-   @Path("/{container-name}/pages")
-   public PageResource getPageResource(@PathParam("container-name") String containerName)
-   {
-      return new PageResource(containerName);
-   }
-
-   @Path("/{container-name}/sites")
-   public SiteResource getSiteResource(@PathParam("container-name") String containerName)
-   {
-      return new SiteResource(containerName);
-   }
 }

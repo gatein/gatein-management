@@ -221,7 +221,7 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
       List<String> accessPermissions = Collections.emptyList();
       String editPermission = null;
       String skin = null;
-      Map<String,String> properties = null;
+      Map<String,String> properties = Collections.emptyMap();
       ContainerData portalLayout = null;
       List<ComponentData> components = null;
 

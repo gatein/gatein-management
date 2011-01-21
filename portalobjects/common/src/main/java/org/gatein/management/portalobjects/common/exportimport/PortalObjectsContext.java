@@ -45,16 +45,16 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    private Map<String, PortalConfig> portalConfigMap = new LinkedHashMap<String, PortalConfig>();
    private Map<String, List<Page>> pageMap = new LinkedHashMap<String, List<Page>>();
    private Map<String, PageNavigation> navigationMap = new LinkedHashMap<String, PageNavigation>();
-   private Map<String, PageNode> navigationNodeMap = new LinkedHashMap<String, PageNode>();
 
    private List<PortalConfig> portalConfigs = Collections.emptyList();
    private List<List<Page>> pages = Collections.emptyList();
    private List<PageNavigation> navigations = Collections.emptyList();
-   private List<PageNode> navigationNodes = Collections.emptyList();
 
    @Override
    public void addToContext(PortalConfig portalConfig)
    {
+      if (portalConfig == null) return;
+
       String key = createKey(portalConfig.getType(), portalConfig.getName());
 
       PortalConfig pc = portalConfigMap.get(key);
@@ -68,6 +68,8 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(Page page)
    {
+      if (page == null) return;
+
       String key = createKey(page.getOwnerType(), page.getOwnerId());
       List<Page> pages = pageMap.get(key);
       if (pages == null)
@@ -79,7 +81,7 @@ public class PortalObjectsContext implements ExportContext, ImportContext
       Page existing = findPage(pages, page.getName());
       if (existing == null)
       {
-         pages.add(existing);
+         pages.add(page);
       }
       else
       {
@@ -92,6 +94,8 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(List<Page> pages)
    {
+      if (pages == null) return;
+
       for (Page page : pages)
       {
          addToContext(page);
@@ -101,6 +105,8 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(PageNavigation navigation)
    {
+      if (navigation == null) return;
+
       String key = createKey(navigation.getOwnerType(), navigation.getOwnerId());
       navigationMap.put(key, navigation);
       navigations = new ArrayList<PageNavigation>(navigationMap.values());
@@ -109,6 +115,8 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(String ownerType, String ownerId, PageNode node)
    {
+      if (node == null) return;
+
       String key = createKey(ownerType, ownerId);
       PageNavigation nav = navigationMap.get(key);
       if (nav == null)
@@ -116,10 +124,6 @@ public class PortalObjectsContext implements ExportContext, ImportContext
          PageNavigation pageNavigation = new PageNavigation();
          pageNavigation.setOwnerType(ownerType);
          pageNavigation.setOwnerId(ownerId);
-         // This is a hack to notify the importer that only navigation nodes were added to this context
-         // to ensure that we don't update the entire navigation, when we only want to update nodes.
-         pageNavigation.setPriority(Integer.MIN_VALUE);
-
          ArrayList<PageNode> nodes = new ArrayList<PageNode>();
          nodes.add(node);
          pageNavigation.setNodes(nodes);
@@ -177,10 +181,5 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    private String createKey(String ownerType, String ownerId)
    {
       return new StringBuilder().append(ownerType).append("::").append(ownerId).toString();
-   }
-
-   private String createKey(String ownerType, String ownerId, String uri)
-   {
-      return new StringBuilder().append(ownerType).append("::").append(ownerId).append("::").append(uri).toString();
    }
 }

@@ -95,23 +95,26 @@ public class Exporter
 
    void init(Properties properties) throws Exception
    {
-      Date date = Calendar.getInstance().getTime();
-      SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
-      SimpleDateFormat sdf2 = new SimpleDateFormat("HH.mm.ss.SSS");
-      String exportPath = new StringBuilder().append(sdf1.format(date)).
-         append("/").append(sdf2.format(date)).toString();
+//      Date date = Calendar.getInstance().getTime();
+//      SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+//      SimpleDateFormat sdf2 = new SimpleDateFormat("HH.mm.ss.SSS");
+//      String exportPath = new StringBuilder().append(sdf1.format(date)).
+//         append("/").append(sdf2.format(date)).toString();
 
       if (basedir == null)
       {
-         exportDir = new File("epp-exports", exportPath);
+         exportDir = new File("epp-exports");
       }
       else
       {
-         exportDir = new File(basedir, exportPath);
+         exportDir = basedir;
       }
-      if (!exportDir.mkdirs())
+      if (!exportDir.exists())
       {
-         throw new RuntimeException("Could not create export directory " + exportDir.getAbsolutePath());
+         if (!exportDir.mkdirs())
+         {
+            throw new RuntimeException("Could not create export directory " + exportDir.getAbsolutePath());
+         }
       }
 
       System.out.println("Using directory " + exportDir.getAbsolutePath() + " for export.");

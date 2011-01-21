@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
+//TODO: Add validation for some fields like page name, nav name and uri, make sure name and nav uri are consistent
 public abstract class BasePortalObjectsResource extends AbstractContainerResource<ModelDataStorage>
 {
    public BasePortalObjectsResource(String containerName)

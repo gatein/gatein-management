@@ -107,6 +107,8 @@ public class PortalObjectsUtils
 
    public static String fixOwnerId(String ownerType, String ownerId)
    {
+      if (ownerId == null) return null;
+      
       if ("group".equals(ownerType) && ownerId.charAt(0) != '/')
       {
          return '/' + ownerId;

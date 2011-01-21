@@ -25,6 +25,7 @@ package org.gatein.management.portalobjects.client.impl;
 
 import org.exoplatform.commons.utils.LazyPageList;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.commons.utils.ListAccessImpl;
 import org.exoplatform.portal.application.PortletPreferences;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.Query;
@@ -41,6 +42,7 @@ import org.exoplatform.portal.pom.data.NavigationKey;
 import org.exoplatform.portal.pom.data.PageKey;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -181,9 +183,22 @@ public class ClientDataStorageImpl implements DataStorage
    }
 
    @Override
-   public <T> LazyPageList<T> find(Query<T> q) throws Exception
+   public <T> LazyPageList<T> find(final Query<T> q) throws Exception
    {
-      throw new UnsupportedOperationException();
+      if (q.getClassType() == Page.class)
+      {
+         @SuppressWarnings("unchecked")
+         List<T> pages = (List<T>) client.getPages(q.getOwnerType(), q.getOwnerId());
+         return new LazyPageList<T>(new ListAccessImpl<T>(q.getClassType(), pages), 10);
+      }
+      else if (q.getClassType() == PortalConfig.class)
+      {
+         @SuppressWarnings("unchecked")
+         List<T> portalConfigs = (List<T>) client.getPortalConfig(q.getOwnerType());
+         return new LazyPageList<T>(new ListAccessImpl<T>(q.getClassType(), portalConfigs), 10);
+      }
+
+      throw new UnsupportedOperationException("Unsupported query class type " + q.getClassType());
    }
 
    @Override

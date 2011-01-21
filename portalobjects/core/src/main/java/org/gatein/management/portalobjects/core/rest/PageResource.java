@@ -223,6 +223,7 @@ public class PageResource extends BasePortalObjectsResource
          @Override
          public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
+            System.out.println("*** Removing page " + pageName);
             PageData page = ensurePageExists(ownerType, ownerId, pageName, dataStorage);
             dataStorage.remove(page);
          }
@@ -242,7 +243,7 @@ public class PageResource extends BasePortalObjectsResource
          throw ownerException("Page does not exist", ownerType, ownerId, name, Status.NOT_FOUND);
       }
 
-      return null;
+      return page;
    }
 
    private void ensurePageDoesNotExist(String ownerType, String ownerId, String name, ModelDataStorage dataStorage) throws Exception

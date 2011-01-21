@@ -51,8 +51,4 @@ public interface ExportContext
    List<List<Page>> getPages();
 
    List<PageNavigation> getNavigations();
-
-   List<PageNode> getNavigationNodes();
-
-   String[] getOwnerInfoForNode(PageNode node);
 }

@@ -130,39 +130,47 @@ public class PortalObjectsImportHandler implements ImportHandler
       for (PageNavigation navigation : context.getNavigations())
       {
          PageNavigation existing = dataStorage.getPageNavigation(navigation.getOwnerType(), navigation.getOwnerId());
-         if (existing == null)
+
+         // This is a hack to notify us that only navigation nodes within the PageNavigation should be updated
+         if (navigation.getPriority() == Integer.MIN_VALUE)
          {
-            dataStorage.create(navigation);
-            deleteRollbackContext.addToContext(navigation);
+            importNavigationNodes(existing, navigation);
+            dataStorage.save(existing);
+            rollbackContext.addToContext(existing);
          }
          else
          {
-            dataStorage.save(navigation);
-            rollbackContext.addToContext(existing);
+            if (existing == null)
+            {
+               dataStorage.create(navigation);
+               deleteRollbackContext.addToContext(navigation);
+            }
+            else
+            {
+               dataStorage.save(navigation);
+               rollbackContext.addToContext(existing);
+            }
          }
       }
-      for (PageNode node : context.getNavigationNodes())
-      {
-         String[] ownerInfo = context.getOwnerInfoForNode(node);
-         PageNavigation navigation = dataStorage.getPageNavigation(ownerInfo[0], ownerInfo[1]);
-         // Only add the navigation snapshot before we started altering anything
-         if (!containsNavigation(rollbackContext, navigation) && !containsNavigation(deleteRollbackContext, navigation))
-         {
-            rollbackContext.addToContext(navigation);
-         }
+   }
 
+   private void importNavigationNodes(PageNavigation existingNavigation, PageNavigation navigation)
+   {
+      for (PageNode node : navigation.getNodes())
+      {
          List<PageNode> siblings;
          String parentUri = PortalObjectsUtils.getParentUri(node.getUri());
          if (parentUri == null)
          {
-            siblings = navigation.getNodes();
+            siblings = existingNavigation.getNodes();
          }
          else
          {
-            PageNode parent = PortalObjectsUtils.findNodeByUri(navigation.getNodes(), parentUri);
+            PageNode parent = PortalObjectsUtils.findNodeByUri(existingNavigation.getNodes(), parentUri);
             siblings = parent.getNodes();
          }
-         PageNode existing = PortalObjectsUtils.findNodeByUri(siblings, node.getUri());
+
+         PageNode existing = PortalObjectsUtils.getNode(siblings, node.getName());
          if (existing == null)
          {
             siblings.add(node);

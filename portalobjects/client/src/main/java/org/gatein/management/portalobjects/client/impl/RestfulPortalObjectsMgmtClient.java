@@ -257,20 +257,39 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
    }
 
    @Override
-   public ExportHandler getExportHandler()
+   public ExportContext createExportContext() throws ClientException
    {
-      return exportHandler;
+      return exportHandler.createExportContext();
+   }
+
+   @Override
+   public void exportToZip(ExportContext context, File file) throws IOException
+   {
+      exportHandler.exportContext(context, new FileOutputStream(file));
+   }
+
+   @Override
+   public ImportContext importFromZip(File file) throws IOException
+   {
+      return importHandler.createContext(new FileInputStream(file));
+   }
+
+   @Override
+   public void importContext(ImportContext context) throws ClientException
+   {
+      try
+      {
+         importHandler.importContext(context);
+      }
+      catch (Exception e)
+      {
+         throw new ClientException("Exception importing context.", e);
+      }
    }
 
    public void setExportHandler(ExportHandler exportHandler)
    {
       this.exportHandler = exportHandler;
-   }
-
-   @Override
-   public ImportHandler getImportHandler()
-   {
-      return importHandler;
    }
 
    public void setImportHandler(ImportHandler importHandler)
@@ -285,9 +304,9 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       }
       else if (response.getResponseStatus().getFamily() == Response.Status.Family.SERVER_ERROR)
       {
-         String message = response.getEntity(String.class);
-         Exception e = new Exception(message);
-         throw new ClientException("Internal server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.", e);
+         //String message = response.getEntity(String.class);
+         //Exception e = new Exception(message);
+         throw new ClientException("HTTP Server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.");
       }
       else
       {
@@ -308,9 +327,9 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       }
       else if (response.getResponseStatus().getFamily() == Response.Status.Family.SERVER_ERROR)
       {
-         String message = response.getEntity(String.class);
-         Exception e = new Exception(message);
-         throw new ClientException("Internal server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.", e);
+         //String message = response.getEntity(String.class);
+         //Exception e = new Exception(message);
+         throw new ClientException("HTTP Server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.");
       }
       else
       {

@@ -128,7 +128,7 @@ public class Exporter
       //TODO: Pass credentials
       client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, portalContainer);
 
-      context = client.getExportHandler().createExportContext();
+      context = client.createExportContext();
       // Process scopes for export
       Scope[] scopes = getScopes();
       for (Scope s : scopes)
@@ -136,9 +136,10 @@ public class Exporter
          processScope(s);
       }
 
-      String fileName = new StringBuilder().append("portal-objects_").append(System.currentTimeMillis()).append(".zip").toString();
-      File exportFile = new File(exportDir, fileName);
-      client.getExportHandler().exportContext(context, new FileOutputStream(exportFile));
+      String fileName = new StringBuilder().append("portal-objects_")
+         .append(System.currentTimeMillis()).append(".zip").toString();
+
+      client.exportToZip(context, new File(exportDir, fileName));
    }
 
    private Scope[] getScopes()

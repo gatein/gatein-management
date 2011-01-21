@@ -32,6 +32,7 @@ import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.core.rest.ComponentRequestCallback;
 import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -123,23 +124,25 @@ public class SiteResource extends BasePortalObjectsResource
    public Response updatePortalData(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
                                     @PathParam("owner-id") String id,
-                                    final PortalData data)
+                                    PortalData data)
    {
       final String ownerType = checkOwnerType(type);
       final String ownerId = checkOwnerId(ownerType, id);
+
+      final PortalData portalData = PortalObjectsUtils.fixOwner(ownerType, ownerId, data);
 
       return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
          public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            PortalData portalData = dataStorage.getPortalConfig(new PortalKey(ownerType, ownerId));
-            if (portalData == null)
+            PortalData pd = dataStorage.getPortalConfig(new PortalKey(ownerType, ownerId));
+            if (pd == null)
             {
                throw ownerException("Site does not exist", ownerType, ownerId, Response.Status.NOT_FOUND);
             }
 
-            dataStorage.save(data);
+            dataStorage.save(portalData);
          }
       });
    }

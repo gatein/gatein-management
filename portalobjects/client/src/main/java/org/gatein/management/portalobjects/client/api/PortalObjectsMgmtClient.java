@@ -35,7 +35,6 @@ import org.gatein.management.portalobjects.api.exportimport.ImportContext;
 import org.gatein.management.portalobjects.api.exportimport.ImportHandler;
 import org.gatein.management.portalobjects.client.impl.ClientDataStorageImpl;
 import org.gatein.management.portalobjects.client.impl.RestfulPortalObjectsMgmtClient;
-import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
 import org.gatein.management.portalobjects.common.exportimport.PortalObjectsExportHandler;
 import org.gatein.management.portalobjects.common.exportimport.PortalObjectsImportHandler;
 
@@ -82,9 +81,13 @@ public interface PortalObjectsMgmtClient
 
    void deleteNavigationNode(String ownerType, String ownerId, String navigationUri) throws ClientException;
 
-   ExportHandler getExportHandler();
+   ExportContext createExportContext() throws ClientException;
 
-   ImportHandler getImportHandler();
+   void exportToZip(ExportContext context, File file) throws IOException;
+
+   ImportContext importFromZip(File file) throws IOException;
+
+   void importContext(ImportContext context) throws ClientException;
 
    public static class Factory
    {

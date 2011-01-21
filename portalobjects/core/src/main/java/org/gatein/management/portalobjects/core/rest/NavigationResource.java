@@ -35,6 +35,7 @@ import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.core.rest.ComponentRequestCallback;
 import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -220,7 +221,7 @@ public class NavigationResource extends BasePortalObjectsResource
    public Response updateNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
                                     @QueryParam("ownerId") String id,
-                                    final NavigationData data)
+                                    NavigationData data)
    {
       final String ownerType = checkOwnerType(type);
       final String ownerId = checkOwnerId(ownerType, id);
@@ -229,13 +230,14 @@ public class NavigationResource extends BasePortalObjectsResource
          log.debug(createMessage("Updating navigation", ownerType, ownerId));
       }
 
+      final NavigationData navigation = PortalObjectsUtils.fixOwner(ownerType, ownerId, data);
       return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
          public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
             ensureNavigationExists(ownerType, ownerId, dataStorage);
-            dataStorage.save(data);
+            dataStorage.save(navigation);
          }
       });
    }

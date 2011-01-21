@@ -31,7 +31,7 @@ import org.gatein.management.portalobjects.api.exportimport.ExportContext;
 import org.gatein.management.portalobjects.api.exportimport.ImportContext;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +47,10 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    private Map<String, PageNavigation> navigationMap = new LinkedHashMap<String, PageNavigation>();
    private Map<String, PageNode> navigationNodeMap = new LinkedHashMap<String, PageNode>();
 
-   private List<PortalConfig> portalConfigs;
-   private List<List<Page>> pages;
-   private List<PageNavigation> navigations;
-   private List<PageNode> navigationNodes;
+   private List<PortalConfig> portalConfigs = Collections.emptyList();
+   private List<List<Page>> pages = Collections.emptyList();
+   private List<PageNavigation> navigations = Collections.emptyList();
+   private List<PageNode> navigationNodes = Collections.emptyList();
 
    @Override
    public void addToContext(PortalConfig portalConfig)
@@ -109,10 +109,38 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(String ownerType, String ownerId, PageNode node)
    {
-      String key = createKey(ownerType, ownerId, node.getUri());
-      navigationNodeMap.put(key, node);
+      String key = createKey(ownerType, ownerId);
+      PageNavigation nav = navigationMap.get(key);
+      if (nav == null)
+      {
+         PageNavigation pageNavigation = new PageNavigation();
+         pageNavigation.setOwnerType(ownerType);
+         pageNavigation.setOwnerId(ownerId);
+         // This is a hack to notify the importer that only navigation nodes were added to this context
+         // to ensure that we don't update the entire navigation, when we only want to update nodes.
+         pageNavigation.setPriority(Integer.MIN_VALUE);
 
-      navigationNodes = new ArrayList<PageNode>(navigationNodeMap.values());
+         ArrayList<PageNode> nodes = new ArrayList<PageNode>();
+         nodes.add(node);
+         pageNavigation.setNodes(nodes);
+         navigationMap.put(key, pageNavigation);
+      }
+      else
+      {
+         PageNode existing = nav.getNode(node.getName());
+         if (existing == null)
+         {
+            nav.addNode(node);
+         }
+         else
+         {
+            List<PageNode> nodes = nav.getNodes();
+            int index = nodes.indexOf(existing);
+            nodes.set(index, node);
+         }
+      }
+
+      navigations = new ArrayList<PageNavigation>(navigationMap.values());
    }
 
    @Override
@@ -131,30 +159,6 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    public List<PageNavigation> getNavigations()
    {
       return navigations;
-   }
-
-   @Override
-   public List<PageNode> getNavigationNodes()
-   {
-      return navigationNodes;
-   }
-
-   @Override
-   public String[] getOwnerInfoForNode(PageNode pageNode)
-   {
-      for (Map.Entry<String, PageNode> entry : navigationNodeMap.entrySet())
-      {
-         if (entry.getValue() == pageNode)
-         {
-            String[] tmp = entry.getKey().split("::");
-            String[] ownerInfo = new String[2];
-            ownerInfo[0] = tmp[0];
-            ownerInfo[1] = tmp[1];
-            return ownerInfo;
-         }
-      }
-
-      return null;
    }
 
    private Page findPage(List<Page> pages, String name)

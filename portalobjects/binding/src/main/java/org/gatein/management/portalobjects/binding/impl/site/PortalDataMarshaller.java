@@ -263,8 +263,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
                   String name = reader.currentReadEvent().getAttributeLocalName(i);
                   if (Attribute.PROPERTIES_KEY.getLocalName().equals(name))
                   {
-                     String value = reader.currentReadEvent().getAttributeValue(i);
-                     properties.put(name, value);
+                     String key = reader.currentReadEvent().getAttributeValue(i);
+                     String value = reader.currentReadEvent().elementText();
+                     properties.put(key, value);
+                     break;
                   }
                }
                break;
@@ -289,7 +291,7 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
                }
                else
                {
-                  throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() + " while unmarshalling portal data.");
+                  throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() + "' while unmarshalling portal data.");
                }
                break;
             default:

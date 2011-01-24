@@ -33,9 +33,15 @@ import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
+import org.gatein.management.portalobjects.binding.impl.AbstractMarshallerTest;
+import org.jboss.xb.binding.AbstractMarshaller;
 import org.junit.Test;
 
-import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -44,10 +50,10 @@ import static org.junit.Assert.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PageDataMarshallerTest
+public class PageDataMarshallerTest extends AbstractMarshallerTest
 {
    @Test
-   public void testHomePageMarshalling()
+   public void testHomePageUnMarshalling()
    {
       PageDataMarshaller marshaller = new PageDataMarshaller();
       PageData page = marshaller.unmarshal(getClass().getResourceAsStream("/home-page.xml"));
@@ -94,7 +100,7 @@ public class PageDataMarshallerTest
    }
 
    @Test
-   public void testLoadedPage()
+   public void testLoadedPageUnmarshalling()
    {
       PageDataMarshaller marshaller = new PageDataMarshaller();
       PageData page = marshaller.unmarshal(getClass().getResourceAsStream("/loaded-page.xml"));
@@ -288,6 +294,70 @@ public class PageDataMarshallerTest
          assertNull(application.getWidth());
          assertNull(application.getHeight());
       }
+   }
 
+   @Test
+   public void testEmptyPageUnmarshalling()
+   {
+      PageDataMarshaller marshaller = new PageDataMarshaller();
+      PageData page = marshaller.unmarshal(getClass().getResourceAsStream("/empty-page.xml"));
+      assertNotNull(page);
+      assertEquals("empty-page", page.getName());
+      assertEquals("Empty", page.getTitle());
+      assertNotNull(page.getChildren());
+      assertTrue(page.getChildren().isEmpty());
+   }
+
+   @Test
+   public void testPageMarshalling()
+   {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+      Portlet portlet = new Portlet();
+      portlet.putPreference(new Preference("pref-1", "value-1", true));
+      portlet.putPreference(new Preference("pref-2", "value-2", false));
+      portlet.putPreference(new Preference("multi-value-pref", Arrays.asList("one", "two", "three"), false));
+
+      ApplicationState<Portlet> state = new TransientApplicationState<Portlet>("app-ref/portlet-ref", portlet);
+      ApplicationData<Portlet> applicationData = new ApplicationData<Portlet>(null, null,
+         ApplicationType.PORTLET, state, null, "app-title", "app-icon", "app-description", false, true, false,
+         "app-theme", "app-wdith", "app-height", new HashMap<String,String>(),
+         Collections.singletonList("app-edit-permissions"));
+
+      List<ComponentData> children = Collections.singletonList((ComponentData) applicationData);
+      PageData expected = new PageData(null, null, "page-name", null, null, null, "Page Title", null, null, null,
+         Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
+
+      PageDataMarshaller marshaller = new PageDataMarshaller();
+      marshaller.marshal(expected, baos);
+
+      PageData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
+
+      comparePages(expected, actual);
+   }
+
+   private void comparePages(PageData expected, PageData actual)
+   {
+      assertNull(actual.getStorageId());
+      assertNull(actual.getStorageName());
+      assertNull(actual.getId());
+      assertEquals("", actual.getOwnerType());
+      assertEquals("", actual.getOwnerId());
+      assertEquals(expected.getName(), actual.getName());
+      assertNull(actual.getIcon());
+      assertNull(actual.getTemplate());
+      assertNull(actual.getFactoryId());
+      assertEquals(expected.getTitle(), actual.getTitle());
+      assertNull(actual.getDescription());
+      assertNull(actual.getWidth());
+      assertNull(actual.getHeight());
+      assertEquals(expected.getAccessPermissions(), actual.getAccessPermissions());
+
+      compareComponents(expected.getChildren(), actual.getChildren());
+
+      assertEquals("", actual.getOwnerType());
+      assertEquals("", actual.getOwnerId());
+      assertEquals(expected.getEditPermission(), actual.getEditPermission());
+      assertEquals(expected.isShowMaxWindow(), actual.isShowMaxWindow());
    }
 }

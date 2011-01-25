@@ -21,14 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.common.exportimport;
-
-import org.gatein.management.binding.api.BindingProvider;
-
-import org.gatein.management.portalobjects.api.exportimport.ExportContext;
-import org.gatein.management.portalobjects.api.exportimport.ExportHandler;
-import org.gatein.management.portalobjects.common.exportimport.ExportImportUtils;
-import org.gatein.management.portalobjects.common.exportimport.PortalObjectsContext;
+package org.gatein.management.portalobjects.exportimport.api;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,24 +30,9 @@ import java.io.OutputStream;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PortalObjectsExportHandler implements ExportHandler
+public interface ExportHandler
 {
-   private BindingProvider bindingProvider;
+   ExportContext createExportContext();
 
-   public PortalObjectsExportHandler(BindingProvider bindingProvider)
-   {
-      this.bindingProvider = bindingProvider;
-   }
-
-   @Override
-   public ExportContext createExportContext()
-   {
-      return new PortalObjectsContext();
-   }
-
-   @Override
-   public void exportContext(ExportContext context, OutputStream out) throws IOException
-   {
-      ExportImportUtils.exportAsZip(bindingProvider, context, out);
-   }
+   void exportContext(ExportContext context, OutputStream out) throws IOException;
 }

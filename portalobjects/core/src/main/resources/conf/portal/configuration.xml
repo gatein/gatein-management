@@ -30,14 +30,4 @@
       <type>org.gatein.management.portalobjects.core.rest.RestApplication</type>
    </component>
 
-   <component>
-      <key>org.gatein.management.portalobjects.api.exportimport.ExportHandler</key>
-      <type>org.gatein.management.portalobjects.common.exportimport.PortalObjectsExportHandler</type>
-   </component>
-
-   <component>
-      <key>org.gatein.management.portalobjects.api.exportimport.ImportHandler</key>
-      <type>org.gatein.management.portalobjects.common.exportimport.PortalObjectsImportHandler</type>
-   </component>
-
 </configuration>

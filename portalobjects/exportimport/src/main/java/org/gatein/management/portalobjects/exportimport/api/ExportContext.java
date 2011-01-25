@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.api.exportimport;
+package org.gatein.management.portalobjects.exportimport.api;
 
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
@@ -34,8 +34,18 @@ import java.util.List;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ImportContext
+public interface ExportContext
 {
+   void addToContext(PortalConfig portalConfig);
+
+   void addToContext(Page page);
+
+   void addToContext(List<Page> pages);
+
+   void addToContext(PageNavigation navigation);
+
+   void addToContext(String ownerType, String ownerId, PageNode node);
+
    List<PortalConfig> getPortalConfigs();
 
    List<List<Page>> getPages();

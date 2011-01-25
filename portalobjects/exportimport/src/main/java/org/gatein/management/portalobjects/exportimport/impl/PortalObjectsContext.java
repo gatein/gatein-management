@@ -21,14 +21,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.common.exportimport;
+package org.gatein.management.portalobjects.exportimport.impl;
 
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
-import org.gatein.management.portalobjects.api.exportimport.ExportContext;
-import org.gatein.management.portalobjects.api.exportimport.ImportContext;
+import org.gatein.management.portalobjects.exportimport.api.ExportContext;
+import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 
 import java.util.ArrayList;
 import java.util.Collections;

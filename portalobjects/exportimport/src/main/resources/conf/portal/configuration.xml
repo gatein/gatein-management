@@ -21,31 +21,19 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<configuration
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.exoplaform.org/xml/ns/kernel_1_0.xsd http://www.exoplaform.org/xml/ns/kernel_1_0.xsd"
+   xmlns="http://www.exoplaform.org/xml/ns/kernel_1_0.xsd">
 
-   <modelVersion>4.0.0</modelVersion>
-   
-   <parent>
-      <groupId>org.gatein.management</groupId>
-      <artifactId>management-parent</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-   </parent>
+   <component>
+      <key>org.gatein.management.portalobjects.exportimport.api.ExportHandler</key>
+      <type>org.gatein.management.portalobjects.exportimport.impl.ExportHandlerImpl</type>
+   </component>
 
-   <groupId>org.gatein.management.portalobjects</groupId>
-   <artifactId>portalobjects-parent</artifactId>
-   <version>1.0.0-SNAPSHOT</version>
-   <packaging>pom</packaging>
+   <component>
+      <key>org.gatein.management.portalobjects.exportimport.api.ImportHandler</key>
+      <type>org.gatein.management.portalobjects.exportimport.impl.ImportHandlerImpl</type>
+   </component>
 
-   <name>GateIn Management - Portal Objects Parent</name>
-   
-   <modules>
-      <module>binding</module>
-      <module>core</module>
-      <module>common</module>
-      <module>exportimport</module>
-      <module>client</module>
-      <module>xi</module>
-   </modules>
-
-</project>
+</configuration>

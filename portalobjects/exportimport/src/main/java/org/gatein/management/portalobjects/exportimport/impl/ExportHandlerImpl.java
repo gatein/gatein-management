@@ -21,34 +21,37 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.api.exportimport;
+package org.gatein.management.portalobjects.exportimport.impl;
 
-import org.exoplatform.portal.config.model.Page;
-import org.exoplatform.portal.config.model.PageNavigation;
-import org.exoplatform.portal.config.model.PageNode;
-import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.management.binding.api.BindingProvider;
+import org.gatein.management.portalobjects.exportimport.api.ExportContext;
+import org.gatein.management.portalobjects.exportimport.api.ExportHandler;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ExportContext
+public class ExportHandlerImpl implements ExportHandler
 {
-   void addToContext(PortalConfig portalConfig);
+   private BindingProvider bindingProvider;
 
-   void addToContext(Page page);
+   public ExportHandlerImpl(BindingProvider bindingProvider)
+   {
+      this.bindingProvider = bindingProvider;
+   }
 
-   void addToContext(List<Page> pages);
+   @Override
+   public ExportContext createExportContext()
+   {
+      return new PortalObjectsContext();
+   }
 
-   void addToContext(PageNavigation navigation);
-
-   void addToContext(String ownerType, String ownerId, PageNode node);
-
-   List<PortalConfig> getPortalConfigs();
-
-   List<List<Page>> getPages();
-
-   List<PageNavigation> getNavigations();
+   @Override
+   public void exportContext(ExportContext context, OutputStream out) throws IOException
+   {
+      ExportImportUtils.exportAsZip(bindingProvider, context, out);
+   }
 }

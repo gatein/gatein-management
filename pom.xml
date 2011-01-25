@@ -115,6 +115,11 @@
          </dependency>
          <dependency>
             <groupId>org.gatein.management.portalobjects</groupId>
+            <artifactId>portalobjects-exportimport</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management.portalobjects</groupId>
             <artifactId>portalobjects-client</artifactId>
             <version>${project.version}</version>
          </dependency>

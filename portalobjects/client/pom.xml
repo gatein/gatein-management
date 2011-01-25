@@ -1,6 +1,6 @@
 <!--
   ~ JBoss, a division of Red Hat
-  ~ Copyright 2010, Red Hat Middleware, LLC, and individual
+  ~ Copyright 2011, Red Hat Middleware, LLC, and individual
   ~ contributors as indicated by the @authors tag. See the
   ~ copyright.txt in the distribution for a full listing of
   ~ individual contributors.
@@ -67,15 +67,11 @@
       <!-- Module dependencies -->
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-api</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.portalobjects</groupId>
          <artifactId>portalobjects-binding</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-core</artifactId>
+         <artifactId>portalobjects-exportimport</artifactId>
       </dependency>
 
       <!-- Resteasy -->

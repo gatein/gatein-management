@@ -21,18 +21,24 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.api.exportimport;
+package org.gatein.management.portalobjects.exportimport.api;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
+import org.exoplatform.portal.config.model.PortalConfig;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ExportHandler
+public interface ImportContext
 {
-   ExportContext createExportContext();
+   List<PortalConfig> getPortalConfigs();
 
-   void exportContext(ExportContext context, OutputStream out) throws IOException;
+   List<List<Page>> getPages();
+
+   List<PageNavigation> getNavigations();
 }

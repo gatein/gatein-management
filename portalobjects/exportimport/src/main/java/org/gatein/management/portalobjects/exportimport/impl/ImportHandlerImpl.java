@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.common.exportimport;
+package org.gatein.management.portalobjects.exportimport.impl;
 
 import org.exoplatform.commons.utils.LazyPageList;
 import org.exoplatform.portal.config.DataStorage;
@@ -32,8 +32,9 @@ import org.exoplatform.portal.config.model.PortalConfig;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.binding.api.BindingProvider;
-import org.gatein.management.portalobjects.api.exportimport.ImportContext;
-import org.gatein.management.portalobjects.api.exportimport.ImportHandler;
+import org.gatein.management.portalobjects.exportimport.api.ImportContext;
+import org.gatein.management.portalobjects.exportimport.api.ImportHandler;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,14 +47,14 @@ import java.util.Set;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PortalObjectsImportHandler implements ImportHandler
+public class ImportHandlerImpl implements ImportHandler
 {
-   private static final Logger log = LoggerFactory.getLogger(PortalObjectsImportHandler.class);
+   private static final Logger log = LoggerFactory.getLogger(ImportHandlerImpl.class);
 
    private BindingProvider bindingProvider;
    private DataStorage dataStorage;
 
-   public PortalObjectsImportHandler(BindingProvider bindingProvider, DataStorage dataStorage)
+   public ImportHandlerImpl(BindingProvider bindingProvider, DataStorage dataStorage)
    {
       this.bindingProvider = bindingProvider;
       this.dataStorage = dataStorage;

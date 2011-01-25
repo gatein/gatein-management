@@ -369,10 +369,10 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       @Path("/{ownerId:.*}")
       @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       ClientResponse<PortalData> getPortalData(@QueryParam("ownerType") String ownerType,
-                                               @Encoded @PathParam("ownerId") String ownerId);
+                                               @PathParam("ownerId") @Encoded  String ownerId);
 
       @POST
-      @Path("/{owner-id:.*}")
+      @Path("/{ownerId:.*}")
       @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
       ClientResponse updatePortalData(@QueryParam("ownerType") String ownerType,
                                       @PathParam("ownerId") @Encoded String ownerId,

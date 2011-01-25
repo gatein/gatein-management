@@ -87,6 +87,11 @@ public class PageResource extends BasePortalObjectsResource
       final String ownerType = checkOwnerType(type);
       final String ownerId = checkOwnerId(ownerType, id);
 
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Retrieving pages", ownerType, ownerId));
+      }
+
       return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, GenericEntity<List<PageData>>>()
       {
          @Override
@@ -126,6 +131,11 @@ public class PageResource extends BasePortalObjectsResource
       final String ownerType = checkOwnerType(type);
       final String ownerId = checkOwnerId(ownerType, id);
 
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Retrieving page", ownerType, ownerId, pageName));
+      }
+
       return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, PageData>()
       {
          @Override
@@ -151,6 +161,11 @@ public class PageResource extends BasePortalObjectsResource
 
       validateNonNullParameter(pageName, "name");
       validateNonNullParameter(title, "title");
+
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Creating page", ownerType, ownerId, pageName));
+      }
 
       return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, PageData>()
       {
@@ -196,6 +211,11 @@ public class PageResource extends BasePortalObjectsResource
 
       final PageData pageData = PortalObjectsUtils.fixOwner(ownerType, ownerId, page);
 
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Updating page", ownerType, ownerId, pageName));
+      }
+
       return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
@@ -218,12 +238,16 @@ public class PageResource extends BasePortalObjectsResource
       final String ownerType = checkOwnerType(type);
       final String ownerId = checkOwnerId(ownerType, id);
 
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Deleting page", ownerType, ownerId, pageName));
+      }
+
       return doRequest(uriInfo, new ComponentRequestCallbackNoResult<ModelDataStorage>()
       {
          @Override
          public void inRequestNoResult(ModelDataStorage dataStorage) throws Exception
          {
-            System.out.println("*** Removing page " + pageName);
             PageData page = ensurePageExists(ownerType, ownerId, pageName, dataStorage);
             dataStorage.remove(page);
          }
@@ -260,11 +284,11 @@ public class PageResource extends BasePortalObjectsResource
       return exception(createMessage(message, ownerType, ownerId, pageName), status);
    }
 
-   private String createMessage(String message, String ownerType, String ownerId, String uri)
+   private String createMessage(String message, String ownerType, String ownerId, String pageName)
    {
       return new StringBuilder().append(message).append(" for ownerType ").append(ownerType)
          .append(" and ownerId ").append(ownerId)
-         .append(" and pageName ").append(uri)
+         .append(" and pageName ").append(pageName)
          .toString();
    }
 }

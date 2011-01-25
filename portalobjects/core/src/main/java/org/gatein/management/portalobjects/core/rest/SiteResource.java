@@ -75,6 +75,11 @@ public class SiteResource extends BasePortalObjectsResource
    {
       final String ownerType = checkOwnerType(type);
 
+      if (log.isDebugEnabled())
+      {
+         log.debug("Retrieving all site layouts for ownerType " + ownerType);
+      }
+
       return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, GenericEntity<List<PortalData>>>()
       {
          @Override
@@ -107,6 +112,11 @@ public class SiteResource extends BasePortalObjectsResource
    {
       final String ownerType = checkOwnerType(type);
       final String ownerId = checkOwnerId(ownerType, id);
+
+      if (log.isDebugEnabled())
+      {
+         log.debug(createMessage("Retrieving site layout", ownerType, ownerId));
+      }
 
       return doRequest(uriInfo, new ComponentRequestCallback<ModelDataStorage, PortalData>()
       {

@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.rest;
+package org.gatein.management.portalobjects.rest;
 
 import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.gatein.management.core.rest.AbstractContainerResource;

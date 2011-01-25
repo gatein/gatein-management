@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.core.rest;
+package org.gatein.management.portalobjects.rest;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;

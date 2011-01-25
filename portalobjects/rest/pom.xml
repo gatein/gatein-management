@@ -33,11 +33,11 @@
    </parent>
 
    <groupId>org.gatein.management.portalobjects</groupId>
-   <artifactId>portalobjects-core</artifactId>
+   <artifactId>portalobjects-rest</artifactId>
    <version>1.0.0-SNAPSHOT</version>
    <packaging>jar</packaging>
 
-   <name>GateIn Management - Portal Objects Core</name>
+   <name>GateIn Management - Portal Objects Rest</name>
 
    <dependencies>
       <dependency>

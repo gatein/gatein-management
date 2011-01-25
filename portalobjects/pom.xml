@@ -41,7 +41,7 @@
    
    <modules>
       <module>binding</module>
-      <module>core</module>
+      <module>rest</module>
       <module>common</module>
       <module>exportimport</module>
       <module>client</module>

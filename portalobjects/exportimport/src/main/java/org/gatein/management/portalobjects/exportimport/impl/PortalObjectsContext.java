@@ -68,11 +68,7 @@ public class PortalObjectsContext implements ExportContext, ImportContext
 
       String key = createKey(portalConfig.getType(), portalConfig.getName());
 
-      PortalConfig pc = portalConfigMap.get(key);
-      if (pc == null)
-      {
-         portalConfigMap.put(key, new PortalConfig(portalConfig.build()));
-      }
+      portalConfigMap.put(key, new PortalConfig(portalConfig.build()));
       portalConfigs = new ArrayList<PortalConfig>(portalConfigMap.values());
    }
 

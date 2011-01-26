@@ -95,7 +95,7 @@ public class NavigationResource extends BasePortalObjectsResource
          @Override
          public NavigationData inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            return ensureNavigationExists(ownerType, ownerId, dataStorage);
+            return getNavigation(ownerType, ownerId, dataStorage);
          }
       });
    }

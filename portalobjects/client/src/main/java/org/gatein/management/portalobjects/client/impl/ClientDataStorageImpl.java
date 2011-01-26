@@ -112,6 +112,7 @@ public class ClientDataStorageImpl implements DataStorage
    public void create(Page page) throws Exception
    {
       client.createPage(page.getOwnerType(), page.getOwnerId(), page.getName(), page.getTitle());
+      client.updatePage(page);
    }
 
    @Override
@@ -144,6 +145,7 @@ public class ClientDataStorageImpl implements DataStorage
    public void create(PageNavigation navigation) throws Exception
    {
       client.createNavigation(navigation.getOwnerType(), navigation.getOwnerId(), navigation.getPriority());
+      client.updateNavigation(navigation);
    }
 
    @Override

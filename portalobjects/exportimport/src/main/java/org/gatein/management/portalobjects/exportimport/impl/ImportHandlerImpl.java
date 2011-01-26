@@ -28,10 +28,13 @@ import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.Query;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.binding.api.BindingProvider;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.gatein.management.portalobjects.exportimport.api.ImportHandler;
 
@@ -110,15 +113,16 @@ public class ImportHandlerImpl implements ImportHandler
    {
       for (List<Page> pages : context.getPages())
       {
-         String ownerType = null;
-         String ownerId = null;
+         if (pages.isEmpty()) continue;
+
+         // The list of pages we get from the context should
+         String ownerType = pages.get(0).getOwnerType();
+         String ownerId = pages.get(0).getOwnerId();
          Set<String> pageNames = new HashSet<String>();
 
          // Update/Create all pages found in import context
          for (Page page : pages)
          {
-            if (ownerType == null) ownerType = page.getOwnerType();
-            if (ownerId == null) ownerId = page.getOwnerId();
             pageNames.add(page.getName());
 
             Page existing = dataStorage.getPage(page.getPageId());
@@ -133,18 +137,19 @@ public class ImportHandlerImpl implements ImportHandler
                rollbackContext.addToContext(existing);
             }
          }
-         if (ownerType == null) continue;
-
-         // Delete all pages not found in import context
-         Query<Page> query = new Query<Page>(ownerType, ownerId, Page.class);
-         LazyPageList<Page> results = dataStorage.find(query);
-         List<Page> list = new ArrayList<Page>(results.getAll());
-         for (Page page : list)
+         if (context.isPagesOverwrite(ownerType, ownerId))
          {
-            if (!pageNames.contains(page.getName()))
+            // Delete all pages not found in import context
+            Query<Page> query = new Query<Page>(ownerType, ownerId, Page.class);
+            LazyPageList<Page> results = dataStorage.find(query);
+            List<Page> list = new ArrayList<Page>(results.getAll());
+            for (Page page : list)
             {
-               dataStorage.remove(page);
-               rollbackContext.addToContext(page);
+               if (!pageNames.contains(page.getName()))
+               {
+                  dataStorage.remove(page);
+                  rollbackContext.addToContext(page);
+               }
             }
          }
       }
@@ -164,8 +169,48 @@ public class ImportHandlerImpl implements ImportHandler
          }
          else
          {
-            dataStorage.save(navigation);
-            rollbackContext.addToContext(existing);
+            if (context.isNavigationOverwrite(navigation.getOwnerType(), navigation.getOwnerId()))
+            {
+               dataStorage.save(navigation);
+               rollbackContext.addToContext(existing);
+            }
+            else
+            {
+               ArrayList<PageNode> nodes = navigation.getNodes();
+               for (PageNode node : nodes)
+               {
+                  String parentUri = PortalObjectsUtils.getParentUri(node.getUri());
+                  List<PageNode> siblings;
+                  if (parentUri == null)
+                  {
+                     siblings = existing.getNodes();
+                  }
+                  else
+                  {
+                     PageNode parent = PortalObjectsUtils.findNodeByUri(existing.getNodes(), parentUri);
+                     if (parent == null)
+                     {
+                        throw new Exception("Navigation node for ownerType " + navigation.getOwnerType() + " and ownerId " +
+                           navigation.getOwnerId() + " and uri " + node.getUri() + " has no parent.");
+                     }
+                     siblings = parent.getNodes();
+                  }
+
+                  PageNode found = PortalObjectsUtils.getNode(siblings, node.getName());
+                  if (found == null)
+                  {
+                     siblings.add(node);
+                  }
+                  else
+                  {
+                     int index = siblings.indexOf(found);
+                     siblings.set(index, node);
+                  }
+               }
+               PageNavigation clone = existing.clone();
+               dataStorage.save(existing);
+               rollbackContext.addToContext(clone);
+            }
          }
       }
    }

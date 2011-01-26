@@ -27,14 +27,17 @@ import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.common.util.ParameterValidation;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -42,10 +45,16 @@ import java.util.Map;
  */
 public class PortalObjectsContext implements ExportContext, ImportContext
 {
+   // Portal objects within context
    private Map<String, PortalConfig> portalConfigMap = new LinkedHashMap<String, PortalConfig>();
    private Map<String, List<Page>> pageMap = new LinkedHashMap<String, List<Page>>();
    private Map<String, PageNavigation> navigationMap = new LinkedHashMap<String, PageNavigation>();
 
+   // Information on full overwrites
+   private Set<String> pagesOverwrites = new HashSet<String>();
+   private Set<String> navigationOverwrites = new HashSet<String>();
+
+   // List for access to portal objects within context
    private List<PortalConfig> portalConfigs = Collections.emptyList();
    private List<List<Page>> pages = Collections.emptyList();
    private List<PageNavigation> navigations = Collections.emptyList();
@@ -53,14 +62,16 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(PortalConfig portalConfig)
    {
-      if (portalConfig == null) return;
+      ParameterValidation.throwIllegalArgExceptionIfNull(portalConfig, "portalConfig");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(portalConfig.getType(), "type", "portalConfig");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(portalConfig.getName(), "name", "portalConfig");
 
       String key = createKey(portalConfig.getType(), portalConfig.getName());
 
       PortalConfig pc = portalConfigMap.get(key);
       if (pc == null)
       {
-         portalConfigMap.put(key, portalConfig);
+         portalConfigMap.put(key, new PortalConfig(portalConfig.build()));
       }
       portalConfigs = new ArrayList<PortalConfig>(portalConfigMap.values());
    }
@@ -68,7 +79,9 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(Page page)
    {
-      if (page == null) return;
+      ParameterValidation.throwIllegalArgExceptionIfNull(page, "page");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(page.getOwnerType(), "ownerType", "page");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(page.getOwnerId(), "ownerId", "page");
 
       String key = createKey(page.getOwnerType(), page.getOwnerId());
       List<Page> pages = pageMap.get(key);
@@ -81,12 +94,12 @@ public class PortalObjectsContext implements ExportContext, ImportContext
       Page existing = findPage(pages, page.getName());
       if (existing == null)
       {
-         pages.add(page);
+         pages.add(new Page(page.build()));
       }
       else
       {
          int index = pages.indexOf(existing);
-         pages.set(index, page);
+         pages.set(index, new Page(page.build()));
       }
       this.pages = new ArrayList<List<Page>>(pageMap.values());
    }
@@ -105,17 +118,21 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public void addToContext(PageNavigation navigation)
    {
-      if (navigation == null) return;
+      ParameterValidation.throwIllegalArgExceptionIfNull(navigation, "navigation");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(navigation.getOwnerType(), "ownerType", "navigation");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(navigation.getOwnerId(), "ownerId", "navigation");
 
       String key = createKey(navigation.getOwnerType(), navigation.getOwnerId());
-      navigationMap.put(key, navigation);
+      navigationMap.put(key, new PageNavigation(navigation.build()));
       navigations = new ArrayList<PageNavigation>(navigationMap.values());
    }
 
    @Override
    public void addToContext(String ownerType, String ownerId, PageNode node)
    {
-      if (node == null) return;
+      ParameterValidation.throwIllegalArgExceptionIfNull(node, "node");
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(ownerType, "ownerType", null);
+      ParameterValidation.throwIllegalArgExceptionIfNullOrEmpty(ownerId, "ownerId", null);
 
       String key = createKey(ownerType, ownerId);
       PageNavigation nav = navigationMap.get(key);
@@ -125,7 +142,7 @@ public class PortalObjectsContext implements ExportContext, ImportContext
          pageNavigation.setOwnerType(ownerType);
          pageNavigation.setOwnerId(ownerId);
          ArrayList<PageNode> nodes = new ArrayList<PageNode>();
-         nodes.add(node);
+         nodes.add(new PageNode(node.build()));
          pageNavigation.setNodes(nodes);
          navigationMap.put(key, pageNavigation);
       }
@@ -134,13 +151,13 @@ public class PortalObjectsContext implements ExportContext, ImportContext
          PageNode existing = nav.getNode(node.getName());
          if (existing == null)
          {
-            nav.addNode(node);
+            nav.addNode(new PageNode(node.build()));
          }
          else
          {
             List<PageNode> nodes = nav.getNodes();
             int index = nodes.indexOf(existing);
-            nodes.set(index, node);
+            nodes.set(index, new PageNode(node.build()));
          }
       }
 
@@ -163,6 +180,44 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    public List<PageNavigation> getNavigations()
    {
       return navigations;
+   }
+
+   @Override
+   public boolean isPagesOverwrite(String ownerType, String ownerId)
+   {
+      return pagesOverwrites.contains(createKey(ownerType, ownerId));
+   }
+
+   @Override
+   public void setPagesOverwrite(String ownerType, String ownerId, boolean overwrite)
+   {
+      if (overwrite)
+      {
+         pagesOverwrites.add(createKey(ownerType, ownerId));
+      }
+      else
+      {
+         pagesOverwrites.remove(createKey(ownerType, ownerId));
+      }
+   }
+
+   @Override
+   public boolean isNavigationOverwrite(String ownerType, String ownerId)
+   {
+      return navigationOverwrites.contains(createKey(ownerType, ownerId));
+   }
+
+   @Override
+   public void setNavigationOverwrite(String ownerType, String ownerId, boolean overwrite)
+   {
+      if (overwrite)
+      {
+         navigationOverwrites.add(createKey(ownerType, ownerId));
+      }
+      else
+      {
+         navigationOverwrites.remove(createKey(ownerType, ownerId));
+      }
    }
 
    private Page findPage(List<Page> pages, String name)

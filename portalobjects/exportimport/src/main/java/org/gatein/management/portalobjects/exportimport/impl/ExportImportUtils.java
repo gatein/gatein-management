@@ -130,6 +130,7 @@ public class ExportImportUtils
             if (PORTAL_FILE.equals(file))
             {
                PortalData data = bindingProvider.createContext(PortalData.class).createMarshaller().unmarshal(zis);
+               ownerId = PortalObjectsUtils.fixOwnerId(ownerType, ownerId);
                if (!data.getName().equals(ownerId))
                {
                   throw new IOException("Corrupt data for portal file " + entry.getName() + ". Name of portal should be " + ownerId);

@@ -51,6 +51,7 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    private Map<String, PageNavigation> navigationMap = new LinkedHashMap<String, PageNavigation>();
 
    // Information on full overwrites
+   private boolean allOverwrite = false;
    private Set<String> pagesOverwrites = new HashSet<String>();
    private Set<String> navigationOverwrites = new HashSet<String>();
 
@@ -179,9 +180,22 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    }
 
    @Override
+   public boolean isOverwrite()
+   {
+      return allOverwrite;
+   }
+
+   @Override
+   public void setOverwrite(boolean overwrite)
+   {
+      this.allOverwrite = overwrite;
+   }
+
+
+   @Override
    public boolean isPagesOverwrite(String ownerType, String ownerId)
    {
-      return pagesOverwrites.contains(createKey(ownerType, ownerId));
+      return allOverwrite || pagesOverwrites.contains(createKey(ownerType, ownerId));
    }
 
    @Override
@@ -200,7 +214,7 @@ public class PortalObjectsContext implements ExportContext, ImportContext
    @Override
    public boolean isNavigationOverwrite(String ownerType, String ownerId)
    {
-      return navigationOverwrites.contains(createKey(ownerType, ownerId));
+      return allOverwrite || navigationOverwrites.contains(createKey(ownerType, ownerId));
    }
 
    @Override

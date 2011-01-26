@@ -42,6 +42,10 @@ public interface ImportContext
 
    List<PageNavigation> getNavigations();
 
+   boolean isOverwrite();
+
+   void setOverwrite(boolean overwrite);
+
    boolean isPagesOverwrite(String ownerType, String ownerId);
 
    void setPagesOverwrite(String ownerType, String ownerId, boolean overwrite);

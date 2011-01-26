@@ -46,15 +46,26 @@ public abstract class AbstractContainerResource<C>
    public AbstractContainerResource(String containerName)
    {
       Class<C> componentClass = getComponentClass();
-      if (componentClass == null) throw new RuntimeException("Could not determine component class from type parameter.");
+      if (componentClass == null)
+      {
+         throw new WebApplicationException(new RuntimeException("Could not determine component class from type parameter."));
+      }
 
       RootContainer container = (RootContainer) ExoContainerContext.getTopContainer();
       ExoContainer exoContainer = container.getPortalContainer(containerName);
-      if (exoContainer == null) throw new RuntimeException("Could not retrieve portal container for " + containerName + " portal.");
+      if (exoContainer == null)
+      {
+         throw new WebApplicationException(new RuntimeException("Could not retrieve portal container for " +
+            containerName + " portal."));
+      }
 
       component = (C) exoContainer.getComponentInstanceOfType(componentClass);
 
-      if (component == null) throw new RuntimeException("Could not retrieve component " + componentClass + " from portal container " + containerName);
+      if (component == null)
+      {
+         throw new WebApplicationException(new RuntimeException("Could not retrieve component " +
+            componentClass + " from portal container " + containerName));
+      }
    }
 
    protected void validateNonNullParameter(String parameter, String parameterName)

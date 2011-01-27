@@ -21,7 +21,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.cli;
+package org.gatein.management.portalobjects.cli.exporter;
 
 import java.util.HashMap;
 import java.util.Map;

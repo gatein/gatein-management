@@ -23,6 +23,9 @@
 
 package org.gatein.management.portalobjects.cli;
 
+import org.gatein.management.portalobjects.cli.exporter.ExportMain;
+import org.gatein.management.portalobjects.cli.importer.ImportMain;
+
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$

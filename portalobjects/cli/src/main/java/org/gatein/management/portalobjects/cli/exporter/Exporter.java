@@ -21,12 +21,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.cli;
+package org.gatein.management.portalobjects.cli.exporter;
 
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.management.portalobjects.cli.Utils;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
 import org.kohsuke.args4j.Option;
@@ -38,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-import java.util.Scanner;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

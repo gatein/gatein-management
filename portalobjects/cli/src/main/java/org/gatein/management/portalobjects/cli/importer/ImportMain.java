@@ -21,15 +21,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.cli;
+package org.gatein.management.portalobjects.cli.importer;
 
+import org.gatein.management.portalobjects.cli.Main;
+import org.gatein.management.portalobjects.cli.Utils;
 import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,35 +39,35 @@ import java.util.Properties;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class ExportMain
+public class ImportMain
 {
-   private static final String DEFAULT_CONFIG = "export.properties";
+   private static final String DEFAULT_CONFIG = "import.properties";
 
-   private static final String EXPORTER_SPLASH =
+   private static final String IMPORTER_SPLASH =
       "-------------------------------------------------------------\n" +
       "*         Module:   Export/Import (XI) Utility              *\n" +
-      "*         Program:  Exporter                                *\n" +
+      "*         Program:  Importer                                *\n" +
       "*         Version:  1.0                                     *\n" +
       "* --------------------------------------------------------- *\n" +
       "*               For help run with --help                    *\n" +
       "-------------------------------------------------------------";
 
-   public static void main(String[] args) throws Exception
+   public static void main(String...args) throws Exception
    {
-      System.out.println(EXPORTER_SPLASH);
+      System.out.println(IMPORTER_SPLASH);
 
       // Load default properties
       Properties properties = new Properties();
-      properties.load(ExportMain.class.getResourceAsStream(DEFAULT_CONFIG));
+      properties.load(Main.class.getResourceAsStream(DEFAULT_CONFIG));
 
-      // Create the client
-      Exporter exporter = new Exporter();
+      // Create the importer
+      Importer importer = new Importer();
 
       // Parse command line options
-      CmdLineParser parser = new CmdLineParser(exporter);
+      CmdLineParser parser = new CmdLineParser(importer);
       parser.parseArgument(args);
 
-      File configFile = exporter.configFile;
+      File configFile = importer.configFile;
       if (configFile != null)
       {
          if (!configFile.exists()) throw new FileNotFoundException(configFile.getAbsolutePath());
@@ -87,22 +87,21 @@ public class ExportMain
       // Pass optional configurable properties as args if program args do not include them already
       List<String> argList = new ArrayList<String>();
       argList.addAll(Arrays.asList(args));
-      Utils.addPropertiesAsArgs(Exporter.class, properties, argList,
-         new String[]{"username", "password", "host", "port", "portalContainer", "scope", "ownerId", "dataType", "itemName"});
+      Utils.addPropertiesAsArgs(Importer.class, properties, argList,
+         new String[]{"username", "password", "host", "port", "portalContainer", "importFile", "overwrite"});
 
       args = argList.toArray(new String[argList.size()]);
       parser.parseArgument(args);
 
       // Print help and exit
-      if (exporter.help)
+      if (importer.help)
       {
-         parser.setUsageWidth(120);
+         parser.setUsageWidth(125);
          parser.printUsage(System.out);
          System.exit(0);
       }
 
-      // Initialize and run exporter
-      exporter.init(properties);
-      exporter.doExport();
+      // Run importer
+      importer.doImport();
    }
 }

@@ -21,8 +21,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.cli;
+package org.gatein.management.portalobjects.cli.importer;
 
+import org.gatein.management.portalobjects.cli.Utils;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.kohsuke.args4j.Option;

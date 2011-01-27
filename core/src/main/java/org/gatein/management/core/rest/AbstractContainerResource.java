@@ -55,15 +55,16 @@ public abstract class AbstractContainerResource<C>
       ExoContainer exoContainer = container.getPortalContainer(containerName);
       if (exoContainer == null)
       {
-         throw new WebApplicationException(new RuntimeException("Could not retrieve portal container for " +
-            containerName + " portal."));
+         // since the container is part of the REST url, NOT FOUND is appropriate here.
+         throw new WebApplicationException(new Exception("Could not retrieve portal container for " +
+            containerName + " portal."), Response.Status.NOT_FOUND);
       }
 
       component = (C) exoContainer.getComponentInstanceOfType(componentClass);
 
       if (component == null)
       {
-         throw new WebApplicationException(new RuntimeException("Could not retrieve component " +
+         throw new WebApplicationException(new Exception("Could not retrieve component " +
             componentClass + " from portal container " + containerName));
       }
    }

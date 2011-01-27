@@ -92,7 +92,7 @@
       </dependency>
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-core</artifactId>
+         <artifactId>portalobjects-rest</artifactId>
       </dependency>
    </dependencies>
 

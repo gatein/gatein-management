@@ -79,7 +79,7 @@
                <archive>
                   <manifest>
                      <addClasspath>true</addClasspath>
-                     <mainClass>org.gatein.management.portalobjects.cli.ExportMain</mainClass>
+                     <mainClass>org.gatein.management.portalobjects.cli.Main</mainClass>
                   </manifest>
                </archive>
             </configuration>
@@ -102,8 +102,11 @@
                         <includes>
                            <include>org.gatein.management*</include>
                            <include>org.exoplatform.portal:exo.portal.component.portal</include>
+                           <include>org.exoplatform.kernel:exo.kernel.commons</include>
+                           <include>org.jibx:jibx-run</include>
                            <include>org.gatein.mop:mop-api</include>
                            <include>org.gatein.common:common-logging</include>
+                           <include>org.gatein.common:common-common</include>
                            <include>picocontainer:picocontainer</include>
                            <include>org.gatein.staxbuilder:stax-builder</include>
                            <include>javax.ws.rs:jsr311-api</include>
@@ -114,7 +117,7 @@
                            <include>commons-logging:commons-logging</include>
                            <include>org.scannotation:*</include>
                            <include>org.slf4j:slf4j-api</include>
-                           <include>org.slf4j:slf4j-nop</include>
+                           <include>org.slf4j:slf4j-simple</include>
                            <include>args4j:args4j</include>
                         </includes>
                         <excludes>

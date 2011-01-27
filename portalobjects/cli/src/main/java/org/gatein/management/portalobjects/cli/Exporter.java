@@ -46,7 +46,7 @@ import java.util.Scanner;
  */
 public class Exporter
 {
-   @Option(name = "--config", aliases = "-c", usage = "Sets configuration file for export", metaVar = " ")
+   @Option(name = "--config", aliases = "-c", usage = "Sets custom configuration file to be used for export.", metaVar = " ")
    File configFile;
 
    @Option(name = "--basedirectory", aliases = "-basedir", usage = "Sets base directory for export", metaVar = " ")
@@ -120,7 +120,7 @@ public class Exporter
       //TODO: Verify containerName is correct (requires remote call)
       if (portalContainer == null)
       {
-         portalContainer = getUserInput("Container name (ie portal)");
+         portalContainer = Utils.getUserInput("Container name (ie portal)", level);
       }
 
       //TODO: Pass credentials
@@ -145,7 +145,7 @@ public class Exporter
       if (scope == null)
       {
          // Ask user for scope value
-         scope = getUserInput("Scope (portal, group, user, * for all)");
+         scope = Utils.getUserInput("Scope (portal, group, user, * for all)", level);
       }
 
       // Parse scope value
@@ -162,7 +162,7 @@ public class Exporter
    {
       if (ownerId == null)
       {
-         ownerId = getUserInput(inputString);
+         ownerId = Utils.getUserInput(inputString, level);
          if (ownerId.contains(","))
          {
             return ownerId.split(",");
@@ -210,7 +210,7 @@ public class Exporter
       if (dataType == null)
       {
          // Ask use for data type value
-         dataType = getUserInput("Data Type (site, page, navigation, * for all)");
+         dataType = Utils.getUserInput("Data Type (site, page, navigation, * for all)", level);
       }
 
       if ("*".equals(dataType))
@@ -246,14 +246,14 @@ public class Exporter
 
       for (String ownerId : ownerIds)
       {
-         indent();
+         Utils.indent(level);
          System.out.print("--- Current owner id '" + ownerId + "' ---\n");
          level++;
          DataType[] datatypes = getDataTypes();
          for (DataType datatype : datatypes)
          {
             level++;
-            indent();
+            Utils.indent(level);
             System.out.print("--- Current data type '" + datatype + "' ---\n");
             try
             {
@@ -261,8 +261,8 @@ public class Exporter
             }
             catch (IOException e)
             {
-               System.out.println("Exception writing data.");
-               e.printStackTrace();
+               System.err.println("Exception writing data.");
+               e.printStackTrace(System.err);
             }
             level--;
          }
@@ -279,7 +279,7 @@ public class Exporter
          case SITE:
          {
             PortalConfig data = client.getPortalConfig(scope.getName(), ownerId);
-            indent();
+            Utils.indent(level);
             if (data != null)
             {
                context.addToContext(data);
@@ -293,11 +293,11 @@ public class Exporter
          }
          case PAGE:
          {
-            String name = (itemName == null) ? getUserInput("Page name ('*' for all)") : itemName;
+            String name = (itemName == null) ? Utils.getUserInput("Page name ('*' for all)", level) : itemName;
             if ("*".endsWith(name))
             {
                List<Page> pages = client.getPages(scope.getName(), ownerId);
-               indent();
+               Utils.indent(level);
                if (pages != null)
                {
                   context.addToContext(pages);
@@ -311,7 +311,7 @@ public class Exporter
             else
             {
                Page page = client.getPage(scope.getName(), ownerId, name);
-               indent();
+               Utils.indent(level);
                if (page != null)
                {
                   context.addToContext(page);
@@ -326,7 +326,7 @@ public class Exporter
          }
          case NAVIGATION:
          {
-            String name = (itemName == null) ? getUserInput("Navigation path ('*' for all)") : itemName;
+            String name = (itemName == null) ? Utils.getUserInput("Navigation path ('*' for all)", level) : itemName;
             PageNavigation data;
             if ("*".equals(name))
             {
@@ -343,7 +343,7 @@ public class Exporter
                data.setNodes(nodes);
             }
 
-            indent();
+            Utils.indent(level);
             if (data != null)
             {
                context.addToContext(data);
@@ -360,14 +360,6 @@ public class Exporter
       }
    }
 
-   private String getUserInput(String label)
-   {
-      indent();
-      System.out.printf("%s: ", label);
-      Scanner scanner = new Scanner(System.in);
-      return scanner.next();
-   }
-
    private String getProperty(String propertyName, String defaultValue, Properties properties)
    {
       String value = properties.getProperty(propertyName);
@@ -382,13 +374,5 @@ public class Exporter
       if (value == null) throw new Exception("Configuration property " + propertyName + " is required.");
 
       return value;
-   }
-
-   private void indent()
-   {
-      for (int i = 0; i < level; i++)
-      {
-         System.out.print("   ");
-      }
    }
 }

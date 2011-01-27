@@ -62,7 +62,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -295,20 +294,62 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       this.importHandler = importHandler;
    }
 
-   private void handleNoEntityResponse(ClientResponse<?> response)
+   private ClientException createClientException(ClientResponse<?> response)
    {
-      if (response.getResponseStatus() == Response.Status.OK)
+      if (response.getResponseStatus().getFamily() == Response.Status.Family.CLIENT_ERROR)
       {
+         String exceptionString = parseErrorResponse(response);
+         String message = new StringBuilder()
+            .append("Client error ").append(response.getStatus())
+            .append(" (").append(response.getResponseStatus().toString()).append(") received.").toString();
+
+         if (exceptionString == null)
+         {
+            throw new ClientException(message);
+         }
+         else
+         {
+            throw new ClientException(message, new Exception(exceptionString));
+         }
       }
       else if (response.getResponseStatus().getFamily() == Response.Status.Family.SERVER_ERROR)
       {
-         //String message = response.getEntity(String.class);
-         //Exception e = new Exception(message);
-         throw new ClientException("HTTP Server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.");
+         String exceptionString = parseErrorResponse(response);
+         String message = new StringBuilder()
+            .append("Server error ").append(response.getStatus())
+            .append(" (").append(response.getResponseStatus().toString()).append(") received.").toString();
+
+         if (exceptionString == null)
+         {
+            throw new ClientException(message);
+         }
+         else
+         {
+            throw new ClientException(message, new Exception(exceptionString));
+         }
       }
       else
       {
-         throw new ClientException("Unknown http status code returned from server: " + response.getStatus());
+         throw new ClientException("Unknown http status code returned from server: " + response.getStatus() + ". See server logs for more details.");
+      }
+   }
+
+   private String parseErrorResponse(ClientResponse<?> response)
+   {
+      MediaType mediaType = MediaType.valueOf(response.getHeaders().getFirst("Content-Type"));
+      if (MediaType.TEXT_PLAIN_TYPE.isCompatible(mediaType))
+      {
+         return response.getEntity(String.class);
+      }
+
+      return null;
+   }
+
+   private void handleNoEntityResponse(ClientResponse<?> response)
+   {
+      if (response.getResponseStatus() != Response.Status.OK)
+      {
+         throw createClientException(response);
       }
    }
 
@@ -323,15 +364,9 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       {
          return null;
       }
-      else if (response.getResponseStatus().getFamily() == Response.Status.Family.SERVER_ERROR)
-      {
-         //String message = response.getEntity(String.class);
-         //Exception e = new Exception(message);
-         throw new ClientException("HTTP Server error " + response.getStatus() + " (" + response.getResponseStatus().toString() + ") received.");
-      }
       else
       {
-         throw new ClientException("Unhandled http status code returned from server: " + response.getStatus());
+         throw createClientException(response);
       }
    }
 

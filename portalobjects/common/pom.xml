@@ -41,10 +41,6 @@
 
    <dependencies>
       <dependency>
-         <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-api</artifactId>
-      </dependency>
-      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.portal</artifactId>
       </dependency>

@@ -95,11 +95,6 @@
          <!-- GateIn Management Portal Objects Modules -->
          <dependency>
             <groupId>org.gatein.management.portalobjects</groupId>
-            <artifactId>portalobjects-api</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.portalobjects</groupId>
             <artifactId>portalobjects-common</artifactId>
             <version>${project.version}</version>
          </dependency>

@@ -33,7 +33,6 @@ import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.Dashboard;
-import org.exoplatform.portal.config.model.ModelObject;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PortalConfig;
@@ -42,7 +41,6 @@ import org.exoplatform.portal.pom.data.NavigationKey;
 import org.exoplatform.portal.pom.data.PageKey;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -241,18 +239,6 @@ public class ClientDataStorageImpl implements DataStorage
 
    @Override
    public List<String> getAllPortalNames() throws Exception
-   {
-      throw new UnsupportedOperationException();
-   }
-
-   @Override
-   public <A> A adapt(ModelObject modelObject, Class<A> type)
-   {
-      throw new UnsupportedOperationException();
-   }
-
-   @Override
-   public <A> A adapt(ModelObject modelObject, Class<A> type, boolean create)
    {
       throw new UnsupportedOperationException();
    }

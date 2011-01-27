@@ -55,18 +55,18 @@ public class PortalObjectsContextTest
       PortalObjectsContext context = new PortalObjectsContext();
 
       // Portal config
-      context.addToContext(new PortalConfig("ownerType", "ownerId"));
+      context.addToContext(newPortalConfig("ownerType", "ownerId"));
       assertEquals(1, context.getPortalConfigs().size());
-      context.addToContext(new PortalConfig("ownerType", "another-ownerId"));
+      context.addToContext(newPortalConfig("ownerType", "another-ownerId"));
       assertEquals(2, context.getPortalConfigs().size());
 
       context = new PortalObjectsContext();
       // Pages
-      context.addToContext(new Page("ownerType1", "ownerId1", "name1"));
+      context.addToContext(newPage("ownerType1", "ownerId1", "name1"));
       assertEquals(1, context.getPages().size());
-      context.addToContext(new Page("ownerType1", "ownerId2", "name1"));
+      context.addToContext(newPage("ownerType1", "ownerId2", "name1"));
       assertEquals(2, context.getPages().size());
-      context.addToContext(new Page("ownerType1", "ownerId2", "name2"));
+      context.addToContext(newPage("ownerType1", "ownerId2", "name2"));
       assertEquals(2, context.getPages().size());
       assertEquals(1, context.getPages().get(0).size());
       assertEquals(2, context.getPages().get(1).size());
@@ -86,11 +86,11 @@ public class PortalObjectsContextTest
    {
       // Portal config
       PortalObjectsContext context = new PortalObjectsContext();
-      context.addToContext(new PortalConfig("ownerType1", "ownerId1"));
-      context.addToContext(new PortalConfig("ownerType1", "ownerId2"));
+      context.addToContext(newPortalConfig("ownerType1", "ownerId1"));
+      context.addToContext(newPortalConfig("ownerType1", "ownerId2"));
       {
          // Verify that this replaces the previous portal config added to context.
-         PortalConfig pc = new PortalConfig("ownerType1", "ownerId2");
+         PortalConfig pc = newPortalConfig("ownerType1", "ownerId2");
          pc.setLocale("test");
          context.addToContext(pc);
          assertEquals(2, context.getPortalConfigs().size());
@@ -100,17 +100,17 @@ public class PortalObjectsContextTest
 
       // Pages
       context = new PortalObjectsContext();
-      context.addToContext(new Page("ownerType1", "ownerId1", "name1"));
-      context.addToContext(new Page("ownerType1", "ownerId2", "name1"));
+      context.addToContext(newPage("ownerType1", "ownerId1", "name1"));
+      context.addToContext(newPage("ownerType1", "ownerId2", "name1"));
       {
          // Verify first page gets replaced by this one
-         context.addToContext(new Page("ownerType1", "ownerId1", "name1"));
+         context.addToContext(newPage("ownerType1", "ownerId1", "name1"));
          assertEquals(2, context.getPages().size());
          assertEquals(1, context.getPages().get(0).size());
          assertEquals("name1", context.getPages().get(0).get(0).getName());
 
          // Verify this page is added
-         context.addToContext(new Page("ownerType1", "ownerId1", "name2"));
+         context.addToContext(newPage("ownerType1", "ownerId1", "name2"));
          assertEquals(2, context.getPages().size());
          assertEquals(2, context.getPages().get(0).size());
       }
@@ -140,12 +140,12 @@ public class PortalObjectsContextTest
    public void testPageGrouping()
    {
       PortalObjectsContext context = new PortalObjectsContext();
-      context.addToContext(new Page("ownerType1", "ownerId1", "name1"));
-      context.addToContext(new Page("ownerType1", "ownerId2", "name1"));
-      context.addToContext(new Page("ownerType2", "ownerId1", "name1"));
-      context.addToContext(new Page("ownerType1", "ownerId1", "name2"));
-      context.addToContext(new Page("ownerType2", "ownerId1", "name2"));
-      context.addToContext(new Page("ownerType1", "ownerId2", "name2"));
+      context.addToContext(newPage("ownerType1", "ownerId1", "name1"));
+      context.addToContext(newPage("ownerType1", "ownerId2", "name1"));
+      context.addToContext(newPage("ownerType2", "ownerId1", "name1"));
+      context.addToContext(newPage("ownerType1", "ownerId1", "name2"));
+      context.addToContext(newPage("ownerType2", "ownerId1", "name2"));
+      context.addToContext(newPage("ownerType1", "ownerId2", "name2"));
 
       assertEquals(3, context.getPages().size());
       assertEquals(2, context.getPages().get(0).size());
@@ -178,7 +178,7 @@ public class PortalObjectsContextTest
    public void testImmutability()
    {
       PortalObjectsContext context = new PortalObjectsContext();
-      PortalConfig pc = new PortalConfig("ownerType", "ownerId");
+      PortalConfig pc = newPortalConfig("ownerType", "ownerId");
       context.addToContext(pc);
 
       pc.setName("another-name");
@@ -189,7 +189,7 @@ public class PortalObjectsContextTest
       assertEquals("ownerType", ctxpc.getType());
       assertEquals("ownerId", ctxpc.getName());
 
-      Page page = new Page("ownerType", "ownerId", "pageName");
+      Page page = newPage("ownerType", "ownerId", "pageName");
       context.addToContext(page);
       page.setName("foo");
 
@@ -217,6 +217,24 @@ public class PortalObjectsContextTest
       assertEquals(425, ctxNav.getPriority());
       assertEquals(1, ctxNav.getNodes().size());
       assertNotNull(ctxNav.getNode("node-name"));
+   }
+   
+   private PortalConfig newPortalConfig(String ownerType, String ownerId)
+   {
+      PortalConfig pc = new PortalConfig();
+      pc.setType(ownerType);
+      pc.setName(ownerId);
+      return pc;
+   }
+
+   private Page newPage(String ownerType, String ownerId, String name)
+   {
+      Page page = new Page();
+      page.setOwnerType(ownerType);
+      page.setOwnerId(ownerId);
+      page.setName(name);
+
+      return page;
    }
 
    private PageNavigation newPageNavigation(String ownerType, String ownerId, int priority)

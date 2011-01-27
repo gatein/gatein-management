@@ -46,8 +46,8 @@
 
    <properties>
       <org.gatein.common.version>2.0.3-GA</org.gatein.common.version>
-      <org.gatein.portal.version>3.2.0-Beta01-SNAPSHOT</org.gatein.portal.version>
-      <org.exoplatform.kernel.version>2.2.5-GA</org.exoplatform.kernel.version>
+      <org.gatein.portal.version>3.1.0-GA</org.gatein.portal.version>
+      <org.exoplatform.kernel.version>2.2.6-GA</org.exoplatform.kernel.version>
       <org.slf4j.version>1.6.1</org.slf4j.version>
    </properties>
 

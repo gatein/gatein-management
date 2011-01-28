@@ -25,7 +25,6 @@ package org.gatein.management.portalobjects.rest;
 
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.portal.config.DataStorage;
-import org.exoplatform.portal.config.UserPortalConfigService;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.NavigationData;
@@ -37,6 +36,7 @@ import org.gatein.management.core.rest.ComponentRequestCallback;
 import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
 import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -77,6 +77,7 @@ public class NavigationResource extends BasePortalObjectsResource
    }
 
    @GET
+   @RolesAllowed("administrators")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getNavigation(@Context UriInfo uriInfo,
                                  @QueryParam("ownerType") String type,
@@ -102,6 +103,7 @@ public class NavigationResource extends BasePortalObjectsResource
 
    @GET
    @Path("/{nav-uri:.*}")
+   @RolesAllowed("administrators")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getNavigation(@Context UriInfo uriInfo,
                                  @QueryParam("ownerType") String type,
@@ -129,6 +131,7 @@ public class NavigationResource extends BasePortalObjectsResource
    // Since you can either create a default navigation, or a navigation node at the default level, this
    // method will handle both.
    @PUT
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response createNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
@@ -182,6 +185,7 @@ public class NavigationResource extends BasePortalObjectsResource
 
    @PUT
    @Path("/{parent-nav-uri:.*}")
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response createNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
@@ -217,6 +221,7 @@ public class NavigationResource extends BasePortalObjectsResource
    }
 
    @POST
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updateNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
@@ -244,6 +249,7 @@ public class NavigationResource extends BasePortalObjectsResource
 
    @POST
    @Path("/{nav-uri:.*}")
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updateNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
@@ -299,8 +305,8 @@ public class NavigationResource extends BasePortalObjectsResource
       });
    }
 
-   //TODO: Do want to allow the ability to delete the default navigation for a site ?
    @DELETE
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response deleteNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
@@ -327,6 +333,7 @@ public class NavigationResource extends BasePortalObjectsResource
 
    @DELETE
    @Path("/{nav-uri:.*}")
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response deleteNavigation(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,
@@ -498,10 +505,10 @@ public class NavigationResource extends BasePortalObjectsResource
 
    private String createMessage(String message, String ownerType, String ownerId, String uri)
    {
-      return new StringBuilder().append(message).append(" for ownerType ").append(ownerType)
-         .append(" and ownerId ").append(ownerId)
-         .append(" and uri ").append(uri)
-         .toString();
+      return new StringBuilder().append(message).append(" for [ownerType=").append(ownerType)
+         .append(", ownerId=").append(ownerId)
+         .append(", uri=").append(uri)
+         .append("]").toString();
    }
 
    private NavigationNodeData getNode(List<NavigationNodeData> nodes, String name)

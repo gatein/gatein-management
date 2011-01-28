@@ -29,4 +29,5 @@ package org.gatein.management;
  */
 public interface ManagementApi
 {
+   // This interface is really just a place holder for something we may do in the future.
 }

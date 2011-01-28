@@ -78,7 +78,8 @@ public abstract class BasePortalObjectsResource extends AbstractContainerResourc
 
    protected String createMessage(String message, String ownerType, String ownerId)
    {
-      return new StringBuilder().append(message).append(" for ownerType ").append(ownerType)
-         .append(" and ownerId ").append(ownerId).toString();
+      return new StringBuilder().append(message).append(" for [ownerType=").append(ownerType)
+         .append(", ownerId=").append(ownerId)
+         .append("]").toString();
    }
 }

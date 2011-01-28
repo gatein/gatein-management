@@ -37,6 +37,7 @@ import org.gatein.management.core.rest.ComponentRequestCallback;
 import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
 import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -79,6 +80,7 @@ public class PageResource extends BasePortalObjectsResource
    }
 
    @GET
+   @RolesAllowed("administrators")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPages(@Context UriInfo uriInfo,
                             @QueryParam("ownerType") String type,
@@ -122,6 +124,7 @@ public class PageResource extends BasePortalObjectsResource
 
    @GET
    @Path("/{page-name}")
+   @RolesAllowed("administrators")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPage(@Context UriInfo uriInfo,
                            @QueryParam("ownerType") String type,
@@ -149,6 +152,7 @@ public class PageResource extends BasePortalObjectsResource
    // This method doesn't follow RESTful guidelines for a create. We should be returning the location of the newly created
    // resource as part of the response.
    @POST
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response createPage(@Context UriInfo uriInfo,
                               @QueryParam("ownerType") String type,
@@ -193,6 +197,7 @@ public class PageResource extends BasePortalObjectsResource
 
    @PUT
    @Path("/{page-name}")
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updatePage(@Context UriInfo uriInfo,
                               @QueryParam("ownerType") String type,
@@ -229,6 +234,7 @@ public class PageResource extends BasePortalObjectsResource
 
    @DELETE
    @Path("/{page-name}")
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response deletePage(@Context UriInfo uriInfo,
                               @QueryParam("ownerType") String type,
@@ -286,9 +292,9 @@ public class PageResource extends BasePortalObjectsResource
 
    private String createMessage(String message, String ownerType, String ownerId, String pageName)
    {
-      return new StringBuilder().append(message).append(" for ownerType ").append(ownerType)
-         .append(" and ownerId ").append(ownerId)
-         .append(" and pageName ").append(pageName)
-         .toString();
+      return new StringBuilder().append(message).append(" for [ownerType=").append(ownerType)
+         .append(", ownerId=").append(ownerId)
+         .append(", pageName=").append(pageName)
+         .append("]").toString();
    }
 }

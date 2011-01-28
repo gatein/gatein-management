@@ -34,6 +34,7 @@ import org.gatein.management.core.rest.ComponentRequestCallback;
 import org.gatein.management.core.rest.ComponentRequestCallbackNoResult;
 import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -70,6 +71,7 @@ public class SiteResource extends BasePortalObjectsResource
    }
 
    @GET
+   @RolesAllowed("administrators")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPortalData(@Context UriInfo uriInfo, @QueryParam("ownerType") String type)
    {
@@ -105,6 +107,7 @@ public class SiteResource extends BasePortalObjectsResource
 
    @GET
    @Path("/{owner-id:.*}")
+   @RolesAllowed("administrators")
    @Produces({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response getPortalData(@Context UriInfo uriInfo,
                                  @QueryParam("ownerType") String type,
@@ -130,6 +133,7 @@ public class SiteResource extends BasePortalObjectsResource
 
    @POST
    @Path("/{owner-id:.*}")
+   @RolesAllowed("administrators")
    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_XHTML_XML})
    public Response updatePortalData(@Context UriInfo uriInfo,
                                     @QueryParam("ownerType") String type,

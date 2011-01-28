@@ -27,7 +27,7 @@
    xmlns="http://www.exoplaform.org/xml/ns/kernel_1_0.xsd">
 
    <component>
-      <type>org.gatein.management.portalobjects.core.rest.RestApplication</type>
+      <type>org.gatein.management.portalobjects.rest.RestApplication</type>
    </component>
 
 </configuration>

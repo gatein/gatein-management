@@ -74,14 +74,12 @@ public class Importer
 
    public void doImport() throws Exception
    {
-      //TODO: Verify containerName is correct (requires remote call)
       if (portalContainer == null)
       {
          portalContainer = Utils.getUserInput("Container name (ie portal)", level);
       }
 
-      //TODO: Pass credentials
-      client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, portalContainer);
+      client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, username, password, portalContainer);
 
       if (importFile == null)
       {

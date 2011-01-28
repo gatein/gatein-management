@@ -91,12 +91,12 @@ public interface PortalObjectsMgmtClient
 
    public static class Factory
    {
-      public static PortalObjectsMgmtClient create(InetAddress address, int port, String portalContainerName)
+      public static PortalObjectsMgmtClient create(InetAddress address, int port, String username, String password, String portalContainerName)
       {
          BindingProvider bindingProvider = new BindingProviderImpl();
          bindingProvider.load();
          RestfulPortalObjectsMgmtClient client =
-            new RestfulPortalObjectsMgmtClient(address, port, portalContainerName, bindingProvider);
+            new RestfulPortalObjectsMgmtClient(address, port, username, password, portalContainerName, bindingProvider);
 
          ExportHandler exportHandler = new ExportHandlerImpl(bindingProvider);
          ImportHandler importHandler = new ImportHandlerImpl(bindingProvider, new ClientDataStorageImpl(client));

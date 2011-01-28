@@ -80,8 +80,6 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
 {
    private static final String BASE_URI = "/management/rest/portalobjects";
 
-   private final BindingProvider bindingProvider;
-
    // Restful client stubs
    private final SiteClientStub siteClientStub;
    private final PageClientStub pageClientStub;
@@ -91,12 +89,9 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
    private ExportHandler exportHandler;
    private ImportHandler importHandler;
 
-   public RestfulPortalObjectsMgmtClient(InetAddress address, int port, String containerName, BindingProvider bindingProvider)
+   public RestfulPortalObjectsMgmtClient(InetAddress address, int port, String username, String password, String containerName, BindingProvider bindingProvider)
    {
-      this.bindingProvider = bindingProvider;
-
-      //TODO: Configure authentication
-      Credentials credentials = new UsernamePasswordCredentials("root", "gtn");
+      Credentials credentials = new UsernamePasswordCredentials(username, password);
       HttpClient httpClient = new HttpClient();
       httpClient.getState().setCredentials(AuthScope.ANY, credentials);
       httpClient.getParams().setAuthenticationPreemptive(true);

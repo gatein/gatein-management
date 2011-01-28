@@ -29,6 +29,7 @@ import org.exoplatform.container.RootContainer;
 import org.gatein.common.logging.Logger;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.lang.reflect.ParameterizedType;
@@ -55,9 +56,8 @@ public abstract class AbstractContainerResource<C>
       ExoContainer exoContainer = container.getPortalContainer(containerName);
       if (exoContainer == null)
       {
-         // since the container is part of the REST url, NOT FOUND is appropriate here.
-         throw new WebApplicationException(new Exception("Could not retrieve portal container for " +
-            containerName + " portal."), Response.Status.NOT_FOUND);
+         throw new WebApplicationException(new Exception(
+            "Could not retrieve portal container '" + containerName + "'"), Response.Status.BAD_REQUEST);
       }
 
       component = (C) exoContainer.getComponentInstanceOfType(componentClass);
@@ -102,12 +102,18 @@ public abstract class AbstractContainerResource<C>
       }
       catch (WebApplicationException wae)
       {
-         getLogger().error("Web application exception for request " + uriInfo.getRequestUri(), wae);
-         return wae.getResponse();
+         if (getLogger().isDebugEnabled())
+         {
+            getLogger().error("Web application exception for request " + uriInfo.getRequestUri(), wae);
+         }
+         return Response.status(wae.getResponse().getStatus()).entity(wae.getLocalizedMessage()).type(MediaType.TEXT_PLAIN_TYPE).build();
       }
       catch (Throwable t)
       {
-         getLogger().error("Unknown exception occurred for request " + uriInfo.getRequestUri(), t);
+         if (getLogger().isDebugEnabled())
+         {
+            getLogger().error("Unknown exception occurred for request " + uriInfo.getRequestUri(), t);
+         }
          return Response.serverError().build();
       }
    }

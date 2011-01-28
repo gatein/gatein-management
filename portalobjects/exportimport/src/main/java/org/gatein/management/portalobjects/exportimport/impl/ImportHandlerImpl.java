@@ -30,11 +30,9 @@ import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
-import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.binding.api.BindingProvider;
-import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.gatein.management.portalobjects.exportimport.api.ImportHandler;
 
@@ -45,6 +43,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.gatein.management.portalobjects.common.utils.PortalObjectsUtils.*;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -82,7 +82,7 @@ public class ImportHandlerImpl implements ImportHandler
       }
       catch (Exception e)
       {
-         log.error("Exception during import, will attempt to rollback.", e);
+         log.error("Exception during import.", e);
          rollback(dataStorage, rollbackContext, deleteRollbackContext);
       }
    }
@@ -96,11 +96,13 @@ public class ImportHandlerImpl implements ImportHandler
          PortalConfig existing = dataStorage.getPortalConfig(pc.getName());
          if (existing == null)
          {
+            log.info("Import creating portal config " + format(pc));
             dataStorage.create(pc);
             deleteRollbackContext.addToContext(pc);
          }
          else
          {
+            log.info("Import overwriting portal config " + format(pc));
             dataStorage.save(pc);
             rollbackContext.addToContext(existing);
          }
@@ -128,11 +130,13 @@ public class ImportHandlerImpl implements ImportHandler
             Page existing = dataStorage.getPage(page.getPageId());
             if (existing == null)
             {
+               log.info("Import creating page " + format(page));
                dataStorage.create(page);
                deleteRollbackContext.addToContext(page);
             }
             else
             {
+               log.info("Import overwriting page " + format(page));
                dataStorage.save(page);
                rollbackContext.addToContext(existing);
             }
@@ -147,6 +151,7 @@ public class ImportHandlerImpl implements ImportHandler
             {
                if (!pageNames.contains(page.getName()))
                {
+                  log.info("Import deleting page " + format(page));
                   dataStorage.remove(page);
                   rollbackContext.addToContext(page);
                }
@@ -164,6 +169,7 @@ public class ImportHandlerImpl implements ImportHandler
          PageNavigation existing = dataStorage.getPageNavigation(navigation.getOwnerType(), navigation.getOwnerId());
          if (existing == null)
          {
+            log.info("Import creating new navigation " + format(navigation));
             dataStorage.create(navigation);
             deleteRollbackContext.addToContext(navigation);
          }
@@ -171,15 +177,18 @@ public class ImportHandlerImpl implements ImportHandler
          {
             if (context.isNavigationOverwrite(navigation.getOwnerType(), navigation.getOwnerId()))
             {
+               log.info("Import overwriting entire navigation " + format(navigation));
                dataStorage.save(navigation);
                rollbackContext.addToContext(existing);
             }
             else
             {
+               String ownerType = navigation.getOwnerType();
+               String ownerId = navigation.getOwnerId();
                ArrayList<PageNode> nodes = navigation.getNodes();
                for (PageNode node : nodes)
                {
-                  String parentUri = PortalObjectsUtils.getParentUri(node.getUri());
+                  String parentUri = getParentUri(node.getUri());
                   List<PageNode> siblings;
                   if (parentUri == null)
                   {
@@ -187,22 +196,23 @@ public class ImportHandlerImpl implements ImportHandler
                   }
                   else
                   {
-                     PageNode parent = PortalObjectsUtils.findNodeByUri(existing.getNodes(), parentUri);
+                     PageNode parent = findNodeByUri(existing.getNodes(), parentUri);
                      if (parent == null)
                      {
-                        throw new Exception("Navigation node for ownerType " + navigation.getOwnerType() + " and ownerId " +
-                           navigation.getOwnerId() + " and uri " + node.getUri() + " has no parent.");
+                        throw new Exception("Navigation node " + format(ownerType, ownerId, node) + " has no parent.");
                      }
                      siblings = parent.getNodes();
                   }
 
-                  PageNode found = PortalObjectsUtils.getNode(siblings, node.getName());
+                  PageNode found = getNode(siblings, node.getName());
                   if (found == null)
                   {
+                     log.info("Import creating navigation node " + format(ownerType, ownerId, node));
                      siblings.add(node);
                   }
                   else
                   {
+                     log.info("Import overwriting navigation node " + format(ownerType, ownerId, node));
                      int index = siblings.indexOf(found);
                      siblings.set(index, node);
                   }
@@ -217,29 +227,69 @@ public class ImportHandlerImpl implements ImportHandler
 
    private void rollback(DataStorage dataStorage, PortalObjectsContext rollbackContext, PortalObjectsContext deleteRollbackContext)
    {
+      log.info("Rolling back any changes that occurred during import.");
+      rollbackPortalConfigs(dataStorage, rollbackContext, deleteRollbackContext);
+      rollbackPages(dataStorage, rollbackContext, deleteRollbackContext);
+      rollbackNavigation(dataStorage, rollbackContext, deleteRollbackContext);
+   }
+
+   private void rollbackPortalConfigs(DataStorage dataStorage, PortalObjectsContext rollbackContext, PortalObjectsContext deleteRollbackContext)
+   {
+      // Rollback overwrites
+      if (rollbackContext.getPortalConfigs().isEmpty())
+      {
+         log.info("No portal configs were overwritten during import");
+      }
+      else
+      {
+         log.info("Reverting portal configs overwritten during import.");
+      }
       for (PortalConfig pc : rollbackContext.getPortalConfigs())
       {
          try
          {
             dataStorage.save(pc);
-            log.info("Successfully rolled back (reverted) portal config " + pc.getName());
+            log.info("Successfully rolled back (reverted) portal config " + format(pc));
          }
          catch (Exception e)
          {
-            log.error("Exception during rollback, trying to revert portal config " + pc.getName());
+            log.error("Exception during rollback when trying to revert portal config " + format(pc));
          }
+      }
+
+      // Rollback creates
+      if (deleteRollbackContext.getPortalConfigs().isEmpty())
+      {
+         log.info("No portal configs were creating during import");
+      }
+      else
+      {
+         log.info("Deleting portal configs created during import.");
       }
       for (PortalConfig pc : deleteRollbackContext.getPortalConfigs())
       {
          try
          {
             dataStorage.remove(pc);
-            log.info("Successfully rolled back (deleted) portal config " + pc.getName());
+            log.info("Successfully rolled back (deleted) portal config " + format(pc));
          }
          catch (Exception e)
          {
-            log.error("Exception during rollback, trying to delete portal config " + pc.getName());
+            log.error("Exception during rollback when trying to delete portal config " + format(pc));
          }
+      }
+   }
+
+   private void rollbackPages(DataStorage dataStorage, PortalObjectsContext rollbackContext, PortalObjectsContext deleteRollbackContext)
+   {
+      // Rollback overwrites
+      if (rollbackContext.getPages().isEmpty())
+      {
+         log.info("No pages were overwritten during import");
+      }
+      else
+      {
+         log.info("Reverting pages overwritten during import.");
       }
       for (List<Page> pages : rollbackContext.getPages())
       {
@@ -248,13 +298,23 @@ public class ImportHandlerImpl implements ImportHandler
             try
             {
                dataStorage.save(page);
-               log.info("Successfully rolled back (reverted) page " + page.getPageId());
+               log.info("Successfully rolled back (reverted) page " + format(page));
             }
             catch (Exception e)
             {
-               log.error("Exception during rollback, trying to revert page " + page.getPageId());
+               log.error("Exception during rollback when trying to revert page " + format(page));
             }
          }
+      }
+
+      // Rollback creates
+      if (deleteRollbackContext.getPages().isEmpty())
+      {
+         log.info("No pages were creating during import");
+      }
+      else
+      {
+         log.info("Deleting pages created during import.");
       }
       for (List<Page> pages : deleteRollbackContext.getPages())
       {
@@ -263,40 +323,59 @@ public class ImportHandlerImpl implements ImportHandler
             try
             {
                dataStorage.remove(page);
-               log.info("Successfully rolled back (deleted) page " + page.getPageId());
+               log.info("Successfully rolled back (deleted) page " + format(page));
             }
             catch (Exception e)
             {
-               log.error("Exception during rollback, trying to delete page " + page.getPageId());
+               log.error("Exception during rollback when trying to delete page " + format(page));
             }
          }
+      }
+   }
+
+   private void rollbackNavigation(DataStorage dataStorage, PortalObjectsContext rollbackContext, PortalObjectsContext deleteRollbackContext)
+   {
+      // Rollback overwrites
+      if (rollbackContext.getNavigations().isEmpty())
+      {
+         log.info("No navigations were overwritten during import");
+      }
+      else
+      {
+         log.info("Reverting navigations overwritten during import.");
       }
       for (PageNavigation navigation : rollbackContext.getNavigations())
       {
          try
          {
             dataStorage.save(navigation);
-            log.info("Successfully rolled back (reverted) navigation for ownerType " +
-               navigation.getOwnerType() + " and ownerId " + navigation.getOwnerId());
+            log.info("Successfully rolled back (reverted) navigation " + format(navigation));
          }
          catch (Exception e)
          {
-            log.error("Exception during rollback, trying to revert navigation for ownerType " +
-               navigation.getOwnerType() + " and ownerid " + navigation.getOwnerId());
+            log.error("Exception during rollback when trying to revert navigation " + format(navigation));
          }
+      }
+
+      // Rollback creates
+      if (deleteRollbackContext.getNavigations().isEmpty())
+      {
+         log.info("No navigations were creating during import");
+      }
+      else
+      {
+         log.info("Deleting navigations created during import.");
       }
       for (PageNavigation navigation : deleteRollbackContext.getNavigations())
       {
          try
          {
             dataStorage.remove(navigation);
-            log.info("Successfully rolled back (deleted) navigation for ownerType " +
-               navigation.getOwnerType() + " and ownerId " + navigation.getOwnerId());
+            log.info("Successfully rolled back (deleted) navigation " + format(navigation));
          }
          catch (Exception e)
          {
-            log.error("Exception during rollback, trying to delete navigation for ownerType " +
-               navigation.getOwnerType() + " and ownerId " + navigation.getOwnerId());
+            log.error("Exception during rollback when trying to delete navigation " + format(navigation));
          }
       }
    }

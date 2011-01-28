@@ -295,4 +295,34 @@ public class PortalObjectsUtils
       }
       return uri.substring(0, uri.lastIndexOf('/'));
    }
+
+   public static String format(PortalConfig portalConfig)
+   {
+      return new StringBuilder().append("PortalConfig[type=").append(portalConfig.getType())
+         .append(", ").append("name=").append(portalConfig.getName())
+         .append("]").toString();
+   }
+
+   public static String format(Page page)
+   {
+      return new StringBuilder().append("Page[ownerType=").append(page.getOwnerType())
+         .append(", ").append("ownerId=").append(page.getOwnerId())
+         .append(", ").append("pageName=").append(page.getName())
+         .append("]").toString();
+   }
+
+   public static String format(PageNavigation navigation)
+   {
+      return new StringBuilder().append("Navigation[ownerType=").append(navigation.getOwnerType())
+         .append(", ").append("ownerId=").append(navigation.getOwnerId())
+         .append("]").toString();
+   }
+
+   public static String format(String ownerType, String ownerId, PageNode node)
+   {
+      return new StringBuilder().append("NavigationNode[ownerType=").append(ownerType)
+         .append(", ").append("ownerId=").append(ownerId)
+         .append(", ").append("uri=").append(node.getUri())
+         .append("]").toString();
+   }
 }

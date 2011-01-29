@@ -88,7 +88,7 @@ public class ImportMain
       List<String> argList = new ArrayList<String>();
       argList.addAll(Arrays.asList(args));
       Utils.addPropertiesAsArgs(Importer.class, properties, argList,
-         new String[]{"username", "password", "host", "port", "portalContainer", "importFile", "overwrite"});
+         new String[]{"username", "password", "host", "port", "portalContainer", "log4j", "loglevel", "importFile", "overwrite"});
 
       args = argList.toArray(new String[argList.size()]);
       parser.parseArgument(args);

@@ -23,11 +23,18 @@
 
 package org.gatein.management.portalobjects.cli;
 
+import org.apache.log4j.Category;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.xml.DOMConfigurator;
 import org.kohsuke.args4j.Option;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
@@ -38,7 +45,9 @@ import java.util.Scanner;
  */
 public class Utils
 {
-   private Utils(){}
+   private Utils()
+   {
+   }
 
    public static void addPropertiesAsArgs(Class<?> clazz, Properties properties, List<String> argList, String[] fieldNames) throws Exception
    {
@@ -87,6 +96,35 @@ public class Utils
       for (int i = 0; i < level; i++)
       {
          System.out.print("   ");
+      }
+   }
+
+   public static void initializeLogging(File log4jConfigFile, String logLevel, File logDir, String fileName, String program)
+   {
+      if (log4jConfigFile == null)
+      {
+         System.setProperty("gtn.log.dir", logDir.getAbsolutePath());
+         System.setProperty("gtn.log.file", fileName + "-export.log");
+         System.out.println("Logging to " + logDir.getAbsolutePath() + "/" + fileName + "-" + program + ".log");
+         DOMConfigurator.configure(Main.class.getResource("/log/log4j.xml"));
+      }
+      else
+      {
+         try
+         {
+            DOMConfigurator.configure(log4jConfigFile.toURI().toURL());
+         }
+         catch (MalformedURLException e)
+         {
+            System.err.println("Could not configure log4j config file " + log4jConfigFile + ".");
+            e.printStackTrace(System.err);
+            System.exit(1);
+         }
+         System.out.println("Using log4j configuration file " + log4jConfigFile + " for logging.");
+      }
+      if (logLevel != null)
+      {
+         LogManager.getRootLogger().setLevel(Level.toLevel(logLevel));
       }
    }
 }

@@ -23,12 +23,20 @@
 
 package org.gatein.management.portalobjects.exportimport.impl;
 
+import org.exoplatform.portal.config.model.Page;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
+import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.binding.api.BindingProvider;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
 import org.gatein.management.portalobjects.exportimport.api.ExportHandler;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -36,6 +44,8 @@ import java.io.OutputStream;
  */
 public class ExportHandlerImpl implements ExportHandler
 {
+   private static final Logger log = LoggerFactory.getLogger(ExportHandler.class);
+
    private BindingProvider bindingProvider;
 
    public ExportHandlerImpl(BindingProvider bindingProvider)
@@ -52,6 +62,41 @@ public class ExportHandlerImpl implements ExportHandler
    @Override
    public void exportContext(ExportContext context, OutputStream out) throws IOException
    {
+      if (log.isDebugEnabled())
+      {
+         logExportContext(context);
+      }
       ExportImportUtils.exportAsZip(bindingProvider, context, out);
+   }
+
+   private void logExportContext(ExportContext context)
+   {
+      for (PortalConfig config : context.getPortalConfigs())
+      {
+         log.debug("Exporting portal config " + PortalObjectsUtils.format(config));
+      }
+      for (List<Page> pages : context.getPages())
+      {
+         for (Page page : pages)
+         {
+            log.debug("Exporting page " + PortalObjectsUtils.format(page));
+         }
+      }
+      for (PageNavigation navigation : context.getNavigations())
+      {
+         if (navigation.getNodes().isEmpty())
+         {
+            log.debug("Exporting navigation " + PortalObjectsUtils.format(navigation));
+         }
+         else
+         {
+            String ownerType = navigation.getOwnerType();
+            String ownerId = navigation.getOwnerId();
+            for (PageNode node : navigation.getNodes())
+            {
+               log.debug("Exporting navigation node " + PortalObjectsUtils.format(ownerType, ownerId, node));
+            }
+         }
+      }
    }
 }

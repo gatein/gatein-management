@@ -48,7 +48,7 @@
       <org.gatein.common.version>2.0.3-GA</org.gatein.common.version>
       <org.gatein.portal.version>3.1.0-GA</org.gatein.portal.version>
       <org.exoplatform.kernel.version>2.2.6-GA</org.exoplatform.kernel.version>
-      <org.slf4j.version>1.6.1</org.slf4j.version>
+      <org.slf4j.version>1.5.6</org.slf4j.version>
    </properties>
 
    <dependencyManagement>
@@ -176,16 +176,10 @@
             <version>2.1.0.GA</version>
          </dependency>
 
-         <!-- slf4j -->
+         <!-- logging -->
          <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j.version}</version>
-         </dependency>
-         
-         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
             <version>${org.slf4j.version}</version>
          </dependency>
 
@@ -208,6 +202,15 @@
       <module>web</module>
       <module>packaging</module>
    </modules>
+
+   <dependencies>
+      <dependency>
+         <groupId>org.slf4j</groupId>
+         <artifactId>slf4j-log4j12</artifactId>
+         <version>${org.slf4j.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
 
    <build>
       <plugins>

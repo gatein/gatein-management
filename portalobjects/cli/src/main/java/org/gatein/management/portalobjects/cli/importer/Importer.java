@@ -23,15 +23,19 @@
 
 package org.gatein.management.portalobjects.cli.importer;
 
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.portalobjects.cli.Utils;
+import org.gatein.management.portalobjects.client.api.ClientException;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.kohsuke.args4j.Option;
 
+import javax.transaction.SystemException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Properties;
+import java.net.UnknownHostException;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -39,8 +43,16 @@ import java.util.Properties;
  */
 public class Importer
 {
+   private static final Logger log = LoggerFactory.getLogger(Importer.class);
+
    @Option(name = "--config", aliases = "-c", usage = "Sets custom configuration file to be used for import.", metaVar = " ")
    File configFile;
+
+   @Option(name = "--log4j", aliases = "-l", usage = "Sets custom log4j config file to be used for logging.", metaVar = " ")
+   File log4jFile;
+
+   @Option(name = "--loglevel", usage = "Sets log level of root log4j logger (ie debug, info).", metaVar = " ")
+   String logLevel;
 
    @Option(name = "--username", aliases = "-u", usage = "Username to connect to portal with.", metaVar = " ")
    String username;
@@ -72,14 +84,23 @@ public class Importer
    private PortalObjectsMgmtClient client;
    int level;
 
-   public void doImport() throws Exception
+   public void doImport()
    {
       if (portalContainer == null)
       {
          portalContainer = Utils.getUserInput("Container name (ie portal)", level);
       }
 
-      client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, username, password, portalContainer);
+      try
+      {
+         client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, username, password, portalContainer);
+      }
+      catch (UnknownHostException e)
+      {
+         System.err.println("Unknown host name " + host);
+         e.printStackTrace(System.err);
+         System.exit(1);
+      }
 
       if (importFile == null)
       {
@@ -91,6 +112,8 @@ public class Importer
          System.err.println("Cannot find file " + importFile);
          System.exit(1);
       }
+
+      Utils.initializeLogging(log4jFile, logLevel, importFile.getParentFile(), importFile.getName(), "import");
 
       if (overwrite == null)
       {
@@ -126,8 +149,18 @@ public class Importer
       }
       catch (IOException e)
       {
-         System.err.println("Exception reading zip file.");
-         e.printStackTrace(System.err);
+         System.err.println("Exception reading zip file. See log for more details.");
+         log.error("IOException reading zip file " + importFile, e);
+      }
+      catch (ClientException e)
+      {
+         System.err.println("Client exception during import. See log for more details.");
+         log.error("ClientException during import.", e);
+      }
+      catch (Throwable t)
+      {
+         System.err.println("Unknown exception occurred during import.  See log for more details.");
+         log.error("Uknown exception during import.", t);
       }
    }
 

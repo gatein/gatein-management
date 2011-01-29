@@ -88,7 +88,7 @@ public class ExportMain
       List<String> argList = new ArrayList<String>();
       argList.addAll(Arrays.asList(args));
       Utils.addPropertiesAsArgs(Exporter.class, properties, argList,
-         new String[]{"username", "password", "host", "port", "portalContainer", "scope", "ownerId", "dataType", "itemName"});
+         new String[]{"username", "password", "host", "port", "portalContainer", "log4jFile", "logLevel", "scope", "ownerId", "dataType", "itemName"});
 
       args = argList.toArray(new String[argList.size()]);
       parser.parseArgument(args);
@@ -102,7 +102,7 @@ public class ExportMain
       }
 
       // Initialize and run exporter
-      exporter.init(properties);
+      exporter.init();
       exporter.doExport();
    }
 }

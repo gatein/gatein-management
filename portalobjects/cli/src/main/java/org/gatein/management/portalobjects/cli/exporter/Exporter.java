@@ -23,18 +23,27 @@
 
 package org.gatein.management.portalobjects.cli.exporter;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.xml.DOMConfigurator;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.portalobjects.cli.Main;
 import org.gatein.management.portalobjects.cli.Utils;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
+import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,8 +55,16 @@ import java.util.Properties;
  */
 public class Exporter
 {
+   private static final Logger log = LoggerFactory.getLogger(Exporter.class);
+
    @Option(name = "--config", aliases = "-c", usage = "Sets custom configuration file to be used for export.", metaVar = " ")
    File configFile;
+
+   @Option(name = "--log4j", aliases = "-l", usage = "Sets custom log4j config file to be used for logging.", metaVar = " ")
+   File log4jFile;
+
+   @Option(name = "--loglevel", usage = "Sets log level of root log4j logger (ie debug, info).", metaVar = " ")
+   String logLevel;
 
    @Option(name = "--basedirectory", aliases = "-basedir", usage = "Sets base directory for export", metaVar = " ")
    File basedir;
@@ -83,24 +100,16 @@ public class Exporter
    boolean help;
 
    private PortalObjectsMgmtClient client;
-   private File exportDir;
+   private File exportFile;
    private int level;
+   private StringBuilder exportSummary = new StringBuilder();
 
    private ExportContext context;
 
-   void init(Properties properties) throws Exception
+   void init()
    {
-//      Date date = Calendar.getInstance().getTime();
-//      SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
-//      SimpleDateFormat sdf2 = new SimpleDateFormat("HH.mm.ss.SSS");
-//      String exportPath = new StringBuilder().append(sdf1.format(date)).
-//         append("/").append(sdf2.format(date)).toString();
-
-      if (basedir == null)
-      {
-         exportDir = new File("epp-exports");
-      }
-      else
+      File exportDir = new File("epp-exports");
+      if (basedir != null)
       {
          exportDir = basedir;
       }
@@ -113,16 +122,31 @@ public class Exporter
       }
 
       System.out.println("Using directory " + exportDir.getAbsolutePath() + " for export.");
+      String fileName = new StringBuilder().append("portal-objects_")
+         .append(System.currentTimeMillis()).append(".zip").toString();
+      exportFile = new File(exportDir, fileName);
+
+      Utils.initializeLogging(log4jFile, logLevel, exportDir, fileName, "export");
+      log.info("Exporter successfully initialized.");
    }
 
-   public void doExport() throws Exception
+   public void doExport()
    {
       if (portalContainer == null)
       {
          portalContainer = Utils.getUserInput("Container name (ie portal)", level);
       }
 
-      client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, username, password, portalContainer);
+      try
+      {
+         client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, username, password, portalContainer);
+      }
+      catch (UnknownHostException e)
+      {
+         System.err.println("Unknown host name " + host);
+         e.printStackTrace(System.err);
+         System.exit(1);
+      }
 
       context = client.createExportContext();
       // Process scopes for export
@@ -132,10 +156,20 @@ public class Exporter
          processScope(s);
       }
 
-      String fileName = new StringBuilder().append("portal-objects_")
-         .append(System.currentTimeMillis()).append(".zip").toString();
+      log.info("Export Summary:" + exportSummary.toString());
 
-      client.exportToZip(context, new File(exportDir, fileName));
+      try
+      {
+         log.info("Writing export content to zip file " + exportFile.getAbsolutePath());
+         client.exportToZip(context, exportFile);
+      }
+      catch (IOException e)
+      {
+         System.err.println("Error exporting content to zip file. See log for more details.");
+         log.error("IOException exporting content to zip file " + exportFile.getAbsolutePath(), e);
+      }
+      
+      log.info("Export successful !");
    }
 
    private Scope[] getScopes()
@@ -247,6 +281,10 @@ public class Exporter
          Utils.indent(level);
          System.out.print("--- Current owner id '" + ownerId + "' ---\n");
          level++;
+
+         exportSummary.append("\n").append(scope.getName()).append(" site ")
+            .append("'").append(ownerId).append("' :");
+
          DataType[] datatypes = getDataTypes();
          for (DataType datatype : datatypes)
          {
@@ -259,8 +297,9 @@ public class Exporter
             }
             catch (IOException e)
             {
-               System.err.println("Exception writing data.");
-               e.printStackTrace(System.err);
+               System.err.println("Exception writing data. See log for more details.");
+               log.error("Exception writing data for scope " + scope.getName() + " and ownerId " + ownerId + " and datatype " + dataType);
+               System.exit(1);
             }
             level--;
          }
@@ -277,16 +316,19 @@ public class Exporter
          case SITE:
          {
             PortalConfig data = client.getPortalConfig(scope.getName(), ownerId);
-            Utils.indent(level);
+            Utils.indent(++level);
             if (data != null)
             {
                context.addToContext(data);
                System.out.println("Successfully exported.");
+
+               exportSummary.append("\n   1 site layout exported.");
             }
             else
             {
                System.out.println("Nothing to export.");
             }
+            level--;
             break;
          }
          case PAGE:
@@ -295,53 +337,70 @@ public class Exporter
             if ("*".endsWith(name))
             {
                List<Page> pages = client.getPages(scope.getName(), ownerId);
-               Utils.indent(level);
+               Utils.indent(++level);
                if (pages != null)
                {
                   context.addToContext(pages);
                   System.out.println("Successfully exported.");
+                  exportSummary.append("\n   All pages exported.");
                }
                else
                {
                   System.out.println("Nothing to export.");
+                  exportSummary.append("\n   No pages exported.");
                }
+               level--;
             }
             else
             {
                Page page = client.getPage(scope.getName(), ownerId, name);
-               Utils.indent(level);
+               Utils.indent(++level);
                if (page != null)
                {
                   context.addToContext(page);
                   System.out.println("Successfully exported.");
+                  exportSummary.append("\n").append(name).append(" page exported for ").
+                     append(scope.getName()).append(" site ").append(ownerId);
                }
                else
                {
                   System.out.println("Nothing to export.");
+                  exportSummary.append("\n   No pages exported.");
                }
+               level--;
             }
             break;
          }
          case NAVIGATION:
          {
             String name = (itemName == null) ? Utils.getUserInput("Navigation path ('*' for all)", level) : itemName;
-            PageNavigation data;
+            PageNavigation data = null;
             if ("*".equals(name))
             {
                data = client.getNavigation(scope.getName(), ownerId);
+               if (data != null)
+               {
+                  exportSummary.append("\n   All navigation exported.");
+               }
             }
             else
             {
                PageNode node = client.getNavigationNode(scope.getName(), ownerId, name);
-               data = new PageNavigation();
-               data.setOwnerType(scope.getName());
-               data.setOwnerId(ownerId);
-               ArrayList<PageNode> nodes = new ArrayList<PageNode>(1);
-               nodes.add(node);
-               data.setNodes(nodes);
+               if (node != null)
+               {
+                  data = new PageNavigation();
+                  data.setOwnerType(scope.getName());
+                  data.setOwnerId(ownerId);
+                  ArrayList<PageNode> nodes = new ArrayList<PageNode>(1);
+                  nodes.add(node);
+                  data.setNodes(nodes);
+
+                  exportSummary.append("\n").append(name).append(" navigation node exported for ").
+                     append(scope.getName()).append(" site ").append(ownerId);
+               }
             }
 
-            Utils.indent(level);
+            Utils.indent(++level);
             if (data != null)
             {
                context.addToContext(data);
@@ -350,7 +409,9 @@ public class Exporter
             else
             {
                System.out.println("Nothing to export.");
+               exportSummary.append("\n   No navigation exported.");
             }
+            level--;
             break;
          }
          default:

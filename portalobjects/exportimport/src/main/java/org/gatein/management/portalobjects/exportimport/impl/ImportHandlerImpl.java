@@ -52,7 +52,7 @@ import static org.gatein.management.portalobjects.common.utils.PortalObjectsUtil
  */
 public class ImportHandlerImpl implements ImportHandler
 {
-   private static final Logger log = LoggerFactory.getLogger(ImportHandlerImpl.class);
+   private static final Logger log = LoggerFactory.getLogger(ImportHandler.class);
 
    private BindingProvider bindingProvider;
    private DataStorage dataStorage;
@@ -96,13 +96,13 @@ public class ImportHandlerImpl implements ImportHandler
          PortalConfig existing = dataStorage.getPortalConfig(pc.getName());
          if (existing == null)
          {
-            log.info("Import creating portal config " + format(pc));
+            log.debug("Import creating portal config " + format(pc));
             dataStorage.create(pc);
             deleteRollbackContext.addToContext(pc);
          }
          else
          {
-            log.info("Import overwriting portal config " + format(pc));
+            log.debug("Import overwriting portal config " + format(pc));
             dataStorage.save(pc);
             rollbackContext.addToContext(existing);
          }
@@ -130,13 +130,13 @@ public class ImportHandlerImpl implements ImportHandler
             Page existing = dataStorage.getPage(page.getPageId());
             if (existing == null)
             {
-               log.info("Import creating page " + format(page));
+               log.debug("Import creating page " + format(page));
                dataStorage.create(page);
                deleteRollbackContext.addToContext(page);
             }
             else
             {
-               log.info("Import overwriting page " + format(page));
+               log.debug("Import overwriting page " + format(page));
                dataStorage.save(page);
                rollbackContext.addToContext(existing);
             }
@@ -151,7 +151,7 @@ public class ImportHandlerImpl implements ImportHandler
             {
                if (!pageNames.contains(page.getName()))
                {
-                  log.info("Import deleting page " + format(page));
+                  log.debug("Import deleting page " + format(page));
                   dataStorage.remove(page);
                   rollbackContext.addToContext(page);
                }
@@ -169,7 +169,7 @@ public class ImportHandlerImpl implements ImportHandler
          PageNavigation existing = dataStorage.getPageNavigation(navigation.getOwnerType(), navigation.getOwnerId());
          if (existing == null)
          {
-            log.info("Import creating new navigation " + format(navigation));
+            log.debug("Import creating new navigation " + format(navigation));
             dataStorage.create(navigation);
             deleteRollbackContext.addToContext(navigation);
          }
@@ -177,7 +177,7 @@ public class ImportHandlerImpl implements ImportHandler
          {
             if (context.isNavigationOverwrite(navigation.getOwnerType(), navigation.getOwnerId()))
             {
-               log.info("Import overwriting entire navigation " + format(navigation));
+               log.debug("Import overwriting entire navigation " + format(navigation));
                dataStorage.save(navigation);
                rollbackContext.addToContext(existing);
             }
@@ -207,12 +207,12 @@ public class ImportHandlerImpl implements ImportHandler
                   PageNode found = getNode(siblings, node.getName());
                   if (found == null)
                   {
-                     log.info("Import creating navigation node " + format(ownerType, ownerId, node));
+                     log.debug("Import creating navigation node " + format(ownerType, ownerId, node));
                      siblings.add(node);
                   }
                   else
                   {
-                     log.info("Import overwriting navigation node " + format(ownerType, ownerId, node));
+                     log.debug("Import overwriting navigation node " + format(ownerType, ownerId, node));
                      int index = siblings.indexOf(found);
                      siblings.set(index, node);
                   }

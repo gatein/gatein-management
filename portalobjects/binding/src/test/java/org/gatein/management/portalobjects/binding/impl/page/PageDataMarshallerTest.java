@@ -34,7 +34,6 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
 import org.gatein.management.portalobjects.binding.impl.AbstractMarshallerTest;
-import org.jboss.xb.binding.AbstractMarshaller;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

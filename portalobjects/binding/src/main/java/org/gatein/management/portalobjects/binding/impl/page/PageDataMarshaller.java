@@ -1,3 +1,26 @@
+/*
+ * JBoss, a division of Red Hat
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * contributors as indicated by the @authors tag. See the
+ * copyright.txt in the distribution for a full listing of
+ * individual contributors.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+
 package org.gatein.management.portalobjects.binding.impl.page;
 
 import org.exoplatform.portal.pom.data.ComponentData;
@@ -176,8 +199,19 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
                // Unmarshal portlet application
                else if (isPortletApplication(reader))
                {
-                  components = new ArrayList<ComponentData>(1);
+                  if (components == null)
+                  {
+                     components = new ArrayList<ComponentData>();
+                  }
                   components.add(unmarshalPortletApplication(reader));
+               }
+               else if (isGadgetApplication(reader))
+               {
+                  if (components == null)
+                  {
+                     components = new ArrayList<ComponentData>();
+                  }
+                  components.add(unmarshalGadgetApplication(reader));
                }
                else
                {
@@ -189,6 +223,7 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
          }
       }
       if (components == null) components = Collections.emptyList();
+      if (accessPermissions == null) accessPermissions = Collections.emptyList();
       return new PageData(null, null, name, null, null, null, title, description, null, null, accessPermissions, components, "", "", editPermission, showMaxWindow);
    }
 }

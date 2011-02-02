@@ -1,3 +1,26 @@
+/*
+ * JBoss, a division of Red Hat
+ * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * contributors as indicated by the @authors tag. See the
+ * copyright.txt in the distribution for a full listing of
+ * individual contributors.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+
 package org.gatein.management.portalobjects.binding.impl;
 
 import org.exoplatform.container.ExoContainer;
@@ -13,6 +36,7 @@ import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.PageData;
+import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.PortletBuilder;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
@@ -54,11 +78,11 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
          ApplicationType type = applicationData.getType();
          if (ApplicationType.PORTLET == type)
          {
-            marshalPortletApplication(writer, getApplicationData(applicationData, Portlet.class));
+            marshalPortletApplication(writer, safeCast(applicationData, Portlet.class));
          }
          else if (ApplicationType.GADGET == type)
          {
-            throw new XMLStreamException("Gadget portlet marshalling not supported.");
+            marshalGadgetApplication(writer, safeCast(applicationData, Gadget.class));
          }
          else if (ApplicationType.WSRP_PORTLET == type)
          {
@@ -209,7 +233,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
             }
             catch (Exception e)
             {
-               throw new XMLStreamException("Could not obtain portlet preferences from custom context.");
+               throw new XMLStreamException("Could not obtain portlet state from custom context.");
             }
 
             try
@@ -260,25 +284,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       }
       writer.writeEndElement(); // End of portlet
 
-      // Theme, Title
-      writer.writeOptionalElement(Element.THEME, portletApplication.getTheme());
-      writer.writeOptionalElement(Element.TITLE, portletApplication.getTitle());
-
-      // Access Permissions
-      marshalAccessPermissions(writer, portletApplication.getAccessPermissions());
-
-      // Portlet application elements
-      writer.writeOptionalElement(Element.SHOW_INFO_BAR, String.valueOf(portletApplication.isShowInfoBar()));
-      writer.writeOptionalElement(Element.SHOW_APPLICATION_STATE, String.valueOf(portletApplication.isShowApplicationState()));
-      writer.writeOptionalElement(Element.SHOW_APPLICATION_MODE, String.valueOf(portletApplication.isShowApplicationMode()));
-
-      // Description, Icon
-      writer.writeOptionalElement(Element.DESCRIPTION, portletApplication.getDescription());
-      writer.writeOptionalElement(Element.ICON, portletApplication.getIcon());
-
-      // Width & Height
-      writer.writeOptionalElement(Element.WIDTH, portletApplication.getWidth());
-      writer.writeOptionalElement(Element.HEIGHT, portletApplication.getHeight());
+      marshalApplication(writer, portletApplication);
 
       writer.writeEndElement(); // End of portlet-application
    }
@@ -406,7 +412,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                break;
             case UNKNOWN:
                throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() +
-                  "' while unmarshalling preferences", reader.currentReadEvent().getLocation());
+                  "' while unmarshalling portlet", reader.currentReadEvent().getLocation());
             case SKIP:
                break;
             default:
@@ -425,6 +431,196 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    protected boolean isPortletApplication(StaxReader reader) throws XMLStreamException
    {
       return isCurrentElement(reader, Element.PORTLET_APPLICATION);
+   }
+
+   protected void marshalGadgetApplication(StaxWriter writer, ApplicationData<Gadget> gadgetApplication) throws XMLStreamException
+   {
+      writer.writeStartElement(Element.GADGET_APPLICATION).writeStartElement(Element.GADGET);
+
+      // Marshal ApplicationState
+      ApplicationState<Gadget> state = gadgetApplication.getState();
+
+      // Marshal application state
+      String contentId;
+      Gadget gadget;
+      // If transient we have all the information we need
+      if (state instanceof TransientApplicationState)
+      {
+         TransientApplicationState<Gadget> transientApplicationState = (TransientApplicationState<Gadget>) state;
+         contentId = transientApplicationState.getContentId();
+         gadget = transientApplicationState.getContentState();
+      }
+      else
+      {
+         // The only way to retrieve the information if the state is not transient is if we're within a portal context
+         ExoContainer container = ExoContainerContext.getCurrentContainer();
+         if (container instanceof PortalContainer)
+         {
+            ModelDataStorage dataStorage = (ModelDataStorage) container.getComponentInstanceOfType(ModelDataStorage.class);
+            try
+            {
+               gadget = dataStorage.load(state, ApplicationType.GADGET);
+            }
+            catch (Exception e)
+            {
+               throw new XMLStreamException("Could not obtain gadget state from custom context.");
+            }
+
+            try
+            {
+               contentId = dataStorage.getId(state);
+            }
+            catch (Exception e)
+            {
+               throw new XMLStreamException("Could not obtain contentId from custom context.", e);
+            }
+         }
+         else
+         {
+            throw new XMLStreamException("Cannot marshal application state " + state + " outside the context of the portal.");
+         }
+      }
+
+      // Marshal portlet application id
+      if (contentId == null) throw new XMLStreamException("Gadget content ID was null.");
+      writer.writeElement(Element.GADGET_REF, contentId);
+
+      // Marshal preferences
+      if (gadget != null)
+      {
+         //TODO: When user-prefs are supported, uncomment
+         //writer.writeOptionalElement(Element.PREFERENCES, gadget.getUserPref());
+      }
+      writer.writeEndElement(); // End of portlet
+
+      marshalApplication(writer, gadgetApplication);
+
+
+      writer.writeEndElement(); // End of gadget-application
+   }
+
+   protected ApplicationData<Gadget> unmarshalGadgetApplication(StaxReader reader) throws XMLStreamException
+   {
+      ApplicationState<Gadget> state = null;
+      String theme = null;
+      String title = null;
+      String description = null;
+      List<String> accessPermissions = null;
+      boolean showInfoBar = false;
+      boolean showApplicationState = false;
+      boolean showApplicationMode = false;
+      String icon = null;
+      String width = null;
+      String height = null;
+
+      reader.buildReadEvent().withNestedRead().untilElement(Element.GADGET_APPLICATION).end();
+      while(reader.hasNext())
+      {
+         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         {
+            case GADGET:
+               state = unmarshalGadgetApplicationState(reader);
+               break;
+            case THEME:
+               theme = reader.currentReadEvent().elementText();
+               break;
+            case TITLE:
+               title = reader.currentReadEvent().elementText();
+               break;
+            case DESCRIPTION:
+               description = reader.currentReadEvent().elementText();
+               break;
+            case ACCESS_PERMISSIONS:
+               accessPermissions = unmarshalAccessPermissions(reader);
+               break;
+            case SHOW_INFO_BAR:
+               showInfoBar = Boolean.valueOf(reader.currentReadEvent().elementText());
+               break;
+            case SHOW_APPLICATION_STATE:
+               showApplicationState = Boolean.valueOf(reader.currentReadEvent().elementText());
+               break;
+            case SHOW_APPLICATION_MODE:
+               showApplicationMode = Boolean.valueOf(reader.currentReadEvent().elementText());
+               break;
+            case ICON:
+               icon = reader.currentReadEvent().elementText();
+               break;
+            case WIDTH:
+               width = reader.currentReadEvent().elementText();
+               break;
+            case HEIGHT:
+               height = reader.currentReadEvent().elementText();
+               break;
+            case UNKNOWN:
+               throw new XMLStreamException("Uknown element '" + reader.currentReadEvent().getLocalName() +
+                  "' while unmarshalling gadget application.", reader.currentReadEvent().getLocation());
+            case SKIP:
+               break;
+            default:
+               break;
+         }
+      }
+
+      return new ApplicationData<Gadget>(null, null, ApplicationType.GADGET, state, null, title, icon, description,
+         showInfoBar, showApplicationState, showApplicationMode, theme, width, height, Collections.<String, String>emptyMap(), accessPermissions);
+   }
+
+   private ApplicationState<Gadget> unmarshalGadgetApplicationState(StaxReader reader) throws XMLStreamException
+   {
+      String gadgetRef = null;
+      String userPref = null;
+      reader.buildReadEvent().withNestedRead().untilElement(Element.GADGET).end();
+      while (reader.hasNext())
+      {
+         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         {
+            case GADGET_REF:
+               gadgetRef = reader.currentReadEvent().elementText();
+               break;
+            //TODO: When user-prefs are supported uncomment
+            /*case PREFERENCES:
+               userPref = reader.currentReadEvent().elementText();
+               break;*/
+            case UNKNOWN:
+               throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() +
+                  "' while unmarshalling gadget", reader.currentReadEvent().getLocation());
+            case SKIP:
+               break;
+            default:
+               break;
+         }
+      }
+      Gadget gadget = new Gadget();
+      gadget.setUserPref(userPref);
+      return new TransientApplicationState<Gadget>(gadgetRef, gadget);
+   }
+
+   protected boolean isGadgetApplication(StaxReader reader) throws XMLStreamException
+   {
+      return isCurrentElement(reader, Element.GADGET_APPLICATION);
+   }
+
+   protected void marshalApplication(StaxWriter writer, ApplicationData<?> application) throws XMLStreamException
+   {
+      // Theme, Title
+      writer.writeOptionalElement(Element.THEME, application.getTheme());
+      writer.writeOptionalElement(Element.TITLE, application.getTitle());
+
+      // Access Permissions
+      marshalAccessPermissions(writer, application.getAccessPermissions());
+
+      // common application elements
+      writer.writeOptionalElement(Element.SHOW_INFO_BAR, String.valueOf(application.isShowInfoBar()));
+      writer.writeOptionalElement(Element.SHOW_APPLICATION_STATE, String.valueOf(application.isShowApplicationState()));
+      writer.writeOptionalElement(Element.SHOW_APPLICATION_MODE, String.valueOf(application.isShowApplicationMode()));
+
+      // Description, Icon
+      writer.writeOptionalElement(Element.DESCRIPTION, application.getDescription());
+      writer.writeOptionalElement(Element.ICON, application.getIcon());
+
+      // Width & Height
+      writer.writeOptionalElement(Element.WIDTH, application.getWidth());
+      writer.writeOptionalElement(Element.HEIGHT, application.getHeight());
    }
 
    protected void marshalAccessPermissions(StaxWriter writer, List<String> accessPermissionsList) throws XMLStreamException
@@ -478,7 +674,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    }
 
    @SuppressWarnings("unchecked")
-   private <S> ApplicationData<S> getApplicationData(ApplicationData data, Class<S> stateClass)
+   private <S> ApplicationData<S> safeCast(ApplicationData data, Class<S> stateClass)
    {
       return (ApplicationData<S>) data;
    }
@@ -505,11 +701,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       ACCESS_PERMISSIONS("access-permissions"),
       EDIT_PERMISSION("edit-permission"),
       PORTLET_APPLICATION("portlet-application"),
+      GADGET_APPLICATION("gadget-application"),
       CONTAINER("container"),
 //      TEMPLATE("template"),
       APPLICATION_REF("application-ref"),
       PORTLET_REF("portlet-ref"),
       PORTLET("portlet"),
+      GADGET_REF("gadget-ref"),
+      GADGET("gadget"),
       THEME("theme"),
       SHOW_INFO_BAR("show-info-bar"),
       SHOW_APPLICATION_STATE("show-application-state"),

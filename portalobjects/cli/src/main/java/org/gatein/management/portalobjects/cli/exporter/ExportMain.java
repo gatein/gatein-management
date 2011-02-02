@@ -45,7 +45,7 @@ public class ExportMain
 
    private static final String EXPORTER_SPLASH =
       "-------------------------------------------------------------\n" +
-      "*         Module:   Export/Import (XI) Utility              *\n" +
+      "*         Module:   Portal Objects CLI                      *\n" +
       "*         Program:  Exporter                                *\n" +
       "*         Version:  1.0                                     *\n" +
       "* --------------------------------------------------------- *\n" +
@@ -88,7 +88,7 @@ public class ExportMain
       List<String> argList = new ArrayList<String>();
       argList.addAll(Arrays.asList(args));
       Utils.addPropertiesAsArgs(Exporter.class, properties, argList,
-         new String[]{"username", "password", "host", "port", "portalContainer", "log4jFile", "logLevel", "scope", "ownerId", "dataType", "itemName"});
+         new String[]{"username", "password", "host", "port", "portalContainer", "log4jFile", "logLevel", "basedir", "scope", "ownerId", "dataType", "itemName"});
 
       args = argList.toArray(new String[argList.size()]);
       parser.parseArgument(args);

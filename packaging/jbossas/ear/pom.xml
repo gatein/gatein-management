@@ -84,16 +84,20 @@
       </dependency>
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-binding</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-common</artifactId>
+         <artifactId>portalobjects-exportimport</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
          <artifactId>portalobjects-rest</artifactId>
       </dependency>
+      <!--<dependency>-->
+         <!--<groupId>org.gatein.management.portalobjects</groupId>-->
+         <!--<artifactId>portalobjects-rest</artifactId>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+         <!--<groupId>org.gatein.management.portalobjects</groupId>-->
+         <!--<artifactId>portalobjects-exportimport</artifactId>-->
+      <!--</dependency>-->
    </dependencies>
 
    <build>

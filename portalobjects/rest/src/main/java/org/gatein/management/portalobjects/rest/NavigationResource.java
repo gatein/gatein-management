@@ -65,11 +65,6 @@ public class NavigationResource extends BasePortalObjectsResource
 {
    private static final Logger log = LoggerFactory.getLogger(NavigationResource.class);
 
-   public NavigationResource(String containerName)
-   {
-      super(containerName);
-   }
-
    @Override
    public Logger getLogger()
    {

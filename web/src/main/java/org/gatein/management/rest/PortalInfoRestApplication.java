@@ -21,33 +21,25 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.rest;
+package org.gatein.management.rest;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Application;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Path("/portalobjects")
-public class PortalObjectsResource
+public class PortalInfoRestApplication extends Application
 {
-   @Path("/navigations")
-   public NavigationResource getNavigationResource()
+   @Override
+   public Set<Class<?>> getClasses()
    {
-      return new NavigationResource();
-   }
+      Set<Class<?>> classes = new HashSet<Class<?>>(1);
+      classes.add(RestContextResource.class);
 
-   @Path("/pages")
-   public PageResource getPageResource()
-   {
-      return new PageResource();
-   }
-
-   @Path("/sites")
-   public SiteResource getSiteResource()
-   {
-      return new SiteResource();
+      return classes;
    }
 }

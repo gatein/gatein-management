@@ -46,6 +46,7 @@ import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.gatein.management.portalobjects.exportimport.api.ImportHandler;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
+import org.jboss.resteasy.client.ProxyFactory;
 import org.jboss.resteasy.client.core.executors.ApacheHttpClientExecutor;
 import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
@@ -78,7 +79,8 @@ import java.util.List;
  */
 public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
 {
-   private static final String BASE_URI = "/management/rest/portalobjects";
+   private static final String PORTAL_OBJECTS_URI = "/portalobjects";
+   private static final String GTN_MGMT_BASE_URI = "/gatein-management";
 
    // Restful client stubs
    private final SiteClientStub siteClientStub;
@@ -91,20 +93,42 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
 
    public RestfulPortalObjectsMgmtClient(InetAddress address, int port, String username, String password, String containerName, BindingProvider bindingProvider)
    {
+      ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
+      instance.registerProviderInstance(new BindingRestProvider(bindingProvider));
+      RegisterBuiltin.register(instance);
+
+      StringBuilder hostUri = new StringBuilder();
+      //TODO: Document this...
+      String sslAuth = System.getProperty("org.gatein.management.ssl.client.auth");
+      boolean ssl = "true".equals(sslAuth);
+
+      if (ssl)
+      {
+         hostUri.append("https");
+      }
+      else
+      {
+         hostUri.append("http");
+      }
+      hostUri.append("://").append(address.getHostName());
+
+      if ( (ssl && port != 443) || (!ssl && port != 80))
+      {
+         hostUri.append(':').append(port);
+      }
+
+      String host = hostUri.toString();
+      String restContext = getRestContext(host, containerName);
+
       Credentials credentials = new UsernamePasswordCredentials(username, password);
       HttpClient httpClient = new HttpClient();
       httpClient.getState().setCredentials(AuthScope.ANY, credentials);
       httpClient.getParams().setAuthenticationPreemptive(true);
-
       try
       {
-         //TODO: What about https
-         StringBuilder uri = new StringBuilder().append("http://").append(address.getHostName());
-         if (port != 80)
-         {
-            uri.append(':').append(port);
-         }
-         uri.append(BASE_URI).append("/").append(containerName);
+         StringBuilder uri = new StringBuilder().append(host)
+            .append("/").append(restContext).append("/private").append(PORTAL_OBJECTS_URI);
+
          ClientRequestFactory clientRequestFactory = new ClientRequestFactory(
             new ApacheHttpClientExecutor(httpClient), new URI(uri.toString()));
 
@@ -114,14 +138,35 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       }
       catch (URISyntaxException e)
       {
-         throw new RuntimeException("Could not create restful mop client.", e);
+         throw new RuntimeException("Could not create restful client.", e);
       }
-
-      ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
-      instance.registerProviderInstance(new BindingRestProvider(bindingProvider));
-      RegisterBuiltin.register(instance);
    }
 
+   private String getRestContext(String host, String containerName)
+   {
+      try
+      {
+         String uri = new StringBuilder().append(host).append(GTN_MGMT_BASE_URI).toString();
+         RestContextClientStub client = ProxyFactory.create(RestContextClientStub.class, uri);
+         ClientResponse<String> response = client.getRestContextName(containerName);
+         if (response.getResponseStatus() == Response.Status.OK)
+         {
+            return response.getEntity(String.class);
+         }
+         else
+         {
+            throw createClientException(response);
+         }
+      }
+      catch (ClientException e)
+      {
+         throw e;
+      }
+      catch (Throwable t)
+      {
+         throw new RuntimeException("Could not obtain rest context for portal container '" + containerName +"'", t);
+      }
+   }
 
 
    @Override
@@ -386,6 +431,14 @@ public class RestfulPortalObjectsMgmtClient implements PortalObjectsMgmtClient
       nodeDataList.add(nodeData);
 
       return new NavigationData(ownerType, ownerId, null, nodeDataList);
+   }
+
+   @Path("/portalinfo/{portal-container}/restcontext")
+   private static interface RestContextClientStub
+   {
+      @GET
+      @Produces(MediaType.TEXT_PLAIN)
+      ClientResponse<String> getRestContextName(@PathParam("portal-container") String portalContainer);
    }
 
    @Path("/sites")

@@ -25,7 +25,7 @@ package org.gatein.management.core.rest;
 
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
-import org.exoplatform.container.RootContainer;
+import org.exoplatform.container.PortalContainer;
 import org.gatein.common.logging.Logger;
 
 import javax.ws.rs.WebApplicationException;
@@ -44,7 +44,7 @@ public abstract class AbstractContainerResource<C>
    private C component;
 
    @SuppressWarnings("unchecked")
-   public AbstractContainerResource(String containerName)
+   public AbstractContainerResource()
    {
       Class<C> componentClass = getComponentClass();
       if (componentClass == null)
@@ -52,12 +52,10 @@ public abstract class AbstractContainerResource<C>
          throw new WebApplicationException(new RuntimeException("Could not determine component class from type parameter."));
       }
 
-      RootContainer container = (RootContainer) ExoContainerContext.getTopContainer();
-      ExoContainer exoContainer = container.getPortalContainer(containerName);
-      if (exoContainer == null)
+      ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
+      if (!(exoContainer instanceof PortalContainer))
       {
-         throw new WebApplicationException(new Exception(
-            "Could not retrieve portal container '" + containerName + "'"), Response.Status.BAD_REQUEST);
+         throw new WebApplicationException(new Exception(exoContainer + " is not a valid portal container."));
       }
 
       component = (C) exoContainer.getComponentInstanceOfType(componentClass);
@@ -65,7 +63,7 @@ public abstract class AbstractContainerResource<C>
       if (component == null)
       {
          throw new WebApplicationException(new Exception("Could not retrieve component " +
-            componentClass + " from portal container " + containerName));
+            componentClass + " from portal container"));
       }
    }
 

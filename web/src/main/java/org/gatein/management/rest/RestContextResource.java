@@ -21,33 +21,43 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.rest;
+package org.gatein.management.rest;
 
+import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.RootContainer;
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
+
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Path("/portalobjects")
-public class PortalObjectsResource
+@Path("/portalinfo/{portal-container}/restcontext")
+public class RestContextResource
 {
-   @Path("/navigations")
-   public NavigationResource getNavigationResource()
-   {
-      return new NavigationResource();
-   }
+   private static final Logger log = LoggerFactory.getLogger(RestContextResource.class);
 
-   @Path("/pages")
-   public PageResource getPageResource()
+   @GET
+   public Response getRestContext(@PathParam("portal-container") String portalContainer)
    {
-      return new PageResource();
-   }
+      RootContainer container = RootContainer.getInstance();
+      PortalContainer pc = container.getPortalContainer(portalContainer);
+      if (pc == null)
+      {
+         String message = "Unknown portal container '" + portalContainer + "'";
+         if (log.isDebugEnabled())
+         {
+            log.error(message);
+         }
+         return Response.status(Response.Status.NOT_FOUND).entity(message).build();
+      }
 
-   @Path("/sites")
-   public SiteResource getSiteResource()
-   {
-      return new SiteResource();
+      return Response.ok().entity(pc.getRestContextName()).build();
    }
 }

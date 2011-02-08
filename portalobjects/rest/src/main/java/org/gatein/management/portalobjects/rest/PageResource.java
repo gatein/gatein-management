@@ -68,11 +68,6 @@ public class PageResource extends BasePortalObjectsResource
 {
    private static final Logger log = LoggerFactory.getLogger(PageResource.class);
 
-   public PageResource(String containerName)
-   {
-      super(containerName);
-   }
-
    @Override
    public Logger getLogger()
    {

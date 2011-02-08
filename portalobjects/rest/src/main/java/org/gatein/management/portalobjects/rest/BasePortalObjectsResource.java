@@ -37,10 +37,6 @@ import javax.ws.rs.core.Response;
 //TODO: Add validation for some fields like page name, nav name and uri, make sure name and nav uri are consistent
 public abstract class BasePortalObjectsResource extends AbstractContainerResource<ModelDataStorage>
 {
-   public BasePortalObjectsResource(String containerName)
-   {
-      super(containerName);
-   }
 
    protected String checkOwnerType(String ownerType)
    {

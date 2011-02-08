@@ -59,11 +59,6 @@ public class SiteResource extends BasePortalObjectsResource
 {
    private static final Logger log = LoggerFactory.getLogger(SiteResource.class);
 
-   public SiteResource(String containerName)
-   {
-      super(containerName);
-   }
-
    @Override
    public Logger getLogger()
    {

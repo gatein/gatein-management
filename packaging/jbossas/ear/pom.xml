@@ -90,14 +90,6 @@
          <groupId>org.gatein.management.portalobjects</groupId>
          <artifactId>portalobjects-rest</artifactId>
       </dependency>
-      <!--<dependency>-->
-         <!--<groupId>org.gatein.management.portalobjects</groupId>-->
-         <!--<artifactId>portalobjects-rest</artifactId>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-         <!--<groupId>org.gatein.management.portalobjects</groupId>-->
-         <!--<artifactId>portalobjects-exportimport</artifactId>-->
-      <!--</dependency>-->
    </dependencies>
 
    <build>
@@ -116,11 +108,10 @@
                </archive>
 
                <modules>
-                  <!-- WAR modules -->
                   <webModule>
                      <groupId>org.gatein.management</groupId>
                      <artifactId>management-web</artifactId>
-                     <contextRoot>management</contextRoot>
+                     <contextRoot>/gatein-management</contextRoot>
                      <bundleFileName>management-web.war</bundleFileName>
                      <unpack>true</unpack>
                   </webModule>

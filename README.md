@@ -31,8 +31,7 @@ NOTE: These URL's are subject to change.  To obtain data from the server you sho
     http://localhost:8080/{rest-context-name}/private/portalobjects/pages?ownerType={ownerType}&ownerId={ownerId}
     http://localhost:8080/{rest-context-name}/private/portalobjects/pages/{name}?ownerType={ownerType}&ownerId={ownerId}
 
-Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include
-      the ownerType as such ownerType=group or ownerType=user as a URL parameter.
+Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include the ownerType as such ownerType=group or ownerType=user as a URL parameter.
 
     Examples:
     All portal pages:
@@ -47,9 +46,7 @@ Note: ownerType is not required and will default to 'portal'.  If you want to sp
     http://localhost:8080/{rest-context-name}/private/portalobjects/navigations?ownerType={ownerType}&ownerId={ownerId}
     http://localhost:8080/{rest-context-name}/private/portalobjects/navigations/{nav-uri}?ownerType={ownerType}&ownerId={ownerId}
 
-Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include
-      the ownerType as such ownerType=group or ownerType=user as a URL parameter.
-
+Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include the ownerType as such ownerType=group or ownerType=user as a URL parameter.
 Note: nav-uri is the uri of the navigation, so if you have a nav of 'home-1' under home the nav-uri would be home/home-1
 
     Examples:

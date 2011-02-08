@@ -14,6 +14,9 @@ NOTE: Until xml parsing is included, you will also need stax-builder which can b
 
 Once that's done copy the ear from `packaging/jbossas/ear/target` to the JBoss Application Server deploy directory.
 
+Usage
+-----------
+
 ### Restful Services
 Assuming the server is running @ http://localhost:8080
 

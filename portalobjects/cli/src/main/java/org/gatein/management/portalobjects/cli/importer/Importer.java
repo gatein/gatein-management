@@ -72,7 +72,7 @@ public class Importer
    @Option(name = "--importfile", aliases = "-file", usage = "The import file to be imported.", metaVar = " ")
    File importFile;
 
-   @Option(name = "--overwrite", aliases = "-o", usage = "Indicates that the contents of each file should overwrite everything on the destination server. This also means that anything not included will be deleted.")
+   @Option(name = "--overwrite", aliases = "-o", usage = "Indicates that the contents of each file should overwrite everything on the destination server. This also means that anything not included will be deleted.", metaVar = " ")
    String overwrite;
 
    @Option(name = "--force", aliases = "-f", usage = "Force all options without confirmation.", metaVar = " ")

@@ -93,7 +93,7 @@ public class ImportHandlerImpl implements ImportHandler
    {
       for (PortalConfig pc : context.getPortalConfigs())
       {
-         PortalConfig existing = dataStorage.getPortalConfig(pc.getName());
+         PortalConfig existing = dataStorage.getPortalConfig(pc.getType(), pc.getName());
          if (existing == null)
          {
             log.debug("Import creating portal config " + format(pc));

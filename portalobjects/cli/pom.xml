@@ -118,6 +118,7 @@
                            <include>org.gatein.management*</include>
                            <include>org.exoplatform.portal:exo.portal.component.portal</include>
                            <include>org.exoplatform.kernel:exo.kernel.commons</include>
+                           <include>org.exoplatform.portal:exo.portal.component.common</include>
                            <include>org.jibx:jibx-run</include>
                            <include>org.gatein.mop:mop-api</include>
                            <include>org.gatein.common:common-logging</include>

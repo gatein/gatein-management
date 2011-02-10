@@ -104,8 +104,9 @@ public class Utils
       if (log4jConfigFile == null)
       {
          System.setProperty("gtn.log.dir", logDir.getAbsolutePath());
-         System.setProperty("gtn.log.file", fileName + "-export.log");
-         System.out.println("Logging to " + logDir.getAbsolutePath() + "/" + fileName + "-" + program + ".log");
+         String logFile = fileName + "-" + program + ".log";
+         System.setProperty("gtn.log.file", logFile);
+         System.out.println("Logging to " + logDir.getAbsolutePath() + "/" + logFile);
          DOMConfigurator.configure(Main.class.getResource("/log/log4j.xml"));
       }
       else

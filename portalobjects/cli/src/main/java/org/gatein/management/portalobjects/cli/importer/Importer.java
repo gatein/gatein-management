@@ -29,6 +29,7 @@ import org.gatein.management.portalobjects.cli.Utils;
 import org.gatein.management.portalobjects.client.api.ClientException;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
+import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
 import javax.transaction.SystemException;
@@ -69,11 +70,11 @@ public class Importer
    @Option(name = "--portalcontainer", aliases = "-pc", usage = "Portal container name (ie portal).", metaVar = " ")
    String portalContainer;
 
-   @Option(name = "--importfile", aliases = "-file", usage = "The import file to be imported.", metaVar = " ")
+   @Argument(usage = "Path to import file", metaVar = "import file")
    File importFile;
 
    @Option(name = "--overwrite", aliases = "-o", usage = "Indicates that the contents of each file should overwrite everything on the destination server. This also means that anything not included will be deleted.", metaVar = " ")
-   String overwrite;
+   Boolean overwrite;
 
    @Option(name = "--force", aliases = "-f", usage = "Force all options without confirmation.", metaVar = " ")
    boolean force;
@@ -117,15 +118,14 @@ public class Importer
 
       if (overwrite == null)
       {
-         overwrite = Utils.getUserInput("Do you wish to fully overwrite all data defined in import file (N) ? Y/N", level);
-         if ("Y".equalsIgnoreCase(overwrite))
+         String ow = Utils.getUserInput("Do you wish to fully overwrite all data defined in import file (N) ? Y/N", level);
+         if ("Y".equalsIgnoreCase(ow))
          {
-            overwrite = "true";
+            overwrite = true;
          }
       }
 
-      boolean ow = Boolean.valueOf(overwrite);
-      if (ow && !force)
+      if (overwrite && !force)
       {
          System.out.println("\nOverwrite set to true. This means that all data for a site will be overwritten and any data not defined will be deleted.");
          String proceed = Utils.getUserInput("Do you wish to proceed (N) ? Y/N", level);
@@ -134,18 +134,25 @@ public class Importer
             System.exit(0);
          }
       }
-      
+
+      log.info("Starting import of file " + importFile + " for portal container " + portalContainer);
       try
       {
          ImportContext context = client.importFromZip(importFile);
          if (isEmptyContext(context))
          {
             System.out.println("Nothing to import. " + importFile + " did not contain anything to import.");
+            log.warn("Nothing imported. Zip file did not contain any data for import.");
             System.exit(0);
          }
 
-         context.setOverwrite(ow);
+         if (overwrite)
+         {
+            log.info("Overwrite set to true, overwriting all data.");
+         }
+         context.setOverwrite(overwrite);
          client.importContext(context);
+         log.info("Import was successful.");
       }
       catch (IOException e)
       {

@@ -1,9 +1,8 @@
 <!--
-  ~ JBoss, a division of Red Hat
-  ~ Copyright 2011, Red Hat Middleware, LLC, and individual
-  ~ contributors as indicated by the @authors tag. See the
-  ~ copyright.txt in the distribution for a full listing of
-  ~ individual contributors.
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2011, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
   ~
   ~ This is free software; you can redistribute it and/or modify it
   ~ under the terms of the GNU Lesser General Public License as
@@ -42,6 +41,12 @@
       <dependency>
          <groupId>org.gatein.management</groupId>
          <artifactId>management-web</artifactId>
+         <type>war</type>
+         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>management-gadget</artifactId>
          <type>war</type>
          <version>${project.version}</version>
       </dependency>
@@ -113,6 +118,13 @@
                      <artifactId>management-web</artifactId>
                      <contextRoot>/gatein-management</contextRoot>
                      <bundleFileName>management-web.war</bundleFileName>
+                     <unpack>true</unpack>
+                  </webModule>
+                  <webModule>
+                     <groupId>org.gatein.management</groupId>
+                     <artifactId>management-gadget</artifactId>
+                     <contextRoot>/gatein-management-gadget</contextRoot>
+                     <bundleFileName>management-gadget.war</bundleFileName>
                      <unpack>true</unpack>
                   </webModule>
                </modules>

@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.commons.utils.PageList;
+import org.exoplatform.commons.utils.Safe;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.organization.User;
 import org.exoplatform.services.organization.UserHandler;
@@ -246,9 +248,9 @@ public final class PortalService {
             UserHandler userHandler = orgService.getUserHandler();
             org.exoplatform.services.organization.Query query = new org.exoplatform.services.organization.Query();
             query.setUserName(username);
-            //PageList<User> pageList = userHandler.findUsers(query);
-            //ListAccess<User> users = Safe.unwrap(pageList);
-            ListAccess<User> users = userHandler.findUsersByQuery(query);
+            PageList<User> pageList = userHandler.findUsers(query);
+            ListAccess<User> users = Safe.unwrap(pageList);
+            //ListAccess<User> users = userHandler.findUsersByQuery(query);
             User tmp[] = users.load(0, users.getSize());
 
             for (User usr : tmp) {

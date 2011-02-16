@@ -20,26 +20,28 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<!DOCTYPE module PUBLIC "//gwt-module/" "http://google-web-toolkit.googlecode.com/svn/tags/1.6.2/distro-source/core/src/gwt-module.dtd">
+<!DOCTYPE module PUBLIC "//gwt-module/"
+   "http://google-web-toolkit.googlecode.com/svn/tags/1.6.2/distro-source/core/src/gwt-module.dtd">
 <module rename-to="gwtgadget">
 
-    <!-- Inherit the core Web Toolkit stuff.                        -->
-    <inherits name='com.google.gwt.user.User'/>
+   <!-- Inherit the core Web Toolkit stuff. -->
+   <inherits name='com.google.gwt.user.User'/>
 
-    <!--  inherit css based theme -->
-    <inherits name='com.google.gwt.user.theme.standard.Standard'/>
+   <!--  inherit css based theme -->
+   <inherits name='com.google.gwt.user.theme.standard.Standard'/>
 
-    <!--  inherit gadget support  -->
-    <inherits name="com.google.gwt.gadgets.Gadgets"/>
+   <!--  inherit gadget support  -->
+   <inherits name="com.google.gwt.gadgets.Gadgets"/>
 
-    <!-- Include GWTUpload library -->
-    <inherits name="gwtupload.GWTUpload"/>
+   <!-- Include GWTUpload library -->
+   <inherits name="gwtupload.GWTUpload"/>
 
-    <!-- Specify the app entry point class.                         -->
-    <entry-point class='org.gatein.management.gadget.client.Application'/>
+   <!-- Specify the app entry point class. -->
+   <entry-point class='org.gatein.management.gadget.client.Application'/>
 
-    <!-- Specify the application specific style sheet.              -->
-    <stylesheet src='Application.css' />
-    <!-- Load dynamically predefined styles in the library when the application starts -->
-    <stylesheet src="Upload.css"/>
+   <!-- Specify the application specific style sheet. -->
+   <stylesheet src="Application.css"/>
+
+   <!-- Load dynamically predefined styles in the library when the application starts -->
+   <stylesheet src="Upload.css"/>
 </module>

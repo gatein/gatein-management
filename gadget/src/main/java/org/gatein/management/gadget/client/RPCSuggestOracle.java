@@ -37,59 +37,65 @@ import com.google.gwt.user.client.ui.SuggestOracle;
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public class RPCSuggestOracle extends SuggestOracle {
+public class RPCSuggestOracle extends SuggestOracle
+{
 
-    /**
-     * Create a new instance of {@code RPCSuggestOracle}
-     */
-    public RPCSuggestOracle() {
-        super();
-    }
+   /**
+    * Create a new instance of {@code RPCSuggestOracle}
+    */
+   public RPCSuggestOracle()
+   {
+      super();
+   }
 
-    @Override
-    public boolean isDisplayStringHTML() {
-        return true;
-    }
+   @Override
+   public boolean isDisplayStringHTML()
+   {
+      return true;
+   }
 
-    /**
-     *
-     * @param req
-     * @param callback
-     */
-    public void requestSuggestions(SuggestOracle.Request req, SuggestOracle.Callback callback) {
-        GateInServiceAsync gtnService = GWT.create(GateInService.class);
-        gtnService.getUsername(getPortalContainerName(), req, new ItemSuggestCallback(req, callback));
-    }
+   /**
+    * @param req
+    * @param callback
+    */
+   public void requestSuggestions(SuggestOracle.Request req, SuggestOracle.Callback callback)
+   {
+      GateInServiceAsync gtnService = GWT.create(GateInService.class);
+      gtnService.getUsername(getPortalContainerName(), req, new ItemSuggestCallback(req, callback));
+   }
 
-    /**
-     *
-     * @return
-     */
-    public native String getPortalContainerName()/*-{
-    return parent.eXo.env.portal.context.substring(1); // remove leading '/'
-    }-*/;
+   /**
+    * @return
+    */
+   public native String getPortalContainerName()/*-{
+      return parent.eXo.env.portal.context.substring(1); // remove leading '/'
+   }-*/;
 
-    /**
-     *
-     */
-    static class ItemSuggestCallback implements AsyncCallback {
+   /**
+    *
+    */
+   static class ItemSuggestCallback implements AsyncCallback
+   {
 
-        private SuggestOracle.Request req;
-        private SuggestOracle.Callback callback;
+      private SuggestOracle.Request req;
+      private SuggestOracle.Callback callback;
 
-        public ItemSuggestCallback(SuggestOracle.Request _req,
-                SuggestOracle.Callback _callback) {
-            req = _req;
-            callback = _callback;
-        }
+      public ItemSuggestCallback(SuggestOracle.Request _req,
+                                 SuggestOracle.Callback _callback)
+      {
+         req = _req;
+         callback = _callback;
+      }
 
-        public void onFailure(Throwable error) {
-            callback.onSuggestionsReady(req, new SuggestOracle.Response());
-        }
+      public void onFailure(Throwable error)
+      {
+         callback.onSuggestionsReady(req, new SuggestOracle.Response());
+      }
 
-        public void onSuccess(Object retValue) {
-            callback.onSuggestionsReady(req,
-                    (SuggestOracle.Response) retValue);
-        }
-    }
+      public void onSuccess(Object retValue)
+      {
+         callback.onSuggestionsReady(req,
+            (SuggestOracle.Response) retValue);
+      }
+   }
 }

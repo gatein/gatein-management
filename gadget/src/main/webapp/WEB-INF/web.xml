@@ -75,12 +75,4 @@
       <url-pattern>/gwtgadget/download</url-pattern>
    </servlet-mapping>
 
-
-   <!-- TODO: Since this gadget is to be used for many portal containers, this doesn't make sense -->
-   <!-- Need to use the same realm as the portal and must run in the same server -->
-   <login-config>
-      <auth-method>BASIC</auth-method>
-      <realm-name>gatein-domain</realm-name>
-   </login-config>
-
 </web-app>

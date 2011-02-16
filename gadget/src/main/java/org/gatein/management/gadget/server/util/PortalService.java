@@ -28,10 +28,13 @@ import org.exoplatform.portal.config.Query;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
 import org.gatein.management.portalobjects.exportimport.api.ExportHandler;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.gatein.management.portalobjects.exportimport.api.ImportHandler;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,8 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.commons.utils.PageList;
 import org.exoplatform.commons.utils.Safe;
@@ -57,211 +59,202 @@ import org.exoplatform.services.organization.UserHandler;
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public final class PortalService {
+public final class PortalService
+{
 
-    private static final Logger logger = Logger.getLogger(PortalService.class.getName());
-    private DataStorage dataStorage;
-    private ExportHandler exportHandler;
-    private ImportHandler importHandler;
-    private OrganizationService orgService;
+   private static final Logger log = LoggerFactory.getLogger(PortalService.class);
+   private DataStorage dataStorage;
+   private ExportHandler exportHandler;
+   private ImportHandler importHandler;
+   private OrganizationService orgService;
 
-    /**
-     * Create a new instance of {@code PortalService}
-     *
-     * @param dataStorage
-     * @param exportHandler
-     * @param importHandler
-     */
-    public PortalService(DataStorage dataStorage, ExportHandler exportHandler, ImportHandler importHandler, OrganizationService orgService) {
-        this.dataStorage = dataStorage;
-        this.exportHandler = exportHandler;
-        this.importHandler = importHandler;
-        this.orgService = orgService;
-    }
+   /**
+    * Create a new instance of {@code PortalService}
+    *
+    * @param dataStorage
+    * @param exportHandler
+    * @param importHandler
+    */
+   public PortalService(DataStorage dataStorage, ExportHandler exportHandler, ImportHandler importHandler, OrganizationService orgService)
+   {
+      this.dataStorage = dataStorage;
+      this.exportHandler = exportHandler;
+      this.importHandler = importHandler;
+      this.orgService = orgService;
+   }
 
-    /**
-     * Create a new instance of {@code PortalService}
-     *
-     * @param container The portal container
-     * @return a new instance of {@code PortalService}
-     */
-    public static PortalService create(ExoContainer container) {
-        DataStorage dataStorage = (DataStorage) container.getComponentInstanceOfType(DataStorage.class);
-        ExportHandler exportHandler = (ExportHandler) container.getComponentInstanceOfType(ExportHandler.class);
-        ImportHandler importHandler = (ImportHandler) container.getComponentInstanceOfType(ImportHandler.class);
-        OrganizationService orgService = (OrganizationService) container.getComponentInstanceOfType(OrganizationService.class);
+   /**
+    * Create a new instance of {@code PortalService}
+    *
+    * @param container The portal container
+    * @return a new instance of {@code PortalService}
+    */
+   public static PortalService create(ExoContainer container)
+   {
+      DataStorage dataStorage = (DataStorage) container.getComponentInstanceOfType(DataStorage.class);
+      ExportHandler exportHandler = (ExportHandler) container.getComponentInstanceOfType(ExportHandler.class);
+      ImportHandler importHandler = (ImportHandler) container.getComponentInstanceOfType(ImportHandler.class);
+      OrganizationService orgService = (OrganizationService) container.getComponentInstanceOfType(OrganizationService.class);
 
-        return new PortalService(dataStorage, exportHandler, importHandler, orgService);
-    }
+      return new PortalService(dataStorage, exportHandler, importHandler, orgService);
+   }
 
-    /**
-     * Retrieve the {@code PortalConfig} having the given type
-     *
-     * @param type The type of {@code PortalConfig} (ownerType)
-     * @return a collection of {@code PortalConfig}
-     */
-    public List<PortalConfig> getPortalConfigs(String type) {
-        List<Page> pages = getPages(type, null);
-        return getPortalConfigs(pages);
-    }
+   /**
+    * Retrieve the {@code PortalConfig} having the given type
+    *
+    * @param type The type of {@code PortalConfig} (ownerType)
+    * @return a collection of {@code PortalConfig}
+    */
+   public List<PortalConfig> getPortalConfigs(String type)
+   {
+      Query<PortalConfig> query = new Query<PortalConfig>(type, null, PortalConfig.class);
+      try
+      {
+         return dataStorage.find(query).getAll();
+      }
+      catch (Exception e)
+      {
+         log.error("Exception retrieving sites for type " + type, e);
+      }
+      return Collections.emptyList();
+   }
 
-    /**
-     * Retrieve the list of {@code PortalConfig} having the given type and name
-     *
-     * @param type The portal type (ownerType)
-     * @param name The site name (ownerId)
-     * @return a list of {@code PortalConfig}
-     */
-    public PortalConfig getPortalConfig(String type, String name) throws Exception {
-        return this.dataStorage.getPortalConfig(type, name);
-    }
+   /**
+    * Retrieve the list of {@code PortalConfig} having the given type and name
+    *
+    * @param type The portal type (ownerType)
+    * @param name The site name (ownerId)
+    * @return a list of {@code PortalConfig}
+    */
+   public PortalConfig getPortalConfig(String type, String name)
+   {
+      try
+      {
+         return dataStorage.getPortalConfig(type, name);
+      }
+      catch (Exception e)
+      {
+         log.error("Exception retrieving site for type " + type + " and name " + name);
+         return null;
+      }
+   }
 
-    /**
-     * Retrieve the list of {@code PortalConfig} given their pages
-     *
-     * @param pages the list of pages of a portal
-     * @return a list of {@code PortalConfig}
-     */
-    public List<PortalConfig> getPortalConfigs(List<Page> pages) {
-        Map<String, PortalConfig> pConfigs = new HashMap<String, PortalConfig>();
-        try {
-            PortalConfig pc = null;
-            String key = null;
-            for (Page page : pages) {
-                pc = dataStorage.getPortalConfig(page.getOwnerType(), page.getOwnerId());
-                key = page.getOwnerType() + "::" + page.getOwnerId();
-                if (pConfigs.get(key) == null && pc != null) {
-                    pConfigs.put(key, pc);
-                }
-            }
-            return new ArrayList<PortalConfig>(pConfigs.values());
-        } catch (Exception exp) {
-            logger.log(Level.SEVERE, "Problem occurs when retrieving the list of sites : {0}", exp.getMessage());
-        }
+   /**
+    * Retrieve pages having the given portal type and site name
+    *
+    * @param type the portal type (ownerType)
+    * @param name the site name (ownerId)
+    * @return a collection of {@code Page}
+    */
+   public List<Page> getPages(String type, String name)
+   {
+      try
+      {
+         Query<Page> query = new Query<Page>(type, name, Page.class);
+         LazyPageList<Page> results = dataStorage.find(query);
+         return results.getAll();
+      }
+      catch (Exception exp)
+      {
+         log.error("Exception getting all pages for type: " + type + " and name: " + name, exp);
+      }
 
-        return Collections.EMPTY_LIST;
-    }
+      return Collections.emptyList();
+   }
 
-    /**
-     * Retrieve pages having the given portal type
-     *
-     * @param type the portal type (ownerType)
-     * @return a collection of {@code Page}
-     */
-    public List<Page> getPages(String type) {
-        return getPages(type, null);
-    }
+   /**
+    * Retrieve page navigations having the given portal type and site name
+    *
+    * @param type the portal type (ownerType)
+    * @param name the site name (ownerId)
+    * @return the {@code PageNavigation} for the site
+    */
+   public PageNavigation getPageNavigation(String type, String name)
+   {
+      try
+      {
+         return dataStorage.getPageNavigation(type, name);
+      }
+      catch (Exception exp)
+      {
+         log.error("Exception retrieving the list of page navigations for type: " + type + ", name: " + name, exp);
+      }
 
-    /**
-     * Retrieve pages having the given portal type and site name
-     *
-     * @param type the portal type (ownerType)
-     * @param name the site name (ownerId)
-     * @return a collection of {@code Page}
-     */
-    public List<Page> getPages(String type, String name) {
-        try {
-            Query<Page> query = new Query<Page>(type, name, Page.class);
-            LazyPageList<Page> results = dataStorage.find(query);
-            return results.getAll();
-        } catch (Exception exp) {
-            logger.log(Level.SEVERE,
-                    "Error occurs while retrieving the list of pages for type : "
-                    + type + " and name : " + name, exp);
-        }
+      return null;
+   }
 
-        return Collections.EMPTY_LIST;
-    }
+   /**
+    * Export the site given by it type and name
+    *
+    * @param type the portal type (ownerType)
+    * @param name the site name (ownerId)
+    * @param os   the output stream in what the export file will be written
+    * @throws Exception if an exception occurs during export
+    */
+   public void exportSite(String type, String name, OutputStream os) throws Exception
+   {
+      ExportContext context = exportHandler.createExportContext();
+      PortalConfig portalConfig = getPortalConfig(type, name);
+      if (portalConfig == null)
+      {
+         throw new ProcessException("No entry with type : " + type + " and name : " + name);
+      }
+      context.addToContext(portalConfig);
 
-    /**
-     * Retrieve page navigations having the given portal type and site name
-     *
-     * @param type the portal type (ownerType)
-     * @param name the site name (ownerId)
-     * @return the {@code PageNavigation} for the site
-     */
-    public PageNavigation getPageNavigation(String type, String name) {
-        try {
-            return dataStorage.getPageNavigation(type, name);
-        } catch (Exception exp) {
-            logger.log(Level.SEVERE,
-                    "Error occurs while retrieving the list of page navigations for type : "
-                    + type + " and name : " + name, exp);
-        }
+      List<Page> pages = getPages(type, name);
+      context.addToContext(pages);
 
-        return null;
-    }
+      PageNavigation pageNavigation = getPageNavigation(type, name);
+      context.addToContext(pageNavigation);
 
-    /**
-     * Export the site given by it type and name
-     *
-     * @param type the portal type (ownerType)
-     * @param name the site name (ownerId)
-     * @param os the output stream in what the export file will be written
-     * @throws IOException
-     */
-    public void exportSite(String type, String name, OutputStream os) throws Exception {
+      // export the site
+      this.exportHandler.exportContext(context, os);
+   }
 
-        ExportContext context = exportHandler.createExportContext();
-        PortalConfig portalConfig = getPortalConfig(type, name);
-        if (portalConfig == null) {
-            throw new ProcessException("No entry with type : " + type + " and name : " + name);
-        }
-        context.addToContext(portalConfig);
+   /**
+    * Import the site to the portal. The site is given by file opened with the
+    * {@code java.io.InputStream}.
+    *
+    * @param in the input stream pointing to the file containing the data of the
+    *           site to import to the portal.
+    */
+   public void importSite(InputStream in, boolean overwrite) throws Exception
+   {
+      ImportContext context = importHandler.createContext(in);
+      context.setOverwrite(overwrite);
+      this.importHandler.importContext(context);
+   }
 
-        List<Page> pages = getPages(type, name);
-        context.addToContext(pages);
+   /**
+    * Retrieve the list of usernames containing the user name part
+    *
+    * @param username the username part
+    * @return a list of usernames
+    */
+   public List<String> getUsers(String username)
+   {
 
-        PageNavigation pageNavigation = getPageNavigation(type, name);
-        context.addToContext(pageNavigation);
+      List<String> usernames = new ArrayList<String>();
+      try
+      {
+         UserHandler userHandler = orgService.getUserHandler();
+         org.exoplatform.services.organization.Query query = new org.exoplatform.services.organization.Query();
+         query.setUserName(username);
+         PageList<User> pageList = userHandler.findUsers(query);
+         ListAccess<User> users = Safe.unwrap(pageList);
+         //ListAccess<User> users = userHandler.findUsersByQuery(query);
+         User tmp[] = users.load(0, users.getSize());
 
-        // export the site
-        this.exportHandler.exportContext(context, os);
+         for (User usr : tmp)
+         {
+            usernames.add(usr.getUserName());
+         }
+      }
+      catch (Exception exp)
+      {
+         log.error("Error occurs while retrieving the list of usernames containing '" + username + "'", exp);
+      }
 
-    }
-
-    /**
-     * Import the site to the portal. The site is given by file opened with the
-     * {@code java.io.InputStream}.
-     *
-     * @param in the input stream pointing to the file containing the data of the
-     * site to import to the portal.
-     */
-    public void importSite(InputStream in, boolean overwrite) throws Exception {
-        ImportContext context = importHandler.createContext(in);
-        //TODO: Add the ability to overwrite everything
-        //context.setOverwrite(true);
-        context.setOverwrite(overwrite);
-        this.importHandler.importContext(context);
-    }
-
-    /**
-     * Retrieve the list of usernames containing the user name part
-     *
-     * @param username the username part
-     * @return a list of usernames
-     */
-    public List<String> getUsers(String username) {
-
-        List<String> usernames = new ArrayList<String>();
-        try {
-            UserHandler userHandler = orgService.getUserHandler();
-            org.exoplatform.services.organization.Query query = new org.exoplatform.services.organization.Query();
-            query.setUserName(username);
-            PageList<User> pageList = userHandler.findUsers(query);
-            ListAccess<User> users = Safe.unwrap(pageList);
-            //ListAccess<User> users = userHandler.findUsersByQuery(query);
-            User tmp[] = users.load(0, users.getSize());
-
-            for (User usr : tmp) {
-                usernames.add(usr.getUserName());
-            }
-        } catch (Exception exp) {
-            logger.log(Level.SEVERE,
-                    "Error occurs while retrieving the list of usernames containing '"
-                    + username + "'", exp);
-        }
-
-        return usernames;
-    }
+      return usernames;
+   }
 }

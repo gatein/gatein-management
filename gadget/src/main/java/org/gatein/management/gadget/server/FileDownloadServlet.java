@@ -32,9 +32,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import static org.gatein.management.gadget.server.ContainerRequestHandler.doInRequest;
+import static org.gatein.management.gadget.server.ContainerRequestHandler.*;
 
 /**
  * {@code FileDownloadServlet}
@@ -46,76 +47,73 @@ import static org.gatein.management.gadget.server.ContainerRequestHandler.doInRe
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public class FileDownloadServlet extends HttpServlet {
+public class FileDownloadServlet extends HttpServlet
+{
 
-    private static final Logger log = LoggerFactory.getLogger(FileDownloadServlet.class);
+   private static final Logger log = LoggerFactory.getLogger(FileDownloadServlet.class);
 
-    /**
-     * Create a new instance of {@code FileDownloadServlet}
-     */
-    public FileDownloadServlet() {
-        super();
-    }
+   /**
+    * Create a new instance of {@code FileDownloadServlet}
+    */
+   public FileDownloadServlet()
+   {
+      super();
+   }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+   @Override
+   protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException
+   {
+      final String type = request.getParameter("ownerType");
+      // I would rather just replace forward slashes, rather then come up with a regexp that removes illegal filename chars
+      final String name = request.getParameter("ownerId");
+      String safeName = name.replaceAll("/", "_");
+      if (safeName.startsWith("_")) safeName = name.substring(1);
 
-        final String type = request.getParameter("ownerType");
-        final String name = request.getParameter("ownerId");
-        String portalContainerName = request.getParameter("pc");
-        response.setContentType("application/octet-stream; charset=UTF-8");
-        String filename = portalContainerName + "-" + type + "_" + name.replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_") + "_" + getTimestamp() + ".zip";
-        response.setHeader("Content-disposition", "attachment; filename=\"" + filename + "\"");
+      String portalContainerName = request.getParameter("pc");
+      response.setContentType("application/octet-stream; charset=UTF-8");
+      
+      String filename = new StringBuilder().append(portalContainerName).append("-").append(type)
+         .append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
 
-        final OutputStream os = response.getOutputStream();
-        try {
-            doInRequest(portalContainerName, new ContainerCallback<Void>() {
+      response.setHeader("Content-disposition", "attachment; filename=\"" + filename + "\"");
 
-                @Override
-                public Void doInContainer(ExoContainer container) throws Exception {
-                    PortalService service = PortalService.create(container);
-                    service.exportSite(type, name, os);
-                    return null;
-                }
-            });
-            os.flush();
-        } catch (Exception e) {
-            log.error("Error during download", e);
-        } finally {
-            if (os != null) {
-                os.close();
+      final OutputStream os = response.getOutputStream();
+      try
+      {
+         doInRequest(portalContainerName, new ContainerCallback<Void>()
+         {
+
+            @Override
+            public Void doInContainer(ExoContainer container) throws Exception
+            {
+               PortalService service = PortalService.create(container);
+               service.exportSite(type, name, os);
+               return null;
             }
-        }
-    }
+         });
+         os.flush();
+      }
+      catch (Exception e)
+      {
+         log.error("Error during download", e);
+      }
+      finally
+      {
+         if (os != null) os.close();
+      }
+   }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        doGet(request, response);
-    }
+   @Override
+   protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException
+   {
+      doGet(request, response);
+   }
 
-    /**
-     * @return a timestamp with format YYYYMMDDHHMM
-     */
-    private String getTimestamp() {
-        StringBuilder sb = new StringBuilder("");
-
-        Calendar calendar = Calendar.getInstance();
-        sb.append(calendar.get(Calendar.YEAR));
-
-        int month = calendar.get(Calendar.MONTH);
-        sb.append(month < 10 ? "0" + month : month);
-
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        sb.append(day < 10 ? "0" + day : day);
-
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        sb.append(hour < 10 ? "0" + hour : hour);
-
-        int minute = calendar.get(Calendar.MINUTE);
-        sb.append(minute < 10 ? "0" + minute : minute);
-
-        return sb.toString();
-    }
+   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+   private String getTimestamp()
+   {
+      return SDF.format(new Date());
+   }
 }

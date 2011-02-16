@@ -24,6 +24,7 @@ package org.gatein.management.gadget.client;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.SuggestOracle.Request;
 import com.google.gwt.user.client.ui.SuggestOracle.Response;
+
 import java.util.List;
 
 /**
@@ -34,38 +35,39 @@ import java.util.List;
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public interface GateInServiceAsync {
+public interface GateInServiceAsync
+{
 
-    /**
-     * Update the Tree item asynchronously
-     *
-     * @param portalContainerName name of portal container
-     * @param item The item to be updated
-     * @param asyncCallback asynchronous callback
-     */
-    public void updateItem(String portalContainerName, TreeNode item, AsyncCallback<TreeNode> asyncCallback);
+   /**
+    * Update the Tree item asynchronously
+    *
+    * @param portalContainerName name of portal container
+    * @param item                The item to be updated
+    * @param asyncCallback       asynchronous callback
+    */
+   public void updateItem(String portalContainerName, TreeNode item, AsyncCallback<TreeNode> asyncCallback);
 
-    /**
-     * Retrieve the list of usernames according to the user input
-     *
-     * @param req the user request
-     * @param asyncCallback
-     */
-    public void getUsername(String containerName, Request req, AsyncCallback<Response> asyncCallback);
+   /**
+    * Retrieve the list of usernames according to the user input
+    *
+    * @param req           the user request
+    * @param asyncCallback
+    */
+   public void getUsername(String containerName, Request req, AsyncCallback<Response> asyncCallback);
 
-    /**
-     * Lookup for the user site having the given username
-     *
-     * @param username the user name
-     * @param asyncCallback
-     */
-    public void getUserSite(String containerName, String username, AsyncCallback<TreeNode> asyncCallback);
+   /**
+    * Lookup for the user site having the given username
+    *
+    * @param username      the user name
+    * @param asyncCallback
+    */
+   public void getUserSite(String containerName, String username, AsyncCallback<TreeNode> asyncCallback);
 
-    /**
-     * Retrieve asynchronously the list of root nodes
-     *
-     * @param portalContainerName The portal container name
-     * @param asyncCallback
-     */
-    public void getRootNodes(String portalContainerName, AsyncCallback<List<TreeNode>> asyncCallback);
+   /**
+    * Retrieve asynchronously the list of root nodes
+    *
+    * @param portalContainerName The portal container name
+    * @param asyncCallback
+    */
+   public void getRootNodes(String portalContainerName, AsyncCallback<List<TreeNode>> asyncCallback);
 }

@@ -56,28 +56,18 @@
          <groupId>com.googlecode.gwtupload</groupId>
          <artifactId>gwtupload</artifactId>
       </dependency>
-      <!--dependency>
-         <groupId>com.smartgwt</groupId>
-         <artifactId>smartgwt</artifactId>
-         <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>com.smartgwt</groupId>
-         <artifactId>smartgwt-skins</artifactId>
-         <scope>provided</scope>
-      </dependency -->
+      <!-- Management Module Dependencies -->
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
          <artifactId>portalobjects-exportimport</artifactId>
          <scope>provided</scope>
-      </dependency><dependency>
+      </dependency>
+      <!-- GateIn Runtime Dependencies -->
+      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.portal</artifactId>
          <scope>provided</scope>
-      </dependency><!-- Management Module Dependencies -->
-
-      <!-- GateIn Runtime Dependencies -->
-
+      </dependency>
    </dependencies>
 
    <name>GateIn Management - Gadget</name>
@@ -85,8 +75,9 @@
    <build>
       <finalName>management-gadget</finalName>
       <resources>
-         <resource><directory>src/main/resources</directory></resource>
-         <!--<resource><directory>src/main/webapp/gadgets/*</directory></resource>-->
+         <resource>
+            <directory>src/main/resources</directory>
+         </resource>
       </resources>
       <plugins>
          <plugin>
@@ -103,7 +94,5 @@
          </plugin>
       </plugins>
    </build>
-    <properties>
-        <netbeans.hint.deploy.server>JBoss4</netbeans.hint.deploy.server>
-    </properties>
+
 </project>

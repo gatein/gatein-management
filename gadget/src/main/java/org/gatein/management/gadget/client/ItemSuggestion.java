@@ -19,12 +19,10 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.SuggestOracle.Suggestion;
-
 import java.io.Serializable;
 
 /**
@@ -35,42 +33,37 @@ import java.io.Serializable;
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public class ItemSuggestion implements IsSerializable, Suggestion, Serializable
-{
+public class ItemSuggestion implements IsSerializable, Suggestion, Serializable {
 
-   private String value;
+    private String value;
 
-   /**
-    * Create a new instance of {@code ItemSuggestion}
-    */
-   public ItemSuggestion()
-   {
-      this("");
-   }
+    /**
+     * Create a new instance of {@code ItemSuggestion}
+     */
+    public ItemSuggestion() {
+        this("");
+    }
 
-   /**
-    * Create a new instance of {@code ItemSuggestion}
-    *
-    * @param value
-    */
-   public ItemSuggestion(String value)
-   {
-      this.value = value;
-   }
+    /**
+     * Create a new instance of {@code ItemSuggestion}
+     *
+     * @param value
+     */
+    public ItemSuggestion(String value) {
+        this.value = value;
+    }
 
-   /**
-    * @return
-    */
-   public String getDisplayString()
-   {
-      return this.value;
-   }
+    /**
+     * @return the string which will be displayed
+     */
+    public String getDisplayString() {
+        return this.value;
+    }
 
-   /**
-    * @return
-    */
-   public String getReplacementString()
-   {
-      return this.value;
-   }
+    /**
+     * @return the string replacement
+     */
+    public String getReplacementString() {
+        return this.value;
+    }
 }

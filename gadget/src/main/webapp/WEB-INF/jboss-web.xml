@@ -20,8 +20,8 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-
 <!-- TODO: I think we should remove this file entirely, since this gadget is to be used for multiple portal containers -->
 <jboss-web>
-   <security-domain>java:/jaas/gatein-domain</security-domain>
+  <security-domain>java:/jaas/gatein-domain</security-domain>
+  <context-root>/management-gadget</context-root>
 </jboss-web>

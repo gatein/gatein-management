@@ -30,10 +30,12 @@ import java.io.Serializable;
 
 /**
  * {@code PendingItem}
- * <p/>
+ * <p>
+ * Tree item representing a pending item (loading in progress)
+ * </p>
  * Created on Dec 29, 2010, 1:25:04 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public class PendingItem extends TreeItem implements Serializable

@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.server;
 
 import com.google.gwt.user.client.ui.SuggestOracle.Request;
@@ -37,37 +36,39 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gatein.management.gadget.server.ContainerRequestHandler.*;
+import static org.gatein.management.gadget.server.ContainerRequestHandler.doInRequest;
 
 /**
  * {@code GateInServiceImpl}
- * <p/>
+ * <p>
+ * The {@code GateInService} remote servlet implementation.
+ * </p>
  * Created on Jan 3, 2011, 12:30:45 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public class GateInServiceImpl extends RemoteServiceServlet implements GateInService
-{
+public class GateInServiceImpl extends RemoteServiceServlet implements GateInService {
 
-   /**
-    * Create a new instance of {@code GateInServiceImpl}
-    */
-   public GateInServiceImpl()
-   {
-      super();
-   }
+    /**
+     * Create a new instance of {@code GateInServiceImpl}
+     */
+    public GateInServiceImpl() {
+        super();
+    }
 
-   /**
-    * Update the Tree item asynchronously
-    *
-    * @param tn The item to be updated
-    */
-   public TreeNode updateItem(String containerName, TreeNode tn)
-   {
-      String name = tn.getText();
+    /**
+     * Update the Tree item asynchronously
+     *
+     * @param containerName name of portal container
+     * @param item The item to be updated
+     * @return the updated tree node
+     * @throws Exception
+     */
+    public TreeNode updateItem(String containerName, TreeNode tn) {
+        String name = tn.getText();
 
-      // TODO
+        // TODO
 
 
 //        doInRequest(portalContainer, new ContainerCallback<Void>() {
@@ -76,165 +77,139 @@ public class GateInServiceImpl extends RemoteServiceServlet implements GateInSer
 //                return null;
 //            }
 //        });
-      return tn;
-   }
+        return tn;
+    }
 
-   /**
-    * @return
-    * @throws Exception
-    */
-   public List<TreeNode> getRootNodes(String containerName) throws Exception
-   {
+    /**
+     * Retrieve asynchronously the list of root nodes
+     *
+     * @param containerName The portal container name
+     * @return The list of the root nodes
+     * @throws Exception
+     */
+    public List<TreeNode> getRootNodes(String containerName) throws Exception {
 
-      return doInRequest(containerName, new ContainerCallback<List<TreeNode>>()
-      {
+        return doInRequest(containerName, new ContainerCallback<List<TreeNode>>() {
 
-         public List<TreeNode> doInContainer(ExoContainer container)
-         {
+            public List<TreeNode> doInContainer(ExoContainer container) {
 
-            PortalService portalService = PortalService.create(container);
-            Collection<PortalConfig> portalSites = portalService.getPortalConfigs(PortalConfig.PORTAL_TYPE);
-            Collection<PortalConfig> groupSites = portalService.getPortalConfigs(PortalConfig.GROUP_TYPE);
-            Collection<PortalConfig> userSites = portalService.getPortalConfigs(PortalConfig.USER_TYPE);
-            // create root nodes
-            TreeNode portalNode = getRootNode(PortalConfig.PORTAL_TYPE, "Portal sites", portalSites);
-            TreeNode groupNode = getRootNode(PortalConfig.GROUP_TYPE, "Group sites", groupSites);
-            TreeNode userNode = getRootNode(PortalConfig.USER_TYPE, "User sites", userSites);
-            List<TreeNode> nodes = new ArrayList<TreeNode>();
-            nodes.add(portalNode);
-            nodes.add(groupNode);
-            nodes.add(userNode);
+                PortalService portalService = PortalService.create(container);
+                Collection<PortalConfig> portalSites = portalService.getPortalConfigs(PortalConfig.PORTAL_TYPE);
+                Collection<PortalConfig> groupSites = portalService.getPortalConfigs(PortalConfig.GROUP_TYPE);
+                // create root nodes
+                TreeNode portalNode = getRootNode(PortalConfig.PORTAL_TYPE, "Portal sites", portalSites);
+                TreeNode groupNode = getRootNode(PortalConfig.GROUP_TYPE, "Group sites", groupSites);
+                List<TreeNode> nodes = new ArrayList<TreeNode>();
+                nodes.add(portalNode);
+                nodes.add(groupNode);
 
-            return nodes;
-         }
-      });
-   }
-
-   /**
-    * @param name
-    * @param configs
-    * @return
-    */
-   private TreeNode getRootNode(String type, String name, Collection<PortalConfig> configs)
-   {
-
-      TreeNode tn = new TreeNode(name);
-      tn.setType(type);
-      for (PortalConfig pc : configs)
-      {
-         TreeNode child = new TreeNode(pc.getName());
-         child.setType(type);
-         child.setExportable(true);
-         child.setSiteName(pc.getName());
-         StringBuilder sb = new StringBuilder("<ul>");
-         sb.append("<li> Name : ").append(pc.getName()).append("</li>");
-         sb.append("<li> Type : ").append(pc.getType()).append("</li>");
-         sb.append("<li> Skin : ").append(pc.getSkin()).append("</li>");
-         sb.append("<li> Edit permission : ").append(pc.getEditPermission()).append("</li>");
-         sb.append("<li> Access permissions : <ul>");
-         for (String s : pc.getAccessPermissions())
-         {
-            sb.append("<li>").append(s).append("</li>");
-         }
-         sb.append("</ul></li></ul>");
-         child.setNodeInfo(sb.toString());
-         tn.addChild(child);
-      }
-
-      return tn;
-   }
-
-   /**
-    * @param request
-    * @return
-    */
-   public Response getUsername(String containerName, final Request request) throws Exception
-   {
-
-      return doInRequest(containerName, new ContainerCallback<Response>()
-      {
-
-         public Response doInContainer(ExoContainer container)
-         {
-
-            PortalService portalService = PortalService.create(container);
-
-            String query = request.getQuery();
-            System.out.println("The query is : " + query);
-
-            List<String> users = portalService.getUsers(query);
-            Response response = new Response();
-            List<Suggestion> suggestions = new ArrayList<Suggestion>();
-
-            for (String usr : users)
-            {
-               suggestions.add(new ItemSuggestion(usr));
+                return nodes;
             }
+        });
+    }
 
-            suggestions.add(new ItemSuggestion("nabil"));
-            suggestions.add(new ItemSuggestion("thomas"));
-            suggestions.add(new ItemSuggestion("laurence"));
-            suggestions.add(new ItemSuggestion("warda"));
-            suggestions.add(new ItemSuggestion("nick"));
-            suggestions.add(new ItemSuggestion("nicolas"));
-            suggestions.add(new ItemSuggestion("jean-fred"));
-            suggestions.add(new ItemSuggestion("toto"));
-            suggestions.add(new ItemSuggestion("mohamed"));
+    /**
+     * Create a {@code TreeNode} and attach to it it's children
+     *
+     * @param type the site type (ownerType)
+     * @param name the node name
+     * @param configs the list of sites representing the sub-nodes
+     * @return a {@code TreeNode}
+     */
+    private TreeNode getRootNode(String type, String name, Collection<PortalConfig> configs) {
 
-
-            response.setSuggestions(suggestions);
-
-            return response;
-         }
-      });
-
-   }
-
-   /**
-    * @param username
-    * @return
-    */
-   public TreeNode getUserSite(String containerName, final String username) throws Exception
-   {
-
-      return doInRequest(containerName, new ContainerCallback<TreeNode>()
-      {
-
-         @Override
-         public TreeNode doInContainer(ExoContainer container) throws Exception
-         {
-            PortalService portalService = PortalService.create(container);
-            TreeNode node = new TreeNode();
-            PortalConfig pc = portalService.getPortalConfig(PortalConfig.USER_TYPE, username);
-            if (pc == null)
-            {
-               node.setText("User not found");
-               node.setNodeInfo("No user with the username : " + username);
+        TreeNode tn = new TreeNode(name);
+        tn.setType(type);
+        for (PortalConfig pc : configs) {
+            TreeNode child = new TreeNode(pc.getName());
+            child.setType(type);
+            child.setExportable(true);
+            child.setSiteName(pc.getName());
+            StringBuilder sb = new StringBuilder("<ul>");
+            sb.append("<li> Name : ").append(pc.getName()).append("</li>");
+            sb.append("<li> Type : ").append(pc.getType()).append("</li>");
+            sb.append("<li> Skin : ").append(pc.getSkin()).append("</li>");
+            sb.append("<li> Edit permission : ").append(pc.getEditPermission()).append("</li>");
+            sb.append("<li> Access permissions : <ul>");
+            for (String s : pc.getAccessPermissions()) {
+                sb.append("<li>").append(s).append("</li>");
             }
-            else
-            {
-               node.setText(pc.getName());
-               node.setType(pc.getType());
-               node.setExportable(true);
-               node.setSiteName(pc.getName());
-               StringBuilder sb = new StringBuilder("<ul>");
-               sb.append("<li> Name : ").append(pc.getName()).append("</li>");
-               sb.append("<li> Type : ").append(pc.getType()).append("</li>");
-               sb.append("<li> Skin : ").append(pc.getSkin()).append("</li>");
-               sb.append("<li> Edit permission : ").append(pc.getEditPermission()).append("</li>");
-               sb.append("<li> Access permissions : <ul>");
-               for (String s : pc.getAccessPermissions())
-               {
-                  sb.append("<li>").append(s).append("</li>");
-               }
-               sb.append("</ul></li></ul>");
-               node.setNodeInfo(sb.toString());
+            sb.append("</ul></li></ul>");
+            child.setNodeInfo(sb.toString());
+            tn.addChild(child);
+        }
+
+        return tn;
+    }
+
+    /**
+     * Retrieve the list of usernames according to the user input
+     *
+     * @param containerName the portal container name
+     * @param request the user request
+     * @return a response with the relevant usernames
+     * @throws Exception
+     */
+    public Response getUsername(String containerName, final Request request) throws Exception {
+
+        return doInRequest(containerName, new ContainerCallback<Response>() {
+
+            public Response doInContainer(ExoContainer container) {
+                PortalService portalService = PortalService.create(container);
+                String query = request.getQuery();
+                List<String> users = portalService.getUsers(query);
+                Response response = new Response();
+                List<Suggestion> suggestions = new ArrayList<Suggestion>();
+                for (String usr : users) {
+                    suggestions.add(new ItemSuggestion(usr));
+                }
+                response.setSuggestions(suggestions);
+
+                return response;
             }
+        });
+    }
 
-            return node;
+    /**
+     * Lookup for the user site having the given username
+     *
+     * @param containerName the portal container name
+     * @param username the user name
+     * @return the tree node containing information about the user site (if exists)
+     * @throws Exception
+     */
+    public TreeNode getUserSite(String containerName, final String username) throws Exception {
 
-         }
-      });
-   }
+        return doInRequest(containerName, new ContainerCallback<TreeNode>() {
 
+            @Override
+            public TreeNode doInContainer(ExoContainer container) throws Exception {
+                PortalService portalService = PortalService.create(container);
+                TreeNode node = new TreeNode();
+                PortalConfig pc = portalService.getPortalConfig(PortalConfig.USER_TYPE, username);
+                if (pc == null) {
+                    node.setText("User not found");
+                    node.setNodeInfo("No user with the username : " + username);
+                } else {
+                    node.setText(pc.getName());
+                    node.setType(pc.getType());
+                    node.setExportable(true);
+                    node.setSiteName(pc.getName());
+                    StringBuilder sb = new StringBuilder("<ul>");
+                    sb.append("<li> Name : ").append(pc.getName()).append("</li>");
+                    sb.append("<li> Type : ").append(pc.getType()).append("</li>");
+                    sb.append("<li> Skin : ").append(pc.getSkin()).append("</li>");
+                    sb.append("<li> Edit permission : ").append(pc.getEditPermission()).append("</li>");
+                    sb.append("<li> Access permissions : <ul>");
+                    for (String s : pc.getAccessPermissions()) {
+                        sb.append("<li>").append(s).append("</li>");
+                    }
+                    sb.append("</ul></li></ul>");
+                    node.setNodeInfo(sb.toString());
+                }
+
+                return node;
+            }
+        });
+    }
 }

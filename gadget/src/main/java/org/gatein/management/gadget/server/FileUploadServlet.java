@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.server;
 
 import gwtupload.server.UploadAction;
@@ -44,144 +43,123 @@ import static org.gatein.management.gadget.server.ContainerRequestHandler.doInRe
 
 /**
  * {@code FileUploadServlet}
- * <p/>
+ * <p>
+ * The file upload servlet based on GWT upload, used for import sites.
+ * </p>
  * Created on Jan 3, 2011, 3:43:36 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public class FileUploadServlet extends UploadAction
-{
+public class FileUploadServlet extends UploadAction {
 
-   private static final Logger log = LoggerFactory.getLogger(FileUploadServlet.class);
-   private static final long serialVersionUID = 1L;
-   private Hashtable<String, String> receivedContentTypes = new Hashtable<String, String>();
-   /**
-    * Maintain a list with received files and their content types.
-    */
-   private Hashtable<String, File> receivedFiles = new Hashtable<String, File>();
+    private static final Logger log = LoggerFactory.getLogger(FileUploadServlet.class);
+    private static final long serialVersionUID = 1L;
+    private Hashtable<String, String> receivedContentTypes = new Hashtable<String, String>();
+    /**
+     * Maintain a list with received files and their content types.
+     */
+    private Hashtable<String, File> receivedFiles = new Hashtable<String, File>();
 
-   /**
-    * Override executeAction to save the received files in a custom place
-    * and delete this items from session.
-    */
-   @Override
-   public String executeAction(HttpServletRequest request, List<FileItem> sessionFiles) throws UploadActionException
-   {
-      String response = "";
-      int cont = 0;
-      for (FileItem item : sessionFiles)
-      {
-         //if (false == item.isFormField()) {
-         if (!item.isFormField())
-         {
-            cont++;
-            try
-            {
-               /// Create a new file based on the remote file name in the client
-               String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
-               /// Create a temporary file placed in the default system temp folder
-               File file = File.createTempFile(saveName, ".zip");
-               item.write(file);
-               /// Save a list with the received files
-               receivedFiles.put(item.getFieldName(), file);
-               receivedContentTypes.put(item.getFieldName(), item.getContentType());
+    /**
+     * Override executeAction to save the received files in a custom place
+     * and delete this items from session.
+     */
+    @Override
+    public String executeAction(HttpServletRequest request, List<FileItem> sessionFiles) throws UploadActionException {
+        StringBuilder response = new StringBuilder("<response>\n");
+        int cont = 0;
+        for (FileItem item : sessionFiles) {
+            //if (false == item.isFormField()) {
+            if (!item.isFormField()) {
+                cont++;
+                try {
+                    // Create a new file based on the remote file name in the client
+                    String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
+                    // Create a temporary file placed in the default system temp folder
+                    File file = File.createTempFile(saveName, ".zip");
+                    item.write(file);
 
-               String overwriteVal = request.getParameter("overwrite");
-               boolean overwrite = Boolean.parseBoolean(overwriteVal);
+                    // Save a list with the received files
+                    receivedFiles.put(item.getFieldName(), file);
+                    receivedContentTypes.put(item.getFieldName(), item.getContentType());
 
-               // process the uploaded file
-               //processImport(new FileInputStream(file), overwrite);
-               processImport(request.getParameter("pc"), new FileInputStream(file), overwrite);
-               /// Compose a xml message with the full file information which can be parsed in client side
-               response += "<file-" + cont + "-field>" + item.getFieldName() + "</file-" + cont + "-field>\n";
-               response += "<file-" + cont + "-name>" + item.getName() + "</file-" + cont + "-name>\n";
-               response += "<file-" + cont + "-size>" + item.getSize() + "</file-" + cont + "-size>\n";
-               response += "<file-" + cont + "-type>" + item.getContentType() + "</file-" + cont + "type>\n";
+                    String overwriteVal = request.getParameter("overwrite");
+                    boolean overwrite = Boolean.parseBoolean(overwriteVal);
+
+                    // process the uploaded file
+                    processImport(request.getParameter("pc"), new FileInputStream(file), overwrite);
+                    // Compose a xml message with the full file information which can be parsed in client side
+                    response.append("<file-").append(cont).append("-field>").append(item.getFieldName()).append("</file-").append(cont).append("-field>\n");
+                    response.append("<file-").append(cont).append("-name>").append(item.getName()).append("</file-").append(cont).append("-name>\n");
+                    response.append("<file-").append(cont).append("-size>").append(item.getSize()).append("</file-").append(cont).append("-size>\n");
+                    response.append("<file-").append(cont).append("-type>").append(item.getContentType()).append("</file-").append(cont).append("type>\n");
+                } catch (Exception e) {
+                    throw new UploadActionException(e);
+                }
             }
-            catch (ProcessException e)
-            {
-               throw new UploadActionException(e);
+        }
+
+        // Remove files from session because we have a copy of them
+        removeSessionFileItems(request);
+
+        // Send information of the received files to the client.
+        return response.append("</response>\n").toString();
+    }
+
+    /**
+     * Get the content of an uploaded file.
+     */
+    @Override
+    public void getUploadedFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String fieldName = request.getParameter(PARAM_SHOW);
+        File f = receivedFiles.get(fieldName);
+        if (f != null) {
+            response.setContentType(receivedContentTypes.get(fieldName));
+            FileInputStream is = new FileInputStream(f);
+            copyFromInputStreamToOutputStream(is, response.getOutputStream());
+        } else {
+            renderXmlResponse(request, response, ERROR_ITEM_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Remove a file when the user sends a delete request.
+     */
+    @Override
+    public void removeItem(HttpServletRequest request, String fieldName) throws UploadActionException {
+        File file = receivedFiles.get(fieldName);
+        receivedFiles.remove(fieldName);
+        receivedContentTypes.remove(fieldName);
+        if (file != null) {
+            file.delete();
+        }
+    }
+
+    /**
+     * Try to import the site from the zip file opened by the given input stream
+     *
+     * @param containerName portal container name for the request.
+     * @param in the input stream pointing to the zip file
+     * @param overwrite
+     * @throws Exception
+     */
+    private void processImport(String containerName, final InputStream in, final boolean overwrite) throws Exception {
+
+        doInRequest(containerName, new ContainerCallback<Void>() {
+
+            @Override
+            public Void doInContainer(ExoContainer container) throws Exception {
+                try {
+                    PortalService service = PortalService.create(container);
+                    service.importSite(in, overwrite);
+                    return null;
+                } catch (Exception ex) {
+                    log.error("Error during import.", ex);
+                    throw new ProcessException("Import process failed", ex);
+                }
             }
-            catch (Exception e)
-            {
-               throw new UploadActionException(e);
-            }
-         }
-      }
+        });
 
-      /// Remove files from session because we have a copy of them
-      removeSessionFileItems(request);
-
-      /// Send information of the received files to the client.
-      return "<response>\n" + response + "</response>\n";
-   }
-
-   /**
-    * Get the content of an uploaded file.
-    */
-   @Override
-   public void getUploadedFile(HttpServletRequest request, HttpServletResponse response) throws IOException
-   {
-      String fieldName = request.getParameter(PARAM_SHOW);
-      File f = receivedFiles.get(fieldName);
-      if (f != null)
-      {
-         response.setContentType(receivedContentTypes.get(fieldName));
-         FileInputStream is = new FileInputStream(f);
-         copyFromInputStreamToOutputStream(is, response.getOutputStream());
-      }
-      else
-      {
-         renderXmlResponse(request, response, ERROR_ITEM_NOT_FOUND);
-      }
-   }
-
-   /**
-    * Remove a file when the user sends a delete request.
-    */
-   @Override
-   public void removeItem(HttpServletRequest request, String fieldName) throws UploadActionException
-   {
-      File file = receivedFiles.get(fieldName);
-      receivedFiles.remove(fieldName);
-      receivedContentTypes.remove(fieldName);
-      if (file != null)
-      {
-         file.delete();
-      }
-   }
-
-   /**
-    * Try to import the site from the zip file opened by the given input stream
-    *
-    * @param containerName portal container name for the request.
-    * @param in            the input stream pointing to the zip file
-    * @param overwrite
-    * @throws Exception
-    */
-   private void processImport(String containerName, final InputStream in, final boolean overwrite) throws Exception
-   {
-
-      doInRequest(containerName, new ContainerCallback<Void>()
-      {
-
-         @Override
-         public Void doInContainer(ExoContainer container) throws Exception
-         {
-            try
-            {
-               PortalService service = PortalService.create(container);
-               service.importSite(in, overwrite);
-               return null;
-            }
-            catch (Exception ex)
-            {
-               log.error("Error during import.", ex);
-               throw new ProcessException("Import process failed. See server log for more details.");
-            }
-         }
-      });
-
-   }
+    }
 }

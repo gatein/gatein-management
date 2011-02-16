@@ -204,7 +204,7 @@
 
 
          <!-- Smart GWT -->
-         <dependency>
+         <!-- dependency>
             <groupId>com.smartgwt</groupId>
             <artifactId>smartgwt</artifactId>
             <version>${com.smartgwt.version}</version>
@@ -213,7 +213,7 @@
             <groupId>com.smartgwt</groupId>
             <artifactId>smartgwt-skins</artifactId>
             <version>${com.smartgwt.version}</version>
-         </dependency>
+         </dependency -->
 
          <!-- Testing -->
          <dependency>

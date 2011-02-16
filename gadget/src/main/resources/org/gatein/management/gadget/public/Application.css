@@ -18,7 +18,9 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- */
+*/
+
+/** Add css rules here for your application. */
 
 /** Add css rules here for your application. */
 
@@ -83,6 +85,79 @@ body {
     text-decoration: none;
     color: #ff8800;
     font: bold;
+}
+
+.success-style {
+    text-decoration: none;
+    color: #00ff00;
+    font-weight: bold;
+    height: 35px;
+    padding-left: 10px;
+}
+
+.success-style-icon {
+    text-decoration: none;
+    background-image: url('images/success-icon.png');
+    background-repeat: no-repeat;
+    background-position: left top;
+    padding-right: 5px;
+    height: 35px;
+}
+
+.error-style {
+    text-decoration: none;
+    color: #ff0000;
+    height: 35px;
+    font-weight: bold;
+    padding-left: 10px;
+}
+
+.error-style-icon {
+    background-image: url('images/error-icon.png');
+    background-repeat: no-repeat;
+    background-position: left top;
+    text-decoration: none;
+    height: 35px;
+    padding-right: 5px;
+}
+
+.warn-style {
+    text-decoration: none;
+    color: #ff8800;
+    height: 35px;
+    font-weight: bold;
+    padding-left: 10px;
+}
+
+.warn-style-icon {
+    background-image: url('images/warning-icon.png');
+    background-repeat: no-repeat;
+    background-position: left top;
+    text-decoration: none;
+    height: 35px;
+    padding-right: 5px;
+}
+
+.progress-style{
+    text-decoration: none;
+    color: #0000ff;
+    height: 35px;
+    font-weight: bold;
+    padding-left: 10px;
+}
+
+.progress-style-icon{
+    background-image: url('images/loading.gif');
+    background-repeat: no-repeat;
+    background-position: left top;
+    text-decoration: none;
+    padding-right: 5px;
+    height: 35px;
+}
+
+.blank-style {
+    background-image: url("images/blank.png");
+    background-repeat: no-repeat;
 }
 
 a {

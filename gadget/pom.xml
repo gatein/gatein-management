@@ -1,8 +1,9 @@
 <!--
-  ~ JBoss, Home of Professional Open Source.
-  ~ Copyright 2011, Red Hat, Inc., and individual contributors
-  ~ as indicated by the @author tags. See the copyright.txt file in the
-  ~ distribution for a full listing of individual contributors.
+  ~ JBoss, a division of Red Hat
+  ~ Copyright 2010, Red Hat Middleware, LLC, and individual
+  ~ contributors as indicated by the @authors tag. See the
+  ~ copyright.txt in the distribution for a full listing of
+  ~ individual contributors.
   ~
   ~ This is free software; you can redistribute it and/or modify it
   ~ under the terms of the GNU Lesser General Public License as
@@ -28,7 +29,7 @@
    <parent>
       <groupId>org.gatein.management</groupId>
       <artifactId>management-parent</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>1.0.0.Alpha1-SNAPSHOT</version>
    </parent>
 
    <artifactId>management-gadget</artifactId>
@@ -56,26 +57,10 @@
          <groupId>com.googlecode.gwtupload</groupId>
          <artifactId>gwtupload</artifactId>
       </dependency>
-      <dependency>
-         <groupId>com.smartgwt</groupId>
-         <artifactId>smartgwt</artifactId>
-         <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>com.smartgwt</groupId>
-         <artifactId>smartgwt-skins</artifactId>
-         <scope>provided</scope>
-      </dependency>
       <!-- Management Module Dependencies -->
       <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
          <artifactId>portalobjects-exportimport</artifactId>
-         <scope>provided</scope>
-      </dependency>
-      <!-- GateIn Runtime Dependencies -->
-      <dependency>
-         <groupId>org.exoplatform.portal</groupId>
-         <artifactId>exo.portal.component.portal</artifactId>
          <scope>provided</scope>
       </dependency>
    </dependencies>
@@ -85,8 +70,9 @@
    <build>
       <finalName>management-gadget</finalName>
       <resources>
-         <resource><directory>src/main/resources</directory></resource>
-         <!--<resource><directory>src/main/webapp/gadgets/*</directory></resource>-->
+         <resource>
+            <directory>src/main/resources</directory>
+         </resource>
       </resources>
       <plugins>
          <plugin>

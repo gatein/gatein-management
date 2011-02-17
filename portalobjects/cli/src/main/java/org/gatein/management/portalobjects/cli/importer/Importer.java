@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -32,7 +32,6 @@ import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
-import javax.transaction.SystemException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -85,6 +84,13 @@ public class Importer
    private PortalObjectsMgmtClient client;
    int level;
 
+   void init()
+   {
+      portalContainer = Utils.trimToNull(portalContainer);
+      
+      Utils.initializeLogging(log4jFile, logLevel, importFile.getParentFile(), importFile.getName(), "import");
+   }
+
    public void doImport()
    {
       if (portalContainer == null)
@@ -98,8 +104,8 @@ public class Importer
       }
       catch (UnknownHostException e)
       {
-         System.err.println("Unknown host name " + host);
-         e.printStackTrace(System.err);
+         System.err.println("Unknown host name " + host + ". See log for more details.");
+         log.error("Exception retrieving host " + host + " by name.", e);
          System.exit(1);
       }
 
@@ -114,14 +120,16 @@ public class Importer
          System.exit(1);
       }
 
-      Utils.initializeLogging(log4jFile, logLevel, importFile.getParentFile(), importFile.getName(), "import");
-
       if (overwrite == null)
       {
          String ow = Utils.getUserInput("Do you wish to fully overwrite all data defined in import file (N) ? Y/N", level);
          if ("Y".equalsIgnoreCase(ow))
          {
-            overwrite = true;
+            overwrite = Boolean.TRUE;
+         }
+         else
+         {
+            overwrite = Boolean.FALSE;
          }
       }
 

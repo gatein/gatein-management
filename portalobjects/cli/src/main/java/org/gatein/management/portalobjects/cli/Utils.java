@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -23,7 +23,6 @@
 
 package org.gatein.management.portalobjects.cli;
 
-import org.apache.log4j.Category;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.xml.DOMConfigurator;
@@ -34,7 +33,6 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
@@ -49,7 +47,7 @@ public class Utils
    {
    }
 
-   public static void addPropertiesAsArgs(Class<?> clazz, Properties properties, List<String> argList, String[] fieldNames) throws Exception
+   public static void addPropertiesAsArgs(Class<?> clazz, Properties properties, List<String> argList, String[] fieldNames, String[] flags) throws Exception
    {
       for (String fieldName : fieldNames)
       {
@@ -63,8 +61,18 @@ public class Utils
                String value = properties.getProperty("arg." + key);
                if (value != null)
                {
-                  argList.add(option.name());
-                  argList.add(value);
+                  if (!containsFlag(key, flags))
+                  {
+                     argList.add(0, option.name());
+                     argList.add(1, value);
+                  }
+                  else
+                  {
+                     if (Boolean.valueOf(value))
+                     {
+                        argList.add(0, option.name());
+                     }
+                  }
                }
             }
          }
@@ -81,6 +89,27 @@ public class Utils
          if (argList.contains(s)) return true;
       }
       return false;
+   }
+
+   public static boolean containsFlag(String optionName, String[] flags)
+   {
+      if (flags == null) return false;
+      for (String flag : flags)
+      {
+         if (flag.equals(optionName)) return true;
+      }
+
+      return false;
+   }
+
+   public static String trimToNull(String value)
+   {
+      if (value == null) return null;
+
+      value = value.trim();
+      if ("".equals(value)) return null;
+
+      return value;
    }
 
    public static String getUserInput(String text, int indentLevel)

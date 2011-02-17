@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -22,10 +22,6 @@
  */
 
 package org.gatein.management.core.rest;
-
-import org.gatein.management.ManagementException;
-
-import javax.ws.rs.WebApplicationException;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

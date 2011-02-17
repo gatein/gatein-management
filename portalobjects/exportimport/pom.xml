@@ -1,6 +1,6 @@
 <!--
   ~ JBoss, a division of Red Hat
-  ~ Copyright 2011, Red Hat Middleware, LLC, and individual
+  ~ Copyright 2010, Red Hat Middleware, LLC, and individual
   ~ contributors as indicated by the @authors tag. See the
   ~ copyright.txt in the distribution for a full listing of
   ~ individual contributors.
@@ -29,24 +29,24 @@
    <parent>
       <groupId>org.gatein.management.portalobjects</groupId>
       <artifactId>portalobjects-parent</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>1.0.0.Alpha1-SNAPSHOT</version>
    </parent>
 
    <groupId>org.gatein.management.portalobjects</groupId>
    <artifactId>portalobjects-exportimport</artifactId>
-   <version>1.0.0-SNAPSHOT</version>
+   <version>1.0.0.Alpha1-SNAPSHOT</version>
    <packaging>jar</packaging>
 
    <name>GateIn Management - Portal Objects Export/Import</name>
 
    <dependencies>
       <dependency>
-         <groupId>org.gatein.management</groupId>
-         <artifactId>management-api</artifactId>
-      </dependency>
-      <dependency>
          <groupId>org.gatein.management.portalobjects</groupId>
          <artifactId>portalobjects-common</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management.binding</groupId>
+         <artifactId>binding-api</artifactId>
       </dependency>
       <dependency>
          <groupId>org.exoplatform.portal</groupId>

@@ -1,8 +1,9 @@
 <!--
-  ~ JBoss, Home of Professional Open Source.
-  ~ Copyright 2011, Red Hat, Inc., and individual contributors
-  ~ as indicated by the @author tags. See the copyright.txt file in the
-  ~ distribution for a full listing of individual contributors.
+  ~ JBoss, a division of Red Hat
+  ~ Copyright 2010, Red Hat Middleware, LLC, and individual
+  ~ contributors as indicated by the @authors tag. See the
+  ~ copyright.txt in the distribution for a full listing of
+  ~ individual contributors.
   ~
   ~ This is free software; you can redistribute it and/or modify it
   ~ under the terms of the GNU Lesser General Public License as
@@ -37,7 +38,7 @@
 
    <groupId>org.gatein.management</groupId>
    <artifactId>management-parent</artifactId>
-   <version>1.0.0-SNAPSHOT</version>
+   <version>1.0.0.Alpha1-SNAPSHOT</version>
    <packaging>pom</packaging>
 
    <name>GateIn Management - Parent Project</name>
@@ -56,16 +57,6 @@
    <dependencyManagement>
       <dependencies>
          <!-- GateIn Management -->
-         <dependency>
-            <groupId>org.gatein.management</groupId>
-            <artifactId>management-api</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management</groupId>
-            <artifactId>management-domain</artifactId>
-            <version>${project.version}</version>
-         </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
             <artifactId>management-core</artifactId>
@@ -204,7 +195,7 @@
 
 
          <!-- Smart GWT -->
-         <dependency>
+         <!-- dependency>
             <groupId>com.smartgwt</groupId>
             <artifactId>smartgwt</artifactId>
             <version>${com.smartgwt.version}</version>
@@ -213,7 +204,7 @@
             <groupId>com.smartgwt</groupId>
             <artifactId>smartgwt-skins</artifactId>
             <version>${com.smartgwt.version}</version>
-         </dependency>
+         </dependency -->
 
          <!-- Testing -->
          <dependency>
@@ -226,8 +217,6 @@
    </dependencyManagement>
 
    <modules>
-      <module>api</module>
-      <module>domain</module>
       <module>binding</module>
       <module>core</module>
       <module>portalobjects</module>
@@ -250,6 +239,7 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
             <configuration>
                <target>1.6</target>
                <source>1.6</source>

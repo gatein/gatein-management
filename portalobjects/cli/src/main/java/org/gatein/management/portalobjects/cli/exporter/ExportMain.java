@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -25,11 +25,13 @@ package org.gatein.management.portalobjects.cli.exporter;
 
 import org.gatein.management.portalobjects.cli.Main;
 import org.gatein.management.portalobjects.cli.Utils;
+import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,56 +49,103 @@ public class ExportMain
       "-------------------------------------------------------------\n" +
       "*         Module:   Portal Objects CLI                      *\n" +
       "*         Program:  Exporter                                *\n" +
-      "*         Version:  1.0                                     *\n" +
+      "*         Version:  1.0.0.Alpha-1                           *\n" +
       "* --------------------------------------------------------- *\n" +
       "*               For help run with --help                    *\n" +
       "-------------------------------------------------------------";
 
-   public static void main(String[] args) throws Exception
+   public static void main(String[] args)
    {
       System.out.println(EXPORTER_SPLASH);
 
       // Load default properties
       Properties properties = new Properties();
-      properties.load(Main.class.getResourceAsStream(DEFAULT_CONFIG));
+      try
+      {
+         properties.load(Main.class.getResourceAsStream(DEFAULT_CONFIG));
+      }
+      catch (IOException e)
+      {
+         System.err.println("Unable to load default configuration file. Reason: " + e.getMessage());
+         System.exit(1);
+      }
 
       // Create the client
       Exporter exporter = new Exporter();
 
       // Parse command line options
       CmdLineParser parser = new CmdLineParser(exporter);
-      parser.parseArgument(args);
+      try
+      {
+         parser.parseArgument(args);
+      }
+      catch (CmdLineException e)
+      {
+         System.err.println("Exception parsing arguments. Reason: " + e.getLocalizedMessage());
+         System.exit(1);
+      }
 
       File configFile = exporter.configFile;
       if (configFile != null)
       {
-         if (!configFile.exists()) throw new FileNotFoundException(configFile.getAbsolutePath());
+         FileInputStream fis = null;
+         try
+         {
+            fis = new FileInputStream(configFile);
+         }
+         catch (FileNotFoundException e)
+         {
+            System.err.println("Custom config file not found. Reason: " + e.getLocalizedMessage());
+            System.exit(1);
+         }
 
-         FileInputStream fis = new FileInputStream(configFile);
          try
          {
             // override any properties defined in default export.properties
             properties.load(fis);
          }
+         catch (IOException e)
+         {
+            System.err.println("Exception loading properties file " + configFile + ". Reason: " + e.getLocalizedMessage());
+            System.exit(1);
+         }
          finally
          {
-            fis.close();
+            try{ fis.close(); } catch (IOException e){}
          }
       }
 
       // Pass optional configurable properties as args if program args do not include them already
       List<String> argList = new ArrayList<String>();
       argList.addAll(Arrays.asList(args));
-      Utils.addPropertiesAsArgs(Exporter.class, properties, argList,
-         new String[]{"username", "password", "host", "port", "portalContainer", "log4jFile", "logLevel", "basedir", "scope", "ownerId", "dataType", "itemName"});
+      try
+      {
+         Utils.addPropertiesAsArgs(Exporter.class, properties, argList,
+            new String[]{"username", "password", "host", "port", "portalContainer", "log4jFile", "logLevel",
+               "basedir", "scope", "ownerId", "dataType", "itemName"},
+            null);
+      }
+      catch (Exception e)
+      {
+         System.err.println("Exception adding properties as arguments to program. Reason: " + e.getLocalizedMessage());
+         System.exit(1);
+      }
 
       args = argList.toArray(new String[argList.size()]);
-      parser.parseArgument(args);
+      try
+      {
+         parser.parseArgument(args);
+      }
+      catch (CmdLineException e)
+      {
+         System.err.println("Exception parsing arguments. Reason: " + e.getLocalizedMessage());
+         System.exit(1);
+      }
 
       // Print help and exit
       if (exporter.help)
       {
-         parser.setUsageWidth(120);
+         parser.setUsageWidth(125);
          parser.printUsage(System.out);
          System.exit(0);
       }

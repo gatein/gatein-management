@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -23,29 +23,25 @@
 
 package org.gatein.management.portalobjects.cli.exporter;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.xml.DOMConfigurator;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.config.model.PortalConfig;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
-import org.gatein.management.portalobjects.cli.Main;
 import org.gatein.management.portalobjects.cli.Utils;
 import org.gatein.management.portalobjects.client.api.PortalObjectsMgmtClient;
-import org.gatein.management.portalobjects.common.utils.PortalObjectsUtils;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -66,34 +62,34 @@ public class Exporter
    @Option(name = "--loglevel", usage = "Sets log level of root log4j logger (ie debug, info).", metaVar = " ")
    String logLevel;
 
-   @Option(name = "--basedirectory", aliases = "-basedir", usage = "Sets base directory for export", metaVar = " ")
+   @Option(name = "--basedirectory", aliases = "-basedir", usage = "Sets base directory for export.", metaVar = " ")
    File basedir;
 
-   @Option(name = "--username", aliases = "-u", usage = "Username to connect to portal with.", metaVar = " ")
+   @Option(name = "--username", aliases = "-u", usage = "Username to connect to portal with.", metaVar = "[default=root]")
    String username;
 
-   @Option(name = "--password", aliases = "-p", usage = "Password to connect to portal with.", metaVar = " ")
+   @Option(name = "--password", aliases = "-p", usage = "Password to connect to portal with.", metaVar = "[default=gtn]")
    String password;
 
-   @Option(name = "--host", aliases = "-h", usage = "Host of the server the portal is running on.", metaVar = " ")
+   @Option(name = "--host", aliases = "-h", usage = "Host of the server the portal is running on.", metaVar = "[default=localhost]")
    String host;
 
-   @Option(name = "--port", usage = "Port of the server the portal is running on.", metaVar = " ")
+   @Option(name = "--port", usage = "Port of the server the portal is running on.", metaVar = "[default=8080]")
    int port;
 
-   @Option(name = "--portalcontainer", aliases = "-pc", usage = "Portal container name (ie portal)", metaVar = " ")
+   @Option(name = "--portalcontainer", aliases = "-pc", usage = "Portal container name (ie portal).", metaVar = "[default=portal]")
    String portalContainer;
 
-   @Option(name = "--scope", aliases = "-s", usage = "Scope of data (ie portal, group, user). Use * for all scopes.", metaVar = " ")
+   @Option(name = "--scope", aliases = "-s", usage = "Scope of data (ie portal, group, user). Use * for all scopes.", metaVar = "[default=*]")
    String scope;
 
-   @Option(name = "--ownerid", aliases = "-o", usage = "Owner id (ie classic, /platform/administrators, root). Use * for all ownerId's.", metaVar = " ")
+   @Option(name = "--ownerid", aliases = "-o", usage = "Owner id (ie classic, /platform/administrators, root). Use * for all ownerId's.", metaVar = "[default=*]")
    String ownerId;
 
-   @Option(name = "--datatype", aliases = "-d", usage = "Data type (ie site, page, navigation). Use * for all data types.", metaVar = " ")
+   @Option(name = "--datatype", aliases = "-d", usage = "Data type (ie site, page, navigation). Use * for all data types.", metaVar = "[default=*]")
    String dataType;
 
-   @Option(name = "--name", aliases = "-n", usage = "Name of page name or navigation path or * for all pages/navigations.", metaVar = " ")
+   @Option(name = "--name", aliases = "-n", usage = "Name of page name or navigation path or * for all pages/navigations.", metaVar = "[default=*]")
    String itemName;
 
    @Option(name = "--help")
@@ -106,8 +102,14 @@ public class Exporter
 
    private ExportContext context;
 
+   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
    void init()
    {
+      portalContainer = Utils.trimToNull(portalContainer);
+      scope = Utils.trimToNull(scope);
+      dataType = Utils.trimToNull(dataType);
+      itemName = Utils.trimToNull(itemName);
+
       File exportDir = new File("epp-exports");
       if (basedir != null)
       {
@@ -121,13 +123,14 @@ public class Exporter
          }
       }
 
-      System.out.println("Using directory " + exportDir.getAbsolutePath() + " for export.");
       String fileName = new StringBuilder().append("portal-objects_")
-         .append(System.currentTimeMillis()).append(".zip").toString();
-      exportFile = new File(exportDir, fileName);
+         .append(SDF.format(new Date())).append(".zip").toString();
 
+      exportFile = new File(exportDir, fileName);
+      System.out.println("Exporting data to file " + exportFile);
+      
       Utils.initializeLogging(log4jFile, logLevel, exportDir, fileName, "export");
-      log.info("Exporter successfully initialized.");
+      log.info("Exporter successfully initialized and exporting to file " + exportFile);
    }
 
    public void doExport()
@@ -137,14 +140,15 @@ public class Exporter
          portalContainer = Utils.getUserInput("Container name (ie portal)", level);
       }
 
+      log.info("Connecting to portal container " + portalContainer + " @ " + host + ":" + port + " and user=" + username);
       try
       {
          client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName(host), port, username, password, portalContainer);
       }
       catch (UnknownHostException e)
       {
-         System.err.println("Unknown host name " + host);
-         e.printStackTrace(System.err);
+         System.err.println("Unknown host name " + host + ". See log for more details.");
+         log.error("Exception retrieving host " + host + " by name.", e);
          System.exit(1);
       }
 
@@ -156,20 +160,26 @@ public class Exporter
          processScope(s);
       }
 
-      log.info("Export Summary:" + exportSummary.toString());
+      if (context.getNavigations().isEmpty() && context.getPages().isEmpty() && context.getPortalConfigs().isEmpty())
+      {
+         System.out.println("No data detected for export.  Nothing to export.");
+         log.info("Export complete, however no data was exported.");
+         System.exit(1);
+      }
 
+      log.info("Export Summary:" + exportSummary.toString());
       try
       {
          log.info("Writing export content to zip file " + exportFile.getAbsolutePath());
          client.exportToZip(context, exportFile);
+         log.info("Export successful !");
       }
       catch (IOException e)
       {
          System.err.println("Error exporting content to zip file. See log for more details.");
          log.error("IOException exporting content to zip file " + exportFile.getAbsolutePath(), e);
+         System.exit(1);
       }
-      
-      log.info("Export successful !");
    }
 
    private Scope[] getScopes()
@@ -298,7 +308,7 @@ public class Exporter
             catch (IOException e)
             {
                System.err.println("Exception writing data. See log for more details.");
-               log.error("Exception writing data for scope " + scope.getName() + " and ownerId " + ownerId + " and datatype " + dataType);
+               log.error("Exception writing data for scope " + scope.getName() + " and ownerId " + ownerId + " and datatype " + dataType, e);
                System.exit(1);
             }
             level--;

@@ -1,6 +1,6 @@
 /*
  * JBoss, a division of Red Hat
- * Copyright 2011, Red Hat Middleware, LLC, and individual
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
  * contributors as indicated by the @authors tag. See the
  * copyright.txt in the distribution for a full listing of
  * individual contributors.
@@ -24,7 +24,6 @@
 package org.gatein.management.rest;
 
 import javax.ws.rs.core.Application;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 

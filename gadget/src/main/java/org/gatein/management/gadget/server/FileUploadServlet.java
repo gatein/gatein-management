@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.server;
 
 import gwtupload.server.UploadAction;
@@ -44,10 +43,12 @@ import static org.gatein.management.gadget.server.ContainerRequestHandler.doInRe
 
 /**
  * {@code FileUploadServlet}
- * <p/>
+ * <p>
+ * The file upload servlet based on GWT upload, used for import sites.
+ * </p>
  * Created on Jan 3, 2011, 3:43:36 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public class FileUploadServlet extends UploadAction
@@ -68,22 +69,23 @@ public class FileUploadServlet extends UploadAction
    @Override
    public String executeAction(HttpServletRequest request, List<FileItem> sessionFiles) throws UploadActionException
    {
-      String response = "";
-      int cont = 0;
+      StringBuilder response = new StringBuilder("<response>\n");
+      int count = 0;
       for (FileItem item : sessionFiles)
       {
          //if (false == item.isFormField()) {
          if (!item.isFormField())
          {
-            cont++;
+            count++;
             try
             {
-               /// Create a new file based on the remote file name in the client
+               // Create a new file based on the remote file name in the client
                String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
-               /// Create a temporary file placed in the default system temp folder
+               // Create a temporary file placed in the default system temp folder
                File file = File.createTempFile(saveName, ".zip");
                item.write(file);
-               /// Save a list with the received files
+
+               // Save a list with the received files
                receivedFiles.put(item.getFieldName(), file);
                receivedContentTypes.put(item.getFieldName(), item.getContentType());
 
@@ -91,17 +93,12 @@ public class FileUploadServlet extends UploadAction
                boolean overwrite = Boolean.parseBoolean(overwriteVal);
 
                // process the uploaded file
-               //processImport(new FileInputStream(file), overwrite);
                processImport(request.getParameter("pc"), new FileInputStream(file), overwrite);
-               /// Compose a xml message with the full file information which can be parsed in client side
-               response += "<file-" + cont + "-field>" + item.getFieldName() + "</file-" + cont + "-field>\n";
-               response += "<file-" + cont + "-name>" + item.getName() + "</file-" + cont + "-name>\n";
-               response += "<file-" + cont + "-size>" + item.getSize() + "</file-" + cont + "-size>\n";
-               response += "<file-" + cont + "-type>" + item.getContentType() + "</file-" + cont + "type>\n";
-            }
-            catch (ProcessException e)
-            {
-               throw new UploadActionException(e);
+               // Compose a xml message with the full file information which can be parsed in client side
+               response.append("<file-").append(count).append("-field>").append(item.getFieldName()).append("</file-").append(count).append("-field>\n");
+               response.append("<file-").append(count).append("-name>").append(item.getName()).append("</file-").append(count).append("-name>\n");
+               response.append("<file-").append(count).append("-size>").append(item.getSize()).append("</file-").append(count).append("-size>\n");
+               response.append("<file-").append(count).append("-type>").append(item.getContentType()).append("</file-").append(count).append("type>\n");
             }
             catch (Exception e)
             {
@@ -110,11 +107,11 @@ public class FileUploadServlet extends UploadAction
          }
       }
 
-      /// Remove files from session because we have a copy of them
+      // Remove files from session because we have a copy of them
       removeSessionFileItems(request);
 
-      /// Send information of the received files to the client.
-      return "<response>\n" + response + "</response>\n";
+      // Send information of the received files to the client.
+      return response.append("</response>\n").toString();
    }
 
    /**
@@ -160,7 +157,7 @@ public class FileUploadServlet extends UploadAction
     * @param overwrite
     * @throws Exception
     */
-   private void processImport(String containerName, final InputStream in, final boolean overwrite) throws Exception
+   private void processImport(final String containerName, final InputStream in, final boolean overwrite) throws Exception
    {
 
       doInRequest(containerName, new ContainerCallback<Void>()
@@ -177,8 +174,7 @@ public class FileUploadServlet extends UploadAction
             }
             catch (Exception ex)
             {
-               log.error("Error during import.", ex);
-               throw new ProcessException("Import process failed. See server log for more details.");
+               throw new ProcessException("Import failed for portal container " + containerName, ex);
             }
          }
       });

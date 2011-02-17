@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.core.client.GWT;
@@ -27,20 +26,24 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.SuggestOracle;
 
 /**
- * {@code ItemSuggestOracle}
- * <p/>
+ * {@code RPCSuggestOracle}
+ * <p>
+ * A suggest oracle based on RPC call, rather than the standard one which need to
+ * have the whole suggestion list from the beginning. When the user type some
+ * characters, a remote call is established to retrieve possible suggestions.
+ * </p>
  * Created on Feb 10, 2011, 12:47:44 PM
  *
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-public class ItemSuggestOracle extends SuggestOracle
+public class RPCSuggestOracle extends SuggestOracle
 {
 
    /**
-    * Create a new instance of {@code ItemSuggestOracle}
+    * Create a new instance of {@code RPCSuggestOracle}
     */
-   public ItemSuggestOracle()
+   public RPCSuggestOracle()
    {
       super();
    }

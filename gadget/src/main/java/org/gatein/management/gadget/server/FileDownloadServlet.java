@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.server;
 
 import org.exoplatform.container.ExoContainer;
@@ -33,15 +32,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import static org.gatein.management.gadget.server.ContainerRequestHandler.doInRequest;
+import static org.gatein.management.gadget.server.ContainerRequestHandler.*;
 
 /**
  * {@code FileDownloadServlet}
- * <p/>
+ * <p>
+ * The file download servlet. Used for export sites.
+ * </p>
  * Created on Feb 3, 2011, 3:49:16 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public class FileDownloadServlet extends HttpServlet
@@ -61,20 +64,26 @@ public class FileDownloadServlet extends HttpServlet
    protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
    {
-
       final String type = request.getParameter("ownerType");
+      // I would rather just replace forward slashes, rather then come up with a regexp that removes illegal filename chars
       final String name = request.getParameter("ownerId");
-      String pc = request.getParameter("pc");
+      String safeName = name.replaceAll("/", "_");
+      if (safeName.startsWith("_")) safeName = name.substring(1);
 
+      String portalContainerName = request.getParameter("pc");
       response.setContentType("application/octet-stream; charset=UTF-8");
-      String filename = type + "_" + name + ".zip";
+      
+      String filename = new StringBuilder().append(portalContainerName).append("-").append(type)
+         .append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
+
       response.setHeader("Content-disposition", "attachment; filename=\"" + filename + "\"");
 
       final OutputStream os = response.getOutputStream();
       try
       {
-         doInRequest(pc, new ContainerCallback<Void>()
+         doInRequest(portalContainerName, new ContainerCallback<Void>()
          {
+
             @Override
             public Void doInContainer(ExoContainer container) throws Exception
             {
@@ -87,7 +96,7 @@ public class FileDownloadServlet extends HttpServlet
       }
       catch (Exception e)
       {
-         log.error("Error during download.", e);
+         log.error("Error during download", e);
       }
       finally
       {
@@ -100,5 +109,11 @@ public class FileDownloadServlet extends HttpServlet
       throws ServletException, IOException
    {
       doGet(request, response);
+   }
+
+   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+   private String getTimestamp()
+   {
+      return SDF.format(new Date());
    }
 }

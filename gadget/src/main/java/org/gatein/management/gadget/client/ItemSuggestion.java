@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
@@ -59,7 +58,7 @@ public class ItemSuggestion implements IsSerializable, Suggestion, Serializable
    }
 
    /**
-    * @return
+    * @return the string which will be displayed
     */
    public String getDisplayString()
    {
@@ -67,7 +66,7 @@ public class ItemSuggestion implements IsSerializable, Suggestion, Serializable
    }
 
    /**
-    * @return
+    * @return the string replacement
     */
    public String getReplacementString()
    {

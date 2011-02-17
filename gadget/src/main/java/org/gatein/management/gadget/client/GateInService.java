@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.user.client.rpc.RemoteService;
@@ -33,34 +32,48 @@ import java.util.List;
  * <p/>
  * Created on Jan 3, 2011, 12:28:43 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-@RemoteServiceRelativePath("/gtnService")
+@RemoteServiceRelativePath("gtnService")
 public interface GateInService extends RemoteService
 {
 
    /**
-    * @param item
+    * Update the Tree item asynchronously
+    *
+    * @param containerName name of portal container
+    * @param item          The item to be updated
+    * @return the updated tree node
     * @throws Exception
     */
    public TreeNode updateItem(String containerName, TreeNode item) throws Exception;
 
    /**
-    * @param username
-    * @return
+    * Lookup for the user site having the given username
+    *
+    * @param containerName the portal container name
+    * @param username      the user name
+    * @return the tree node containing information about the user site (if exists)
+    * @throws Exception
     */
    public TreeNode getUserSite(String containerName, String username) throws Exception;
 
    /**
-    * @param req
-    * @return
+    * Retrieve the list of usernames according to the user input
+    *
+    * @param containerName the portal container name
+    * @param request       the user request
+    * @return a response with the relevant usernames
+    * @throws Exception
     */
    public SuggestOracle.Response getUsername(String containerName, SuggestOracle.Request request) throws Exception;
 
    /**
-    * @param containerName
-    * @return
+    * Retrieve asynchronously the list of root nodes
+    *
+    * @param containerName The portal container name
+    * @return The list of the root nodes
     * @throws Exception
     */
    public List<TreeNode> getRootNodes(String containerName) throws Exception;

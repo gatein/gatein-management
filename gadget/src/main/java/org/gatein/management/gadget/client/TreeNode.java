@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import java.io.Serializable;
@@ -31,7 +30,7 @@ import java.util.List;
  * <p/>
  * Created on Dec 29, 2010, 1:25:55 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public class TreeNode implements Serializable
@@ -92,7 +91,9 @@ public class TreeNode implements Serializable
    }
 
    /**
-    * @param info
+    * Setter for the node info
+    *
+    * @param info the info to set
     */
    public void setNodeInfo(String info)
    {
@@ -131,6 +132,8 @@ public class TreeNode implements Serializable
    }
 
    /**
+    * Setter for the children
+    *
     * @param children the children to set
     */
    public void setChildren(List<TreeNode> children)
@@ -147,6 +150,8 @@ public class TreeNode implements Serializable
    }
 
    /**
+    * Setter for the text
+    *
     * @param text the text to set
     */
    public void setText(String text)

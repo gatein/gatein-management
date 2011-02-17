@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -36,7 +35,6 @@ import com.google.gwt.gadgets.client.Gadget.AllowHtmlQuirksMode;
 import com.google.gwt.gadgets.client.UserPreferences;
 import com.google.gwt.gadgets.client.Gadget.ModulePrefs;
 import com.google.gwt.gadgets.client.Gadget.UseLongManifestName;
-import com.google.gwt.i18n.client.LocaleInfo;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -63,23 +61,25 @@ import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import gwtupload.client.IUploader;
 import gwtupload.client.MultiUploader;
 
 import java.util.List;
 
 /**
  * {@code Application}
- * <p/>
+ * <p>
  * Creates a gadget that will show the sites tree which allows to navigate
  * between different sites. This gadget allows the administrator of the portal
- * to export and/or import files/Apps.
- * <p/>
+ * to import/export sites.
+ * </p>
  * Created on Dec 29, 2010, 8:01:18 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-@ModulePrefs(title = "GateIn Management", author = "Nabil Benothman", author_email = "nbenothm@redhat.com", description = "This gadget allows the administrator to export/import sites")
+@ModulePrefs(title = "GateIn Management", author = "Nabil Benothman", author_email = "nbenothm@redhat.com",
+   description = "This gadget allows the administrator to export/import sites")
 @UseLongManifestName(true)
 @AllowHtmlQuirksMode(true)
 public class Application extends Gadget<UserPreferences>
@@ -117,12 +117,12 @@ public class Application extends Gadget<UserPreferences>
       absolutePanel.add(decoratorPanelWest, 10, 10);
       decoratorPanelWest.setSize("240px", "400px");
 
-      AbsolutePanel absolutePanel_1 = new AbsolutePanel();
-      absolutePanel_1.setSize("230px", "395px");
-      decoratorPanelWest.setWidget(absolutePanel_1);
+      AbsolutePanel treePanel = new AbsolutePanel();
+      treePanel.setSize("230px", "395px");
+      decoratorPanelWest.setWidget(treePanel);
 
       ScrollPanel treeScrollPanel = new ScrollPanel();
-      absolutePanel_1.add(treeScrollPanel, 10, 10);
+      treePanel.add(treeScrollPanel, 10, 10);
       treeScrollPanel.setSize("210px", "375px");
 
       final Tree tree = getTree(images);
@@ -224,66 +224,86 @@ public class Application extends Gadget<UserPreferences>
       // Add some text to the top of the dialog
       Label label = new Label("Select a file to import : ");
       dialogContents.add(label);
-
-      /*
-     final FlowPanel panelImages = new FlowPanel();
-
-     final OnLoadPreloadedImageHandler showImage = new OnLoadPreloadedImageHandler() {
-
-     public void onLoad(PreloadedImage img) {
-     img.setWidth("75px");
-     panelImages.add(img);
-     }
-     };
-     IUploader.OnFinishUploaderHandler onFinishUploaderHandler = new IUploader.OnFinishUploaderHandler() {
-
-     public void onFinish(IUploader uploader) {
-     if (uploader.getStatus() == Status.SUCCESS) {
-     new PreloadedImage(uploader.fileUrl(), showImage);
-     }
-     }
-     };
-      *
-      */
+      final HTML status = new HTML("");
+      final HTML statusIcon = new HTML("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+      status.setStyleName("blank-style");
+      statusIcon.setStyleName("blank-style");
+      statusIcon.setSize("40px", "40px");
+      final CheckBox overwriteBox = new CheckBox("Overwrite existing site");
 
       final MultiUploader uploader = new MultiUploader();
-      // Add a finish handler which will load the image once the upload finishes
-      //uploader.addOnFinishUploadHandler(onFinishUploaderHandler);
-      //defaultUploader.setMaximumFiles(3);
+      // Add a finish handler which will notify user once the upload finishes
+      uploader.addOnFinishUploadHandler(new IUploader.OnFinishUploaderHandler()
+      {
+
+         public void onFinish(IUploader uploader)
+         {
+
+            switch (uploader.getStatus())
+            {
+               case SUCCESS:
+                  status.setText("File uploaded with success");
+                  status.setStyleName("success-style");
+                  statusIcon.setStyleName("success-style-icon");
+                  break;
+               case ERROR:
+                  status.setText("File upload error");
+                  status.setStyleName("error-style");
+                  statusIcon.setStyleName("error-style-icon");
+                  break;
+               case CANCELED:
+                  status.setText("File upload canceled");
+                  status.setStyleName("warn-style");
+                  statusIcon.setStyleName("warn-style-icon");
+                  break;
+               default:
+                  status.setText("");
+                  status.setStyleName("blank-style");
+                  statusIcon.setStyleName("blank-style");
+                  break;
+            }
+
+            overwriteBox.setEnabled(true);
+         }
+      });
+      // Add a start handler which will disable the UI until the upload finishes
+      uploader.addOnStartUploadHandler(new IUploader.OnStartUploaderHandler()
+      {
+
+         public void onStart(IUploader uploader)
+         {
+            status.setText("Process in progress...");
+            status.setStyleName("progress-style");
+            statusIcon.setStyleName("progress-style-icon");
+            overwriteBox.setEnabled(false);
+         }
+      });
+      // accept only zip files
+      uploader.setValidExtensions(new String[]{"zip"});
       // You can add customized parameters to servlet call
-      uploader.setServletPath(UPLOAD_ACTION_URL + "?overwrite=false");
       uploader.setServletPath(UPLOAD_ACTION_URL + "?pc=" + getPortalContainerName());
-
-      //defaultUploader.avoidRepeatFiles(true);
-
+      uploader.avoidRepeatFiles(true);
       dialogContents.add(uploader);
 
       AbsolutePanel absolutePanel = new AbsolutePanel();
-      absolutePanel.setSize("400px", "50px");
+      absolutePanel.setSize("400px", "100px");
       dialogContents.add(absolutePanel);
       dialogContents.setCellHorizontalAlignment(
          absolutePanel, HasHorizontalAlignment.ALIGN_LEFT);
 
-      //absolutePanel.add(panelImages, 10, 10);
-
-      final CheckBox overwriteBox = new CheckBox("Overwrite existing site");
       overwriteBox.setTitle("If you want to force overwriting an existing site, check this checkbox");
       overwriteBox.addClickHandler(new ClickHandler()
       {
 
          public void onClick(ClickEvent event)
          {
-            if (overwriteBox.getValue())
-            {
-               uploader.setServletPath(UPLOAD_ACTION_URL + "?overwrite=true");
-            }
-            else
-            {
-               uploader.setServletPath(UPLOAD_ACTION_URL + "?overwrite=false");
-            }
+            String url = UPLOAD_ACTION_URL + "?pc=" + getPortalContainerName() + "&overwrite=" + overwriteBox.getValue();
+            uploader.setServletPath(url);
          }
       });
-      absolutePanel.add(overwriteBox);
+      absolutePanel.add(overwriteBox, 10, 20);
+      absolutePanel.add(statusIcon, 20, 50);
+      absolutePanel.add(status, 60, 55);
 
       // Add a close button at the bottom of the dialog
       Button closeButton = new Button("Close", new ClickHandler()
@@ -295,17 +315,7 @@ public class Application extends Gadget<UserPreferences>
          }
       });
       dialogContents.add(closeButton);
-      if (LocaleInfo.getCurrentLocale().isRTL())
-      {
-         dialogContents.setCellHorizontalAlignment(
-            closeButton, HasHorizontalAlignment.ALIGN_LEFT);
-
-      }
-      else
-      {
-         dialogContents.setCellHorizontalAlignment(
-            closeButton, HasHorizontalAlignment.ALIGN_RIGHT);
-      }
+      dialogContents.setCellHorizontalAlignment(closeButton, HasHorizontalAlignment.ALIGN_RIGHT);
 
       return dialogBox;
    }
@@ -333,7 +343,7 @@ public class Application extends Gadget<UserPreferences>
       absolutePanelEast.add(lblNewLabel, 10, 10);
       lblNewLabel.setSize("205px", "29px");
 
-      final SuggestBox suggestBox = new SuggestBox(new ItemSuggestOracle());
+      final SuggestBox suggestBox = new SuggestBox(new RPCSuggestOracle());
       absolutePanelEast.add(suggestBox, 10, 45);
       suggestBox.setSize("210px", "21px");
 
@@ -363,7 +373,7 @@ public class Application extends Gadget<UserPreferences>
                   if (node.isExportable())
                   {
                      exportBtn.setEnabled(true);
-                     Application.this.exportHref = DOWNLOAD_ACTION_URL + "?ownerType=" + node.getType() + "&ownerId=" + node.getSiteName();
+                     Application.this.exportHref = DOWNLOAD_ACTION_URL + "?pc=" + getPortalContainerName() + "&ownerType=" + node.getType() + "&ownerId=" + node.getSiteName();
                   }
                   else
                   {
@@ -371,7 +381,7 @@ public class Application extends Gadget<UserPreferences>
                      Application.this.exportHref = "#";
                   }
 
-                  userHeader.setHTML(node.getSiteName());
+                  userHeader.setHTML("&raquo; User site &raquo; " + node.getSiteName());
                   userDetails.setHTML(node.getNodeInfo());
                }
             });
@@ -430,7 +440,6 @@ public class Application extends Gadget<UserPreferences>
       final TreeItem rootItem = createItem(rootNode);
       tree.addItem(rootItem);
 
-
       gtnService.getRootNodes(getPortalContainerName(), new AsyncCallback<List<TreeNode>>()
       {
 
@@ -469,16 +478,13 @@ public class Application extends Gadget<UserPreferences>
       hPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
       hPanel.add(new Image(image));
       HTML headerText = new HTML(text);
-      // nabil, intellij was flagging this as a style not used, so i commented out
-      // headerText.setStyleName("cw-StackPanelHeader");
       hPanel.add(headerText);
-
       // Return the HTML string for the panel
       return hPanel.getElement().getString();
    }
 
    /**
-    * Create an {@code TreeItem} and set it's user object
+    * Create a {@code TreeItem} and set it's user object
     *
     * @param tn The user object of the {@code TreeItem}
     * @return {@code TreeItem}
@@ -595,11 +601,10 @@ public class Application extends Gadget<UserPreferences>
 
          public void onClose(CloseEvent<TreeItem> event)
          {
-            GWT.log("closing item " + event.getTarget().getText());
+            // nothing to do
          }
       };
 
       return closeHandler;
-
    }
 }

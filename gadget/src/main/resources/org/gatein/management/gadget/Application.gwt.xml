@@ -24,16 +24,7 @@
    "http://google-web-toolkit.googlecode.com/svn/tags/1.6.2/distro-source/core/src/gwt-module.dtd">
 <module rename-to="gwtgadget">
 
-   <!--
-   <inherits name="com.google.gwt.logging.Logging"/>
-
-   <set-property name="gwt.logging.logLevel" value="FINE"/>
-   <set-property name="gwt.logging.enabled" value="TRUE"/>
-   <set-property name="gwt.logging.consoleHandler" value="ENABLED"/>
-   <set-property name="gwt.logging.simpleRemoteHandler" value="ENABLED" />
-   -->
-
-   <!-- Inherit the core Web Toolkit stuff.                        -->
+   <!-- Inherit the core Web Toolkit stuff. -->
    <inherits name='com.google.gwt.user.User'/>
 
    <!--  inherit css based theme -->
@@ -45,15 +36,12 @@
    <!-- Include GWTUpload library -->
    <inherits name="gwtupload.GWTUpload"/>
 
-   <!-- Include SmartGWT library -->
-   <inherits name="com.smartgwt.SmartGwt"/>
+   <!-- Specify the app entry point class. -->
+   <entry-point class='org.gatein.management.gadget.client.Application'/>
 
-   <!-- Specify the app entry point class.                         -->
-   <entry-point class="org.gatein.management.gadget.client.Application"/>
-
-   <!-- Specify the application specific style sheet.              -->
+   <!-- Specify the application specific style sheet. -->
    <stylesheet src="Application.css"/>
 
-   <!-- Load dinamically predefined styles in the library when the application starts -->
+   <!-- Load dynamically predefined styles in the library when the application starts -->
    <stylesheet src="Upload.css"/>
 </module>

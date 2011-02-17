@@ -19,7 +19,6 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -33,7 +32,7 @@ import java.util.List;
  * <p/>
  * Created on Jan 3, 2011, 12:29:53 PM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public interface GateInServiceAsync
@@ -49,19 +48,25 @@ public interface GateInServiceAsync
    public void updateItem(String portalContainerName, TreeNode item, AsyncCallback<TreeNode> asyncCallback);
 
    /**
-    * @param req
+    * Retrieve the list of usernames according to the user input
+    *
+    * @param req           the user request
     * @param asyncCallback
     */
    public void getUsername(String containerName, Request req, AsyncCallback<Response> asyncCallback);
 
    /**
-    * @param username
+    * Lookup for the user site having the given username
+    *
+    * @param username      the user name
     * @param asyncCallback
     */
    public void getUserSite(String containerName, String username, AsyncCallback<TreeNode> asyncCallback);
 
    /**
-    * @param portalContainerName
+    * Retrieve asynchronously the list of root nodes
+    *
+    * @param portalContainerName The portal container name
     * @param asyncCallback
     */
    public void getRootNodes(String portalContainerName, AsyncCallback<List<TreeNode>> asyncCallback);

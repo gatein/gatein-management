@@ -30,7 +30,7 @@ import com.google.gwt.user.client.ui.Tree;
  * <p/>
  * Created on Jan 6, 2011, 10:45:39 AM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public interface TreeImages extends Tree.Resources

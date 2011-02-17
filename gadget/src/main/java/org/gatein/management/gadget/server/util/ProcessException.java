@@ -27,7 +27,7 @@ package org.gatein.management.gadget.server.util;
  * <p/>
  * Created on Feb 4, 2011, 10:47:24 AM
  *
- * @author Nabil Benothman
+ * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
 public class ProcessException extends Exception

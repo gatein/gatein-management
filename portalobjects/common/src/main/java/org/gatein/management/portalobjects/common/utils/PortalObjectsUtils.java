@@ -325,4 +325,9 @@ public class PortalObjectsUtils
          .append(", ").append("uri=").append(node.getUri())
          .append("]").toString();
    }
+
+   public static String createKey(String ownerType, String ownerId)
+   {
+      return new StringBuilder().append(ownerType).append("::").append(ownerId).toString();
+   }
 }

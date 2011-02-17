@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gatein.management.portalobjects.common.utils.PortalObjectsUtils.*;
+
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
@@ -241,10 +243,5 @@ public class PortalObjectsContext implements ExportContext, ImportContext
       }
 
       return null;
-   }
-
-   private String createKey(String ownerType, String ownerId)
-   {
-      return new StringBuilder().append(ownerType).append("::").append(ownerId).toString();
    }
 }

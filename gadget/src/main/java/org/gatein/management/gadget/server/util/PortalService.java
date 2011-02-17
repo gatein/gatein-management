@@ -1,8 +1,9 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
+ * JBoss, a division of Red Hat
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * contributors as indicated by the @authors tag. See the
+ * copyright.txt in the distribution for a full listing of
+ * individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -22,12 +23,18 @@
 package org.gatein.management.gadget.server.util;
 
 import org.exoplatform.commons.utils.LazyPageList;
+import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.commons.utils.PageList;
+import org.exoplatform.commons.utils.Safe;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.portal.config.DataStorage;
 import org.exoplatform.portal.config.Query;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.exoplatform.services.organization.OrganizationService;
+import org.exoplatform.services.organization.User;
+import org.exoplatform.services.organization.UserHandler;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.portalobjects.exportimport.api.ExportContext;
@@ -35,7 +42,6 @@ import org.gatein.management.portalobjects.exportimport.api.ExportHandler;
 import org.gatein.management.portalobjects.exportimport.api.ImportContext;
 import org.gatein.management.portalobjects.exportimport.api.ImportHandler;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -43,13 +49,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.exoplatform.commons.utils.ListAccess;
-import org.exoplatform.commons.utils.PageList;
-import org.exoplatform.commons.utils.Safe;
-import org.exoplatform.services.organization.OrganizationService;
-import org.exoplatform.services.organization.User;
-import org.exoplatform.services.organization.UserHandler;
 
 /**
  * {@code PortalService}
@@ -107,15 +106,49 @@ public final class PortalService
     */
    public List<PortalConfig> getPortalConfigs(String type)
    {
-      Query<PortalConfig> query = new Query<PortalConfig>(type, null, PortalConfig.class);
+      List<Page> pages = getPages(type, null);
+      List<PageNavigation> navigations = getPageNavigations(type);
+      return getPortalConfigs(pages, navigations);
+   }
+
+   /**
+    * Retrieve the list of {@code PortalConfig} given their pages
+    *
+    * @param pages the list of pages of a portal
+    * @return a list of {@code PortalConfig}
+    */
+   public List<PortalConfig> getPortalConfigs(List<Page> pages, List<PageNavigation> navigations)
+   {
+      Map<String, PortalConfig> pConfigs = new HashMap<String, PortalConfig>();
       try
       {
-         return dataStorage.find(query).getAll();
+         PortalConfig pc = null;
+         String key = null;
+         for (Page page : pages)
+         {
+            pc = dataStorage.getPortalConfig(page.getOwnerType(), page.getOwnerId());
+            key = page.getOwnerType() + "::" + page.getOwnerId();
+            if (pConfigs.get(key) == null && pc != null)
+            {
+               pConfigs.put(key, pc);
+            }
+         }
+         for (PageNavigation nav : navigations)
+         {
+            pc = dataStorage.getPortalConfig(nav.getOwnerType(), nav.getOwnerId());
+            key = nav.getOwnerType() + "::" + nav.getOwnerId();
+            if (pConfigs.get(key) == null && pc != null)
+            {
+               pConfigs.put(key, pc);
+            }
+         }
+         return new ArrayList<PortalConfig>(pConfigs.values());
       }
-      catch (Exception e)
+      catch (Exception exp)
       {
-         log.error("Exception retrieving sites for type " + type, e);
+         log.error("Problem occurs when retrieving the list of sites.", exp);
       }
+
       return Collections.emptyList();
    }
 
@@ -181,6 +214,28 @@ public final class PortalService
       }
 
       return null;
+   }
+
+   /**
+    * Retrieve page navigations having the given portal type
+    *
+    * @param type the portal type (ownerType)
+    * @return the {@code PageNavigation} for the site
+    */
+   public List<PageNavigation> getPageNavigations(String type)
+   {
+      try
+      {
+         Query<PageNavigation> query = new Query<PageNavigation>(type, null, PageNavigation.class);
+         LazyPageList<PageNavigation> results = dataStorage.find(query);
+         return results.getAll();
+      }
+      catch (Exception exp)
+      {
+         log.error("Exception getting all navigation for type: " + type, exp);
+      }
+
+      return Collections.emptyList();
    }
 
    /**

@@ -23,9 +23,10 @@
 
 package org.gatein.management.portalobjects.rest;
 
-import org.exoplatform.commons.utils.LazyPageList;
 import org.exoplatform.portal.config.Query;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
+import org.exoplatform.portal.pom.data.NavigationData;
+import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.exoplatform.portal.pom.data.PortalKey;
 import org.gatein.common.logging.Logger;
@@ -48,7 +49,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -82,20 +85,24 @@ public class SiteResource extends BasePortalObjectsResource
          @Override
          public GenericEntity<List<PortalData>> inRequest(ModelDataStorage dataStorage) throws Exception
          {
-            Query<PortalData> query = new Query<PortalData>(ownerType, null, PortalData.class);
-            LazyPageList<PortalData> results = dataStorage.find(query);
+            Query<PageData> pageQuery = new Query<PageData>(ownerType, null, PageData.class);
+            Query<NavigationData> navigationQuery = new Query<NavigationData>(ownerType, null, NavigationData.class);
 
-            List<PortalData> sites = new ArrayList<PortalData>(results.getAll());
-            //TODO: Do we want sort on site name, or accept order from data storage
-//            Collections.sort(sites, new Comparator<PortalData>()
-//            {
-//               @Override
-//               public int compare(PortalData data1, PortalData data2)
-//               {
-//                  return data1.getName().compareTo(data2.getName());
-//               }
-//            });
-            return new GenericEntity<List<PortalData>>(sites){};
+            List<PageData> pages = dataStorage.find(pageQuery).getAll();
+            List<NavigationData> navigations = dataStorage.find(navigationQuery).getAll();
+            Map<String,PortalData> portalDataMap = new HashMap<String,PortalData>();
+            for (PageData page : pages)
+            {
+               String key = PortalObjectsUtils.createKey(page.getOwnerType(), page.getOwnerId());
+               populatePortalDataMap(dataStorage, portalDataMap, key);
+            }
+            for (NavigationData nav : navigations)
+            {
+               String key = PortalObjectsUtils.createKey(nav.getOwnerType(), nav.getOwnerId());
+               populatePortalDataMap(dataStorage, portalDataMap, key);
+            }
+
+            return new GenericEntity<List<PortalData>>(new ArrayList<PortalData>(portalDataMap.values())){};
          }
       });
    }
@@ -154,5 +161,17 @@ public class SiteResource extends BasePortalObjectsResource
             dataStorage.save(portalData);
          }
       });
+   }
+
+   private void populatePortalDataMap(ModelDataStorage dataStorage, Map<String, PortalData> portalDataMap, String key) throws Exception
+   {
+      if (!portalDataMap.containsKey(key))
+      {
+         PortalData data = dataStorage.getPortalConfig(PortalKey.create(key));
+         if (data != null)
+         {
+            portalDataMap.put(key, data);
+         }
+      }
    }
 }

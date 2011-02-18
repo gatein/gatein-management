@@ -29,12 +29,12 @@
    <parent>
       <groupId>org.gatein.management</groupId>
       <artifactId>management-parent</artifactId>
-      <version>1.0.0.Alpha1-SNAPSHOT</version>
+      <version>1.0.0.Alpha01-SNAPSHOT</version>
    </parent>
 
    <groupId>org.gatein.management.binding</groupId>
    <artifactId>binding-parent</artifactId>
-   <version>1.0.0.Alpha1-SNAPSHOT</version>
+   <version>1.0.0.Alpha01-SNAPSHOT</version>
    <packaging>pom</packaging>
 
    <name>GateIn Management - Binding Parent</name>

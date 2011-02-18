@@ -36,6 +36,7 @@ import com.google.gwt.gadgets.client.UserPreferences;
 import com.google.gwt.gadgets.client.Gadget.ModulePrefs;
 import com.google.gwt.gadgets.client.Gadget.UseLongManifestName;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
@@ -47,7 +48,6 @@ import com.google.gwt.user.client.ui.DecoratorPanel;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Frame;
 import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
@@ -59,8 +59,8 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Tree;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import gwtupload.client.IUploadStatus.Status;
 import gwtupload.client.IUploader;
 import gwtupload.client.MultiUploader;
 
@@ -79,7 +79,7 @@ import java.util.List;
  * @version 1.0
  */
 @ModulePrefs(title = "GateIn Management", author = "Nabil Benothman", author_email = "nbenothm@redhat.com",
-   description = "This gadget allows the administrator to export/import sites")
+description = "This gadget allows the administrator to export/import sites")
 @UseLongManifestName(true)
 @AllowHtmlQuirksMode(true)
 public class Application extends Gadget<UserPreferences>
@@ -148,7 +148,7 @@ public class Application extends Gadget<UserPreferences>
 
       HTML html = new HTML("<hr />", true);
       centerAbsolutePanel.add(html, 10, 43);
-      html.setSize("380px", "14px");
+      html.setSize("380px", "15px");
 
       this.frame = new NamedFrame("download-frame");
       frame.setStyleName("download-frame");
@@ -183,23 +183,23 @@ public class Application extends Gadget<UserPreferences>
       Widget userManagementWidget = getUserManagementTab();
       decoratedTabPanel.add(userManagementWidget, "User management", false);
 
-      final DialogBox dialogBox = createDialogBox();
+
       importAnchor.addClickHandler(new ClickHandler()
       {
 
          public void onClick(ClickEvent event)
          {
+            DialogBox dialogBox = createDialogBox();
             dialogBox.setPopupPosition(267, 60);
             dialogBox.show();
          }
       });
 
       decoratedTabPanel.selectTab(0);
-
    }
 
    public native String getPortalContainerName()/*-{
-      return parent.eXo.env.portal.context.substring(1); // remove leading '/'
+   return parent.eXo.env.portal.context.substring(1); // remove leading '/'
    }-*/;
 
    /**
@@ -209,6 +209,7 @@ public class Application extends Gadget<UserPreferences>
     */
    private DialogBox createDialogBox()
    {
+
       // Create a dialog box
       final DialogBox dialogBox = new DialogBox();
       dialogBox.setText("Import site");
@@ -216,22 +217,39 @@ public class Application extends Gadget<UserPreferences>
       dialogBox.setModal(true);
       dialogBox.setGlassEnabled(true);
 
-      // Create a table to layout the content
-      VerticalPanel dialogContents = new VerticalPanel();
-      dialogContents.setSpacing(4);
-      dialogBox.setWidget(dialogContents);
+      final AbsolutePanel absolutePanel = new AbsolutePanel();
+      dialogBox.setWidget(absolutePanel);
+      absolutePanel.setStyleName("status-panel");
+      absolutePanel.setSize("400px", "220px");
 
-      // Add some text to the top of the dialog
-      Label label = new Label("Select a file to import : ");
-      dialogContents.add(label);
-      final HTML status = new HTML("");
-      final HTML statusIcon = new HTML("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-      status.setStyleName("blank-style");
-      statusIcon.setStyleName("blank-style");
-      statusIcon.setSize("40px", "40px");
-      final CheckBox overwriteBox = new CheckBox("Overwrite existing site");
+      final Button importButton = new Button("Import");
+      final CheckBox overwriteBox = new CheckBox("Overwrite the existing site");
+      final HTML statusImg = new HTML("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", true);
+      final Label statusLabel = new Label("status label");
+      final Label headerLabel = new Label("Select file to import :");
+      final AbsolutePanel statusPanel = new AbsolutePanel();
+      headerLabel.setSize("380px", "39px");
+      headerLabel.setStyleName("header-style");
+      absolutePanel.add(headerLabel, 10, 10);
 
-      final MultiUploader uploader = new MultiUploader();
+      final MultiUploader uploader = new GTNMultiUploader();
+      uploader.setAvoidRepeatFiles(false);
+      absolutePanel.add(uploader, 10, 46);
+      uploader.setSize("380px", "32px");
+      uploader.addOnChangeUploadHandler(new IUploader.OnChangeUploaderHandler()
+      {
+
+         @Override
+         public void onChange(IUploader uploader)
+         {
+            // Nothing to do
+            if (uploader.getFileName() != null)
+            {
+               importButton.setEnabled(true);
+            }
+         }
+      });
+
       // Add a finish handler which will notify user once the upload finishes
       uploader.addOnFinishUploadHandler(new IUploader.OnFinishUploaderHandler()
       {
@@ -242,54 +260,80 @@ public class Application extends Gadget<UserPreferences>
             switch (uploader.getStatus())
             {
                case SUCCESS:
-                  status.setText("File uploaded with success");
-                  status.setStyleName("success-style");
-                  statusIcon.setStyleName("success-style-icon");
+                  statusLabel.setText("File uploaded with success");
+                  statusLabel.setStyleName("success-style");
+                  statusImg.setStyleName("success-style-icon");
                   break;
                case ERROR:
-                  status.setText("File upload error");
-                  status.setStyleName("error-style");
-                  statusIcon.setStyleName("error-style-icon");
+                  statusLabel.setText("File upload error");
+                  statusLabel.setStyleName("error-style");
+                  statusImg.setStyleName("error-style-icon");
                   break;
                case CANCELED:
-                  status.setText("File upload canceled");
-                  status.setStyleName("warn-style");
-                  statusIcon.setStyleName("warn-style-icon");
+                  statusLabel.setText("File upload canceled");
+                  statusLabel.setStyleName("warn-style");
+                  statusImg.setStyleName("warn-style-icon");
                   break;
                default:
-                  status.setText("");
-                  status.setStyleName("blank-style");
-                  statusIcon.setStyleName("blank-style");
+                  statusLabel.setText("");
+                  statusLabel.setStyleName("blank-style");
+                  statusImg.setStyleName("blank-style");
                   break;
             }
 
             overwriteBox.setEnabled(true);
+            importButton.setEnabled(true);
          }
       });
       // Add a start handler which will disable the UI until the upload finishes
       uploader.addOnStartUploadHandler(new IUploader.OnStartUploaderHandler()
       {
 
+         boolean isShwon = false;
+
          public void onStart(IUploader uploader)
          {
-            status.setText("Process in progress...");
-            status.setStyleName("progress-style");
-            statusIcon.setStyleName("progress-style-icon");
+            statusLabel.setText("Process in progress...");
+            statusLabel.setStyleName("progress-style");
+            statusImg.setStyleName("progress-style-icon");
             overwriteBox.setEnabled(false);
+            importButton.setEnabled(false);
+            if (!isShwon)
+            {
+               statusPanel.setStyleName("status-panel");
+               statusPanel.setSize("380px", "0px");
+               absolutePanel.add(statusPanel, 10, 120);
+
+               Timer t = new Timer()
+               {
+
+                  int dx = 5;
+                  int height = 0;
+
+                  public void run()
+                  {
+                     height += dx;
+                     statusPanel.setHeight(height + "px");
+                     if (height >= 45)
+                     {
+                        cancel(); // Stop the timer
+                     }
+                  }
+               };
+
+               // Schedule the timer to run once in 100 milliseconds.
+               t.scheduleRepeating(100);
+               isShwon = true;
+            }
          }
       });
       // accept only zip files
-      uploader.setValidExtensions(new String[]{"zip"});
+      uploader.setValidExtensions(new String[]
+              {
+                 "zip"
+              });
       // You can add customized parameters to servlet call
       uploader.setServletPath(UPLOAD_ACTION_URL + "?pc=" + getPortalContainerName());
-      uploader.avoidRepeatFiles(true);
-      dialogContents.add(uploader);
-
-      AbsolutePanel absolutePanel = new AbsolutePanel();
-      absolutePanel.setSize("400px", "100px");
-      dialogContents.add(absolutePanel);
-      dialogContents.setCellHorizontalAlignment(
-         absolutePanel, HasHorizontalAlignment.ALIGN_LEFT);
 
       overwriteBox.setTitle("If you want to force overwriting an existing site, check this checkbox");
       overwriteBox.addClickHandler(new ClickHandler()
@@ -301,11 +345,8 @@ public class Application extends Gadget<UserPreferences>
             uploader.setServletPath(url);
          }
       });
-      absolutePanel.add(overwriteBox, 10, 20);
-      absolutePanel.add(statusIcon, 20, 50);
-      absolutePanel.add(status, 60, 55);
 
-      // Add a close button at the bottom of the dialog
+      absolutePanel.add(overwriteBox, 10, 84);
       Button closeButton = new Button("Close", new ClickHandler()
       {
 
@@ -314,8 +355,27 @@ public class Application extends Gadget<UserPreferences>
             dialogBox.hide();
          }
       });
-      dialogContents.add(closeButton);
-      dialogContents.setCellHorizontalAlignment(closeButton, HasHorizontalAlignment.ALIGN_RIGHT);
+      absolutePanel.add(closeButton, 343, 188);
+
+      statusImg.setStyleName("progress-style-icon");
+      statusPanel.add(statusImg, 10, 10);
+      statusImg.setSize("50px", "30px");
+
+      statusPanel.add(statusLabel, 60, 15);
+      statusLabel.setSize("300px", "25px");
+
+      importButton.addClickHandler(new ClickHandler()
+      {
+
+         @Override
+         public void onClick(ClickEvent event)
+         {
+
+            uploader.submit();
+         }
+      });
+      importButton.setEnabled(false);
+      absolutePanel.add(importButton, 10, 188);
 
       return dialogBox;
    }
@@ -374,8 +434,7 @@ public class Application extends Gadget<UserPreferences>
                   {
                      exportBtn.setEnabled(true);
                      Application.this.exportHref = DOWNLOAD_ACTION_URL + "?pc=" + getPortalContainerName() + "&ownerType=" + node.getType() + "&ownerId=" + node.getSiteName();
-                  }
-                  else
+                  } else
                   {
                      exportBtn.setEnabled(false);
                      Application.this.exportHref = "#";
@@ -516,10 +575,9 @@ public class Application extends Gadget<UserPreferences>
             {
 
                Application.this.exportHref = DOWNLOAD_ACTION_URL
-                  + "?ownerType=" + node.getType() + "&ownerId=" + node.getSiteName() + "&pc=" + getPortalContainerName();
+                       + "?ownerType=" + node.getType() + "&ownerId=" + node.getSiteName() + "&pc=" + getPortalContainerName();
                Application.this.exportButton.setEnabled(true);
-            }
-            else
+            } else
             {
                Application.this.exportButton.setEnabled(false);
                Application.this.exportHref = "#";
@@ -558,30 +616,30 @@ public class Application extends Gadget<UserPreferences>
             if (target.getChildCount() == 0)
             {
                gtnService.updateItem(getPortalContainerName(), tn,
-                  new AsyncCallback<TreeNode>()
-                  {
+                       new AsyncCallback<TreeNode>()
+                       {
 
-                     public void onFailure(Throwable caught)
-                     {
-                        Window.alert("Fail to update the tree items <br />"
-                           + caught);
-                        Application.this.details.setHTML("Failed to load sub-tree");
-                     }
+                          public void onFailure(Throwable caught)
+                          {
+                             Window.alert("Fail to update the tree items <br />"
+                                     + caught);
+                             Application.this.details.setHTML("Failed to load sub-tree");
+                          }
 
-                     public void onSuccess(TreeNode result)
-                     {
+                          public void onSuccess(TreeNode result)
+                          {
 
-                        for (TreeNode tnChild : result.getChildren())
-                        {
-                           TreeItem it = Application.this.createItem(tnChild);
-                           if (!tnChild.getChildren().isEmpty())
-                           {
-                              it.addItem(new PendingItem());
-                           }
-                           target.addItem(it);
-                        }
-                     }
-                  });
+                             for (TreeNode tnChild : result.getChildren())
+                             {
+                                TreeItem it = Application.this.createItem(tnChild);
+                                if (!tnChild.getChildren().isEmpty())
+                                {
+                                   it.addItem(new PendingItem());
+                                }
+                                target.addItem(it);
+                             }
+                          }
+                       });
             }
 
             target.setText(text);

@@ -51,6 +51,7 @@ public class FileDownloadServlet extends HttpServlet
 {
 
    private static final Logger log = LoggerFactory.getLogger(FileDownloadServlet.class);
+   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
    /**
     * Create a new instance of {@code FileDownloadServlet}
@@ -62,19 +63,26 @@ public class FileDownloadServlet extends HttpServlet
 
    @Override
    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException
+           throws ServletException, IOException
    {
       final String type = request.getParameter("ownerType");
       // I would rather just replace forward slashes, rather then come up with a regexp that removes illegal filename chars
       final String name = request.getParameter("ownerId");
-      String safeName = name.replaceAll("/", "_");
-      if (safeName.startsWith("_")) safeName = name.substring(1);
+      // following the format type_name_timestamp
+      String safeName = name.replaceAll("/", "-");
+      System.out.println("name : " + name + ", safeName : " + safeName);
+
+      //if (safeName.startsWith("_"))
+      if (safeName.startsWith("-"))
+      {
+         safeName = safeName.substring(1);
+      }
 
       String portalContainerName = request.getParameter("pc");
       response.setContentType("application/octet-stream; charset=UTF-8");
-      
-      String filename = new StringBuilder().append(portalContainerName).append("-").append(type)
-         .append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
+
+      //String filename = new StringBuilder().append(portalContainerName).append("-").append(type).append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
+      String filename = new StringBuilder(type).append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
 
       response.setHeader("Content-disposition", "attachment; filename=\"" + filename + "\"");
 
@@ -93,25 +101,25 @@ public class FileDownloadServlet extends HttpServlet
             }
          });
          os.flush();
-      }
-      catch (Exception e)
+      } catch (Exception e)
       {
          log.error("Error during download", e);
-      }
-      finally
+      } finally
       {
-         if (os != null) os.close();
+         if (os != null)
+         {
+            os.close();
+         }
       }
    }
 
    @Override
    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException
+           throws ServletException, IOException
    {
       doGet(request, response);
    }
 
-   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
    private String getTimestamp()
    {
       return SDF.format(new Date());

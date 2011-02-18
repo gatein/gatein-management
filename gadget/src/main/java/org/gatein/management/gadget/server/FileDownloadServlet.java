@@ -1,8 +1,9 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
+ * JBoss, a division of Red Hat
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * contributors as indicated by the @authors tag. See the
+ * copyright.txt in the distribution for a full listing of
+ * individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -62,28 +63,19 @@ public class FileDownloadServlet extends HttpServlet
    }
 
    @Override
-   protected void doGet(HttpServletRequest request, HttpServletResponse response)
-           throws ServletException, IOException
+   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
    {
+      String portalContainerName = request.getParameter("pc");
       final String type = request.getParameter("ownerType");
-      // I would rather just replace forward slashes, rather then come up with a regexp that removes illegal filename chars
       final String name = request.getParameter("ownerId");
-      // following the format type_name_timestamp
       String safeName = name.replaceAll("/", "-");
-      System.out.println("name : " + name + ", safeName : " + safeName);
-
-      //if (safeName.startsWith("_"))
       if (safeName.startsWith("-"))
       {
          safeName = safeName.substring(1);
       }
-
-      String portalContainerName = request.getParameter("pc");
-      response.setContentType("application/octet-stream; charset=UTF-8");
-
-      //String filename = new StringBuilder().append(portalContainerName).append("-").append(type).append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
       String filename = new StringBuilder(type).append("_").append(safeName).append("_").append(getTimestamp()).append(".zip").toString();
 
+      response.setContentType("application/octet-stream; charset=UTF-8");
       response.setHeader("Content-disposition", "attachment; filename=\"" + filename + "\"");
 
       final OutputStream os = response.getOutputStream();
@@ -101,10 +93,12 @@ public class FileDownloadServlet extends HttpServlet
             }
          });
          os.flush();
-      } catch (Exception e)
+      }
+      catch (Exception e)
       {
          log.error("Error during download", e);
-      } finally
+      }
+      finally
       {
          if (os != null)
          {
@@ -114,8 +108,7 @@ public class FileDownloadServlet extends HttpServlet
    }
 
    @Override
-   protected void doPost(HttpServletRequest request, HttpServletResponse response)
-           throws ServletException, IOException
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
    {
       doGet(request, response);
    }

@@ -1,8 +1,9 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
+ * JBoss, a division of Red Hat
+ * Copyright 2010, Red Hat Middleware, LLC, and individual
+ * contributors as indicated by the @authors tag. See the
+ * copyright.txt in the distribution for a full listing of
+ * individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -21,8 +22,8 @@
  */
 package org.gatein.management.gadget.client;
 
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
@@ -32,9 +33,9 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.gadgets.client.Gadget;
 import com.google.gwt.gadgets.client.Gadget.AllowHtmlQuirksMode;
-import com.google.gwt.gadgets.client.UserPreferences;
 import com.google.gwt.gadgets.client.Gadget.ModulePrefs;
 import com.google.gwt.gadgets.client.Gadget.UseLongManifestName;
+import com.google.gwt.gadgets.client.UserPreferences;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
@@ -57,10 +58,9 @@ import com.google.gwt.user.client.ui.NamedFrame;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
-import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Tree;
+import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Widget;
-import gwtupload.client.IUploadStatus.Status;
 import gwtupload.client.IUploader;
 import gwtupload.client.MultiUploader;
 
@@ -79,7 +79,7 @@ import java.util.List;
  * @version 1.0
  */
 @ModulePrefs(title = "GateIn Management", author = "Nabil Benothman", author_email = "nbenothm@redhat.com",
-description = "This gadget allows the administrator to export/import sites")
+   description = "This gadget allows the administrator to export/import sites")
 @UseLongManifestName(true)
 @AllowHtmlQuirksMode(true)
 public class Application extends Gadget<UserPreferences>
@@ -199,7 +199,7 @@ public class Application extends Gadget<UserPreferences>
    }
 
    public native String getPortalContainerName()/*-{
-   return parent.eXo.env.portal.context.substring(1); // remove leading '/'
+      return parent.eXo.env.portal.context.substring(1); // remove leading '/'
    }-*/;
 
    /**
@@ -328,10 +328,7 @@ public class Application extends Gadget<UserPreferences>
          }
       });
       // accept only zip files
-      uploader.setValidExtensions(new String[]
-              {
-                 "zip"
-              });
+      uploader.setValidExtensions(new String[]{"zip"});
       // You can add customized parameters to servlet call
       uploader.setServletPath(UPLOAD_ACTION_URL + "?pc=" + getPortalContainerName());
 
@@ -433,8 +430,10 @@ public class Application extends Gadget<UserPreferences>
                   if (node.isExportable())
                   {
                      exportBtn.setEnabled(true);
-                     Application.this.exportHref = DOWNLOAD_ACTION_URL + "?pc=" + getPortalContainerName() + "&ownerType=" + node.getType() + "&ownerId=" + node.getSiteName();
-                  } else
+                     Application.this.exportHref = DOWNLOAD_ACTION_URL + "?pc=" + getPortalContainerName() +
+                        "&ownerType=" + node.getType() + "&ownerId=" + node.getSiteName();
+                  }
+                  else
                   {
                      exportBtn.setEnabled(false);
                      Application.this.exportHref = "#";
@@ -574,10 +573,11 @@ public class Application extends Gadget<UserPreferences>
             if (node.isExportable())
             {
 
-               Application.this.exportHref = DOWNLOAD_ACTION_URL
-                       + "?ownerType=" + node.getType() + "&ownerId=" + node.getSiteName() + "&pc=" + getPortalContainerName();
+               Application.this.exportHref = DOWNLOAD_ACTION_URL + "?pc=" + getPortalContainerName() +
+                        "&ownerType=" + node.getType() + "&ownerId=" + node.getSiteName();
                Application.this.exportButton.setEnabled(true);
-            } else
+            }
+            else
             {
                Application.this.exportButton.setEnabled(false);
                Application.this.exportHref = "#";
@@ -616,30 +616,29 @@ public class Application extends Gadget<UserPreferences>
             if (target.getChildCount() == 0)
             {
                gtnService.updateItem(getPortalContainerName(), tn,
-                       new AsyncCallback<TreeNode>()
-                       {
+                  new AsyncCallback<TreeNode>()
+                  {
 
-                          public void onFailure(Throwable caught)
-                          {
-                             Window.alert("Fail to update the tree items <br />"
-                                     + caught);
-                             Application.this.details.setHTML("Failed to load sub-tree");
-                          }
+                     public void onFailure(Throwable caught)
+                     {
+                        Window.alert("Fail to update the tree items <br />" + caught);
+                        Application.this.details.setHTML("Failed to load sub-tree");
+                     }
 
-                          public void onSuccess(TreeNode result)
-                          {
+                     public void onSuccess(TreeNode result)
+                     {
 
-                             for (TreeNode tnChild : result.getChildren())
-                             {
-                                TreeItem it = Application.this.createItem(tnChild);
-                                if (!tnChild.getChildren().isEmpty())
-                                {
-                                   it.addItem(new PendingItem());
-                                }
-                                target.addItem(it);
-                             }
-                          }
-                       });
+                        for (TreeNode tnChild : result.getChildren())
+                        {
+                           TreeItem it = Application.this.createItem(tnChild);
+                           if (!tnChild.getChildren().isEmpty())
+                           {
+                              it.addItem(new PendingItem());
+                           }
+                           target.addItem(it);
+                        }
+                     }
+                  });
             }
 
             target.setText(text);

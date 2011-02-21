@@ -28,12 +28,12 @@
    <parent>
       <groupId>org.gatein.management.portalobjects</groupId>
       <artifactId>portalobjects-parent</artifactId>
-      <version>1.0.0.Alpha01-SNAPSHOT</version>
+      <version>1.0.0-Alpha01-SNAPSHOT</version>
    </parent>
 
    <groupId>org.gatein.management.portalobjects</groupId>
    <artifactId>portalobjects-exportimport</artifactId>
-   <version>1.0.0.Alpha01-SNAPSHOT</version>
+   <version>1.0.0-Alpha01-SNAPSHOT</version>
    <packaging>jar</packaging>
 
    <name>GateIn Management - Portal Objects Export/Import</name>

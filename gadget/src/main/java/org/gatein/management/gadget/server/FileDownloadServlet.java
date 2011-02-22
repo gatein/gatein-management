@@ -84,7 +84,6 @@ public class FileDownloadServlet extends HttpServlet
          doInRequest(portalContainerName, new ContainerCallback<Void>()
          {
 
-            @Override
             public Void doInContainer(ExoContainer container) throws Exception
             {
                PortalService service = PortalService.create(container);

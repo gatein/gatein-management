@@ -85,7 +85,7 @@ import java.util.List;
 @AllowHtmlQuirksMode(true)
 public class Application extends Gadget<UserPreferences>
 {
-   public static final String SERVLET_CONTEXT_PATH = "/gatein-management-gadget/gwtgadget";
+   private static final String SERVLET_CONTEXT_PATH = "/gatein-management-gadget/gwtgadget";
 
    // asycn services to get requests from the server through ajax.
    private final GateInServiceAsync gtnService = GWT.create(GateInService.class);

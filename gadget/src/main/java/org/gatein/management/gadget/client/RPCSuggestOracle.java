@@ -22,6 +22,7 @@
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.SuggestOracle;
@@ -40,6 +41,8 @@ import com.google.gwt.user.client.ui.SuggestOracle;
  */
 public class RPCSuggestOracle extends SuggestOracle
 {
+
+   private static final String SERVLET_CONTEXT_PATH = "/gatein-management-gadget/gwtgadget";
 
    /**
     * Create a new instance of {@code RPCSuggestOracle}
@@ -62,7 +65,7 @@ public class RPCSuggestOracle extends SuggestOracle
    public void requestSuggestions(SuggestOracle.Request req, SuggestOracle.Callback callback)
    {
       GateInServiceAsync gtnService = GWT.create(GateInService.class);
-      ((ServiceDefTarget) gtnService).setServiceEntryPoint(Application.SERVLET_CONTEXT_PATH + "/gtnService");
+      ((ServiceDefTarget) gtnService).setServiceEntryPoint(SERVLET_CONTEXT_PATH + "/gtnService");
       gtnService.getUsername(getPortalContainerName(), req, new ItemSuggestCallback(req, callback));
    }
 
@@ -91,6 +94,7 @@ public class RPCSuggestOracle extends SuggestOracle
 
       public void onFailure(Throwable error)
       {
+         Window.alert("RPC call failure\n" + error);
          callback.onSuggestionsReady(req, new SuggestOracle.Response());
       }
 

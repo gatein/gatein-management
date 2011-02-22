@@ -26,13 +26,21 @@ import com.google.gwt.user.client.ui.SuggestOracle.Request;
 import com.google.gwt.user.client.ui.SuggestOracle.Response;
 import com.google.gwt.user.client.ui.SuggestOracle.Suggestion;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.gwt.user.server.rpc.SerializationPolicy;
+import com.google.gwt.user.server.rpc.SerializationPolicyLoader;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.portal.config.model.PortalConfig;
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.gadget.client.GateInService;
 import org.gatein.management.gadget.client.ItemSuggestion;
 import org.gatein.management.gadget.client.TreeNode;
 import org.gatein.management.gadget.server.util.PortalService;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,13 +59,57 @@ import static org.gatein.management.gadget.server.ContainerRequestHandler.*;
  */
 public class GateInServiceImpl extends RemoteServiceServlet implements GateInService
 {
+   private static final Logger log = LoggerFactory.getLogger(GateInService.class);
 
-   /**
-    * Create a new instance of {@code GateInServiceImpl}
-    */
-   public GateInServiceImpl()
+   @Override
+   protected SerializationPolicy doGetSerializationPolicy(HttpServletRequest request, String moduleBaseURL, String strongName)
    {
-      super();
+      // Code taken from RemoteServiceServlet
+      String serializationPolicyFilePath = SerializationPolicyLoader.getSerializationPolicyFileName("/gwtgadget/" + strongName);
+
+      // Open the RPC resource file and read its contents.
+      InputStream is = getServletContext().getResourceAsStream(serializationPolicyFilePath);
+      try
+      {
+         if (is != null)
+         {
+            try
+            {
+               return SerializationPolicyLoader.loadFromStream(is, null);
+            }
+            catch (ParseException e)
+            {
+               log.error("Failed to parse the policy file '" + serializationPolicyFilePath + "'", e);
+            }
+            catch (IOException e)
+            {
+               log.error("Could not read the policy file '" + serializationPolicyFilePath + "'", e);
+            }
+         }
+         else
+         {
+            String message = "ERROR: The serialization policy file '"
+               + serializationPolicyFilePath
+               + "' was not found; did you forget to include it in this deployment?";
+            log.error(message);
+         }
+      }
+      finally
+      {
+         if (is != null)
+         {
+            try
+            {
+               is.close();
+            }
+            catch (IOException e)
+            {
+               // Ignore this error
+            }
+         }
+      }
+
+      return null;
    }
 
    /**

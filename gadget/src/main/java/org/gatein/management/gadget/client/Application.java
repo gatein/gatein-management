@@ -40,6 +40,7 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
@@ -84,11 +85,12 @@ import java.util.List;
 @AllowHtmlQuirksMode(true)
 public class Application extends Gadget<UserPreferences>
 {
+   private static final String SERVLET_CONTEXT_PATH = "/gatein-management-gadget/gwtgadget";
 
    // asycn services to get requests from the server through ajax.
    private final GateInServiceAsync gtnService = GWT.create(GateInService.class);
-   private static final String UPLOAD_ACTION_URL = GWT.getModuleBaseURL() + "upload";
-   private static final String DOWNLOAD_ACTION_URL = GWT.getModuleBaseURL() + "download";
+   private static final String UPLOAD_ACTION_URL = SERVLET_CONTEXT_PATH + "/upload";
+   private static final String DOWNLOAD_ACTION_URL = SERVLET_CONTEXT_PATH + "/download";
    // gui elements
    private HTML header;
    private HTML details;
@@ -99,6 +101,7 @@ public class Application extends Gadget<UserPreferences>
    @Override
    protected void init(UserPreferences preferences)
    {
+      ((ServiceDefTarget) gtnService).setServiceEntryPoint(SERVLET_CONTEXT_PATH + "/gtnService");
       TreeImages images = GWT.create(TreeImages.class);
 
       RootPanel rootPanel = RootPanel.get();

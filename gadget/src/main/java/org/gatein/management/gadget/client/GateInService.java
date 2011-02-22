@@ -23,7 +23,6 @@
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.user.client.rpc.RemoteService;
-import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.google.gwt.user.client.ui.SuggestOracle;
 
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.List;
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-@RemoteServiceRelativePath("gtnService")
 public interface GateInService extends RemoteService
 {
 

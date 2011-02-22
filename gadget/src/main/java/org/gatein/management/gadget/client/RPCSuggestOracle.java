@@ -19,11 +19,11 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-
 package org.gatein.management.gadget.client;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.SuggestOracle;
 
 /**
@@ -62,6 +62,7 @@ public class RPCSuggestOracle extends SuggestOracle
    public void requestSuggestions(SuggestOracle.Request req, SuggestOracle.Callback callback)
    {
       GateInServiceAsync gtnService = GWT.create(GateInService.class);
+      ((ServiceDefTarget) gtnService).setServiceEntryPoint(Application.SERVLET_CONTEXT_PATH + "/gtnService");
       gtnService.getUsername(getPortalContainerName(), req, new ItemSuggestCallback(req, callback));
    }
 
@@ -69,7 +70,7 @@ public class RPCSuggestOracle extends SuggestOracle
     * @return
     */
    public native String getPortalContainerName()/*-{
-      return parent.eXo.env.portal.context.substring(1); // remove leading '/'
+   return parent.eXo.env.portal.context.substring(1); // remove leading '/'
    }-*/;
 
    /**
@@ -82,7 +83,7 @@ public class RPCSuggestOracle extends SuggestOracle
       private SuggestOracle.Callback callback;
 
       public ItemSuggestCallback(SuggestOracle.Request _req,
-                                 SuggestOracle.Callback _callback)
+              SuggestOracle.Callback _callback)
       {
          req = _req;
          callback = _callback;
@@ -96,7 +97,7 @@ public class RPCSuggestOracle extends SuggestOracle
       public void onSuccess(Object retValue)
       {
          callback.onSuggestionsReady(req,
-            (SuggestOracle.Response) retValue);
+                 (SuggestOracle.Response) retValue);
       }
    }
 }

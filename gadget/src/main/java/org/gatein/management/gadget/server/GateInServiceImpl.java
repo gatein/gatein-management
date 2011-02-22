@@ -223,15 +223,13 @@ public class GateInServiceImpl extends RemoteServiceServlet implements GateInSer
             PortalService portalService = PortalService.create(container);
             String query = request.getQuery();
             List<String> users = portalService.getUsers(query);
-            Response response = new Response();
             List<Suggestion> suggestions = new ArrayList<Suggestion>();
             for (String usr : users)
             {
                suggestions.add(new ItemSuggestion(usr));
             }
-            response.setSuggestions(suggestions);
 
-            return response;
+            return new Response(suggestions);
          }
       });
    }

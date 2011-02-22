@@ -79,13 +79,13 @@ import java.util.List;
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  * @version 1.0
  */
-@ModulePrefs(title = "GateIn Management", author = "Nabil Benothman", author_email = "nbenothm@redhat.com",
+@ModulePrefs(title = "Export/Import Tool", author = "Nabil Benothman", author_email = "nbenothm@redhat.com",
    description = "This gadget allows the administrator to export/import sites")
 @UseLongManifestName(true)
 @AllowHtmlQuirksMode(true)
 public class Application extends Gadget<UserPreferences>
 {
-   private static final String SERVLET_CONTEXT_PATH = "/gatein-management-gadget/gwtgadget";
+   public static final String SERVLET_CONTEXT_PATH = "/gatein-management-gadget/gwtgadget";
 
    // asycn services to get requests from the server through ajax.
    private final GateInServiceAsync gtnService = GWT.create(GateInService.class);

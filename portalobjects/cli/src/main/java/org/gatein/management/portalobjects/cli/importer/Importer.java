@@ -98,7 +98,10 @@ public class Importer
          System.exit(1);
       }
 
-      Utils.initializeLogging(log4jFile, logLevel, importFile.getParentFile(), importFile.getName(), "import");
+      File importDir = importFile.getParentFile();
+      if (importDir == null) importDir = new File(".");
+
+      Utils.initializeLogging(log4jFile, logLevel, importDir, importFile.getName(), "import");
    }
 
    public void doImport()

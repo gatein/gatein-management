@@ -288,6 +288,14 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
                   }
                   components.add(unmarshalPortletApplication(reader));
                }
+               else if (isContainer(reader))
+               {
+                  if (components == null)
+                  {
+                     throw new XMLStreamException("Unexpected container without parent " + Element.PORTAL_LAYOUT.getLocalName());
+                  }
+                  components.add(unmarshalContainerData(reader));
+               }
                else
                {
                   throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() + "' while unmarshalling portal data.");

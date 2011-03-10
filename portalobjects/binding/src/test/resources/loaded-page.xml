@@ -29,9 +29,9 @@
       <access-permissions>manager:/platform/administrators;manager:/platform/users</access-permissions>
       <edit-permission>*:/platform/administrators</edit-permission>
       <show-max-window>false</show-max-window>
-      <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl">
+      <container id="rootContainer" template="system:/groovy/portal/webui/container/UIContainer.gtmpl">
          <access-permissions>Everyone</access-permissions>
-         <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl">
+         <container id="c1" template="system:/groovy/portal/webui/container/UIContainer.gtmpl">
             <access-permissions>*:/platform/users</access-permissions>
             <portlet-application>
                <portlet>
@@ -53,10 +53,10 @@
                <show-application-mode>true</show-application-mode>
             </portlet-application>
          </container>
-         <container template="system:/groovy/portal/webui/container/UITableColumnContainer.gtmpl">
+         <container id="c2" template="system:/groovy/portal/webui/container/UITableColumnContainer.gtmpl">
             <access-permissions>*:/platform/guests</access-permissions>
             <factory-id>TableColumnContainer</factory-id>
-            <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl" width="300px" height="400px">
+            <container id="c2-1" template="system:/groovy/portal/webui/container/UIContainer.gtmpl" width="300px" height="400px">
                <access-permissions>Everyone</access-permissions>
                <portlet-application>
                   <portlet>
@@ -75,7 +75,7 @@
                   <height>350px</height>
                </portlet-application>
             </container>
-            <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl" width="200px" height="300px">
+            <container id="c2-2" template="system:/groovy/portal/webui/container/UIContainer.gtmpl" width="200px" height="300px">
                <access-permissions>/platform/users</access-permissions>
                <portlet-application>
                   <portlet>
@@ -95,7 +95,7 @@
                </portlet-application>
             </container>
          </container>
-         <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl">
+         <container id="c3" template="system:/groovy/portal/webui/container/UIContainer.gtmpl">
             <access-permissions>Everyone</access-permissions>
             <portlet-application>
                <portlet>

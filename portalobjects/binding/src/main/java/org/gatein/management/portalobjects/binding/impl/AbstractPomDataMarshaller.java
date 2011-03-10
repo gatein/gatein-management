@@ -111,11 +111,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    {
       writer.writeStartElement(Element.CONTAINER);
 
+      writeOptionalAttribute(writer, Attribute.ID, componentData.getId());
       writeOptionalAttribute(writer, Attribute.TEMPLATE, componentData.getTemplate());
       writeOptionalAttribute(writer, Attribute.WIDTH, componentData.getWidth());
       writeOptionalAttribute(writer, Attribute.HEIGHT, componentData.getHeight());
 
+      writer.writeOptionalElement(Element.NAME, componentData.getName());
       writer.writeOptionalElement(Element.TITLE, componentData.getTitle());
+      writer.writeOptionalElement(Element.ICON, componentData.getIcon());
       writer.writeOptionalElement(Element.DESCRIPTION, componentData.getDescription());
 
       marshalAccessPermissions(writer, componentData.getAccessPermissions());
@@ -133,10 +136,13 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
 
    protected ContainerData unmarshalContainerData(StaxReader reader) throws XMLStreamException
    {
+      String id = null;
+      String name = null;
+      String title = null;
+      String icon = null;
       String template = null;
       String width = null;
       String height = null;
-      String title = null;
       String description = null;
       List<String> accessPermissions = null;
       String factoryId = null;
@@ -145,16 +151,20 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       int count = reader.currentReadEvent().getAttributeCount();
       for (int i=0; i<count; i++)
       {
-         String name = reader.currentReadEvent().getAttributeLocalName(i);
-         if (Attribute.TEMPLATE.getLocalName().equals(name))
+         String attributeName = reader.currentReadEvent().getAttributeLocalName(i);
+         if (Attribute.ID.getLocalName().equals(attributeName))
+         {
+            id = reader.currentReadEvent().getAttributeValue(i);
+         }
+         else if (Attribute.TEMPLATE.getLocalName().equals(attributeName))
          {
             template = reader.currentReadEvent().getAttributeValue(i);
          }
-         else if (Attribute.WIDTH.getLocalName().endsWith(name))
+         else if (Attribute.WIDTH.getLocalName().endsWith(attributeName))
          {
             width = reader.currentReadEvent().getAttributeValue(i);
          }
-         else if (Attribute.HEIGHT.getLocalName().equals(name))
+         else if (Attribute.HEIGHT.getLocalName().equals(attributeName))
          {
             height = reader.currentReadEvent().getAttributeValue(i);
          }
@@ -164,8 +174,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       {
          switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
          {
+            case NAME:
+               name = reader.currentReadEvent().elementText();
+               break;
             case TITLE:
                title = reader.currentReadEvent().elementText();
+               break;
+            case ICON:
+               icon = reader.currentReadEvent().elementText();
                break;
             case DESCRIPTION:
                description = reader.currentReadEvent().elementText();
@@ -194,7 +210,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
          }
       }
 
-      return new ContainerData(null, null, null, null, template, factoryId, title, description, width, height, accessPermissions, components);
+      return new ContainerData(null, id, name, icon, template, factoryId, title, description, width, height, accessPermissions, components);
    }
 
    protected boolean isContainer(StaxReader reader) throws XMLStreamException
@@ -267,7 +283,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                writer.writeStartElement(Element.PREFERENCES);
                prefsWritten = true;
             }
-            writer.writeStartElement(Element.PREFERENCE).writeElement(Element.PREFERENCE_NAME, preference.getName());
+            writer.writeStartElement(Element.PREFERENCE).writeElement(Element.NAME, preference.getName());
             //TODO: what to do for multivalue preference values ? i think JiBX accepts multiple values here, xsd does not
             for (String value : preference.getValues())
             {
@@ -388,7 +404,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                {
                   switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
                   {
-                     case PREFERENCE_NAME:
+                     case NAME:
                         prefName = reader.currentReadEvent().elementText();
                         break;
                      case PREFERENCE_VALUE:
@@ -694,6 +710,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    {
       UNKNOWN(null),
       SKIP("skip"),
+      NAME("name"),
       TITLE("title"),
       DESCRIPTION("description"),
       FACTORY_ID("factory-id"),
@@ -702,7 +719,6 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       PORTLET_APPLICATION("portlet-application"),
       GADGET_APPLICATION("gadget-application"),
       CONTAINER("container"),
-//      TEMPLATE("template"),
       APPLICATION_REF("application-ref"),
       PORTLET_REF("portlet-ref"),
       PORTLET("portlet"),
@@ -717,7 +733,8 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       HEIGHT("height"),
       PREFERENCES("preferences"),
       PREFERENCE("preference"),
-      PREFERENCE_NAME("name"),
+      // Used above in NAME
+      // PREFERENCE_NAME("name"),
       PREFERENCE_VALUE("value"),
       PREFERENCE_READONLY("read-only"),
       ;
@@ -761,6 +778,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    private static enum Attribute implements EnumAttribute<Attribute>
    {
       UNKNOWN(null),
+      ID("id"),
       TEMPLATE("template"),
       WIDTH("width"),
       HEIGHT("height");

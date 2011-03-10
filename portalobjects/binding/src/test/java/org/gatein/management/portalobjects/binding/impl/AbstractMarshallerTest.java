@@ -69,7 +69,7 @@ public abstract class AbstractMarshallerTest
    {
       assertNull(actual.getStorageId());
       assertNull(actual.getStorageName());
-      assertNull(actual.getId());
+      assertEquals(expected.getId(), actual.getId());
       assertEquals(expected.getName(), actual.getName());
       assertEquals(expected.getIcon(), actual.getIcon());
       assertEquals(expected.getTemplate(), actual.getTemplate());

@@ -146,7 +146,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       String description = null;
       List<String> accessPermissions = null;
       String factoryId = null;
-      List<ComponentData> components = null;
+      List<ComponentData> components = new ArrayList<ComponentData>();
 
       int count = reader.currentReadEvent().getAttributeCount();
       for (int i=0; i<count; i++)
@@ -193,11 +193,9 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                factoryId = reader.currentReadEvent().elementText();
                break;
             case CONTAINER:
-               if (components == null) components = new ArrayList<ComponentData>();
                components.add(unmarshalContainerData(reader));
                break;
             case PORTLET_APPLICATION:
-               if (components == null) components = new ArrayList<ComponentData>();
                components.add(unmarshalPortletApplication(reader));
                break;
             case UNKNOWN:

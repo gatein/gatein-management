@@ -20,38 +20,36 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl;
+package org.gatein.common.xml.stax.navigator.builder;
 
-import org.gatein.staxbuilder.EnumNamespace;
+import org.staxnav.Naming;
+import org.staxnav.StaxNavException;
+import org.staxnav.StaxNavigator;
+
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.Source;
+import java.io.InputStream;
+import java.io.Reader;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Namespace implements EnumNamespace<Namespace>
+public interface StaxNavBuilder
 {
-   GATEIN_OBJECTS_1_1("http://www.gatein.org/xml/ns/gatein_objects_1_1"),
-   GATEIN_OBJECTS_1_2("http://www.gatein.org/xml/ns/gatein_objects_1_2");
+   StaxNavBuilder withProperty(String name, Object value);
 
-   /**
-    * The current namespace version.
-    */
-   public static final Namespace CURRENT = GATEIN_OBJECTS_1_1;
+   StaxNavBuilder withPropertyIfSupported(String name, Object value);
 
-   private final String name;
+   StaxNavBuilder withInputStream(InputStream inputStream);
 
-   Namespace(final String name)
-   {
-      this.name = name;
-   }
+   StaxNavBuilder withInputStream(InputStream inputStream, String encoding);
 
-   /**
-    * Get the URI of this namespace.
-    *
-    * @return the URI
-    */
-   public String getUri()
-   {
-      return name;
-   }
+   StaxNavBuilder withReader(Reader reader);
+
+   StaxNavBuilder withSource(Source source);
+
+   StaxNavBuilder withXmlStreamReader(XMLStreamReader reader);
+
+   <N> StaxNavigator<N> build(Naming<N> naming) throws StaxNavException, IllegalStateException;
 }

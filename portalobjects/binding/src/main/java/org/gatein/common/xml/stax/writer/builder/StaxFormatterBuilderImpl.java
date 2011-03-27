@@ -20,38 +20,45 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl;
+package org.gatein.common.xml.stax.writer.builder;
 
-import org.gatein.staxbuilder.EnumNamespace;
+import org.staxnav.SimpleFormatter;
+import org.staxnav.XmlStreamingFormatter;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Namespace implements EnumNamespace<Namespace>
+public class StaxFormatterBuilderImpl implements StaxFormatterBuilder
 {
-   GATEIN_OBJECTS_1_1("http://www.gatein.org/xml/ns/gatein_objects_1_1"),
-   GATEIN_OBJECTS_1_2("http://www.gatein.org/xml/ns/gatein_objects_1_2");
+   private Character indentCharacter;
+   private Integer indentSize;
+   private String newline;
 
-   /**
-    * The current namespace version.
-    */
-   public static final Namespace CURRENT = GATEIN_OBJECTS_1_1;
-
-   private final String name;
-
-   Namespace(final String name)
+   public StaxFormatterBuilder withIndentCharacter(char indentCharacter)
    {
-      this.name = name;
+      this.indentCharacter = indentCharacter;
+      return this;
    }
 
-   /**
-    * Get the URI of this namespace.
-    *
-    * @return the URI
-    */
-   public String getUri()
+   public StaxFormatterBuilder ofIndentSize(int indentSize)
    {
-      return name;
+      this.indentSize = indentSize;
+      return this;
+   }
+
+   public StaxFormatterBuilder withNewline(String newline)
+   {
+      this.newline = newline;
+      return this;
+   }
+
+   public XmlStreamingFormatter build()
+   {
+      if (indentCharacter == null) throw new IllegalStateException("indent character is required value for this builder.");
+      if (indentSize == null) throw new IllegalArgumentException("indent size is a required value for this builder.");
+      if (newline == null) throw new IllegalArgumentException("newline is a required value for this builder.");
+
+      return new SimpleFormatter(indentCharacter, indentSize, newline);
    }
 }

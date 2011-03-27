@@ -20,12 +20,10 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl.navigation;
+package org.gatein.management.portalobjects.binding.impl;
 
-import org.gatein.staxbuilder.EnumElement;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.staxnav.EnumElement;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -33,55 +31,73 @@ import java.util.Map;
  */
 public enum Element implements EnumElement<Element>
 {
+   // Navigation Elements
    UNKNOWN(null),
-   SKIP("skip"),
    NODE_NAVIGATION("node-navigation"),
    PRIORITY("priority"),
    PAGE_NODES("page-nodes"),
    NODE("node"),
-   NAME("name"),
    URI("uri"),
    LABEL("label"),
-   ICON("icon"),
    START_PUBLICATION_DATE("start-publication-date"),
    END_PUBLICATION_DATE("end-publication-date"),
    VISIBILITY("visibility"),
    PAGE_REFERENCE("page-reference"),
+
+   // Page elements
+   PAGE_SET("page-set"),
+   PAGE("page"),
+   NAME("name"),
+   SHOW_MAX_WINDOW("show-max-window"),
+
+   // Portal config elements
+   PORTAL_CONFIGS("portal-configs"), // To support multiple portal configs (not supported by gatein_objects)
+   PORTAL_CONFIG("portal-config"),
+   PORTAL_NAME("portal-name"),
+   LOCALE("locale"),
+   SKIN("skin"),
+   PROPERTIES("properties"),
+   PROPERTIES_ENTRY("entry"),
+   PORTAL_LAYOUT("portal-layout"),
+
+   // Common elements
+   TITLE("title"),
+   DESCRIPTION("description"),
+   FACTORY_ID("factory-id"),
+   ACCESS_PERMISSIONS("access-permissions"),
+   EDIT_PERMISSION("edit-permission"),
+   PORTLET_APPLICATION("portlet-application"),
+   GADGET_APPLICATION("gadget-application"),
+   CONTAINER("container"),
+   PAGE_BODY("page-body"),
+   APPLICATION_REF("application-ref"),
+   PORTLET_REF("portlet-ref"),
+   PORTLET("portlet"),
+   GADGET_REF("gadget-ref"),
+   GADGET("gadget"),
+   THEME("theme"),
+   SHOW_INFO_BAR("show-info-bar"),
+   SHOW_APPLICATION_STATE("show-application-state"),
+   SHOW_APPLICATION_MODE("show-application-mode"),
+   ICON("icon"),
+   WIDTH("width"),
+   HEIGHT("height"),
+   PREFERENCES("preferences"),
+   PREFERENCE("preference"),
+   PREFERENCE_VALUE("value"),
+   PREFERENCE_READONLY("read-only")
    ;
 
    private final String name;
 
-   Element(final String name)
+   Element(String name)
    {
       this.name = name;
    }
 
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
+   @Override
    public String getLocalName()
    {
       return name;
-   }
-
-   private static final Map<String, Element> MAP;
-
-   static
-   {
-      final Map<String, Element> map = new HashMap<String, Element>();
-      for (Element element : values())
-      {
-         final String name = element.getLocalName();
-         if (name != null) map.put(name, element);
-      }
-      MAP = map;
-   }
-
-   public static Element forName(String localName)
-   {
-      final Element element = MAP.get(localName);
-      return element == null ? UNKNOWN : element;
    }
 }

@@ -21,8 +21,8 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<page-set xmlns="http://www.gatein.org/xml/ns/gatein_objects_1_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://www.gatein.org/xml/ns/gatein_objects_1_1 http://www.gatein.org/xml/ns/gatein_objects_1_1">
+<page-set xmlns="http://www.gatein.org/xml/ns/gatein_objects_1_2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.gatein.org/xml/ns/gatein_objects_1_2 http://www.gatein.org/xml/ns/gatein_objects_1_2">
    <page>
       <name>loaded-page</name>
       <title>Loaded Page</title>
@@ -77,22 +77,21 @@
             </container>
             <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl" width="200px" height="300px">
                <access-permissions>/platform/users</access-permissions>
-               <portlet-application>
-                  <portlet>
-                     <application-ref>exoadmin</application-ref>
-                     <portlet-ref>OrganizationPortlet</portlet-ref>
-                  </portlet>
+               <gadget-application>
+                  <gadget>
+                     <gadget-ref>Calendar</gadget-ref>
+                  </gadget>
                   <theme>Vista:VistaTheme::Mac:MacTheme::Default:DefaultTheme</theme>
-                  <title>Organization Management</title>
+                  <title>Calendar Title</title>
                   <access-permissions>*:/platform/administrators;*:/organization/management/executive-board</access-permissions>
                   <show-info-bar>true</show-info-bar>
                   <show-application-state>false</show-application-state>
                   <show-application-mode>false</show-application-mode>
-                  <description>Organization Management</description>
+                  <description>Calendar Description</description>
                   <icon>StarAwardIcon</icon>
                   <width>100px</width>
                   <height>200px</height>
-               </portlet-application>
+               </gadget-application>
             </container>
          </container>
          <container template="system:/groovy/portal/webui/container/UIContainer.gtmpl">

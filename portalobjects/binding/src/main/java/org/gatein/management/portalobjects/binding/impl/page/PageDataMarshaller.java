@@ -27,18 +27,24 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
-import org.gatein.staxbuilder.reader.StaxReader;
-import org.gatein.staxbuilder.reader.StaxReaderBuilder;
-import org.gatein.staxbuilder.writer.StaxWriter;
-import org.gatein.staxbuilder.writer.StaxWriterBuilder;
+import org.gatein.management.portalobjects.binding.impl.Element;
+import org.staxnav.StaxNavigator;
+import org.staxnav.StaxWriter;
+import org.staxnav.ValueType;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static org.gatein.common.xml.stax.navigator.Exceptions.*;
+import static org.gatein.common.xml.stax.navigator.StaxNavUtils.*;
+import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
+
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -58,11 +64,10 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
    {
       try
       {
-         StaxWriter writer = new StaxWriterBuilder().withOutputStream(outputStream).withEncoding("UTF-8").withDefaultFormatting().build();
-         writer.writeStartDocument();
+         StaxWriter<Element> writer = createWriter(Element.class, outputStream);
 
          writer.writeStartElement(Element.PAGE_SET);
-         writeGateinObjectsRootElement(writer);
+         writeGateinObjectsNamespace(writer);
 
          // Marshal pages
          for (PageData page : pages)
@@ -70,7 +75,7 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
             marshalPageData(writer, page);
          }
 
-         writer.writeEndElement().writeEndDocument(); // End page-set, end document
+         writer.finish();
       }
       catch (XMLStreamException e)
       {
@@ -88,33 +93,23 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
    }
 
    @Override
-   public Collection<PageData> unmarshalObjects(InputStream is) throws BindingException
+   public Collection<PageData> unmarshalObjects(InputStream inputStream) throws BindingException
    {
       try
       {
-         StaxReader reader = new StaxReaderBuilder().withInputStream(is).build();
-         if (reader.readNextTag().getLocalName().equals(Element.PAGE_SET.getLocalName()))
+         StaxNavigator<Element> navigator = createNavigator(Element.class, Element.UNKNOWN, inputStream);
+         if (navigator.getName() == Element.PAGE_SET)
          {
             Collection<PageData> pages = new ArrayList<PageData>();
-            while (reader.hasNext())
+            for (StaxNavigator<Element> fork : navigator.fork(Element.PAGE))
             {
-               switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
-               {
-                  case PAGE:
-                     PageData page = unmarshalPageData(reader);
-                     pages.add(page);
-                     break;
-                  case UNKNOWN:
-                     throw new XMLStreamException("Uknown element '" + reader.currentReadEvent().getLocalName() + "' while unmarshalling pages.");
-                  case SKIP:
-                     break;
-               }
+               pages.add(unmarshalPageData(fork));
             }
             return pages;
          }
          else
          {
-            throw new XMLStreamException("Unknown root element.", reader.currentReadEvent().getLocation());
+            throw unknownElement(navigator);
          }
       }
       catch (XMLStreamException e)
@@ -123,20 +118,20 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
       }
    }
 
-   private void marshalPageData(StaxWriter writer, PageData pageData) throws XMLStreamException
+   private void marshalPageData(StaxWriter<Element> writer, PageData pageData) throws XMLStreamException
    {
       writer.writeStartElement(Element.PAGE);
 
       // name, title description
       writer.writeElement(Element.NAME, pageData.getName());
-      writer.writeOptionalElement(Element.TITLE, pageData.getTitle());
-      writer.writeOptionalElement(Element.DESCRIPTION, pageData.getDescription());
+      writeOptionalElement(writer, Element.TITLE, pageData.getTitle());
+      writeOptionalElement(writer, Element.DESCRIPTION, pageData.getDescription());
 
       // Access/Edit permissions
       marshalAccessPermissions(writer, pageData.getAccessPermissions());
       marshalEditPermission(writer, pageData.getEditPermission());
 
-      writer.writeOptionalElement(Element.SHOW_MAX_WINDOW, String.valueOf(pageData.isShowMaxWindow()));
+      writeOptionalElement(writer, Element.SHOW_MAX_WINDOW, ValueType.BOOLEAN, pageData.isShowMaxWindow());
 
       List<ComponentData> components = pageData.getChildren();
       for (ComponentData component : components)
@@ -147,7 +142,7 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
       writer.writeEndElement(); // End of page element
    }
 
-   private PageData unmarshalPageData(StaxReader reader) throws XMLStreamException
+   private PageData unmarshalPageData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
       String name = null;
       String title = null;
@@ -157,72 +152,80 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
       boolean showMaxWindow = false;
       List<ComponentData> components = null;
 
-      reader.buildReadEvent().withNestedRead().untilElement(Element.PAGE).end();
-      while (reader.hasNext())
+      //TODO: Need valid way to ensure a sequence of xml elements, with a mix of required and optional elements.
+      ArrayDeque<Element> required = new ArrayDeque<Element>();
+      required.push(Element.ACCESS_PERMISSIONS);
+      required.push(Element.NAME);
+
+      navigator.child();
+      boolean pop = false;
+      while (navigator.hasNext())
       {
-         switch(reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         if (pop) required.pop();
+
+         switch (navigator.getName())
          {
             case NAME:
-               name = reader.currentReadEvent().elementText();
+               name = getRequiredContent(navigator, true);
+               navigator.sibling();
                break;
             case TITLE:
-               title = reader.currentReadEvent().elementText();
+               title = getContent(navigator, false);
+               navigator.sibling();
                break;
             case DESCRIPTION:
-               description = reader.currentReadEvent().elementText();
+               description = getContent(navigator, false);
+               navigator.sibling();
+               break;
+            case ACCESS_PERMISSIONS:
+               accessPermissions = unmarshalAccessPermissions(navigator);
+               navigator.sibling();
+               break;
+            case EDIT_PERMISSION:
+               editPermission = unmarshalEditPermission(navigator);
+               navigator.sibling();
                break;
             case SHOW_MAX_WINDOW:
-               showMaxWindow = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showMaxWindow = parseRequiredContent(navigator, ValueType.BOOLEAN);
+               navigator.sibling();
                break;
-            case SKIP:
+            case CONTAINER:
+               if (components != null)
+               {
+                  throw unexpectedElement(navigator);
+               }
+               components = new ArrayList<ComponentData>(1);
+               components.add(unmarshalContainerData(navigator.fork()));
+               break;
+            case PORTLET_APPLICATION:
+               if (components != null)
+               {
+                  throw unexpectedElement(navigator);
+               }
+               components = new ArrayList<ComponentData>(1);
+               components.add(unmarshalPortletApplication(navigator.fork()));
+               break;
+            case GADGET_APPLICATION:
+               if (components != null)
+               {
+                  throw unexpectedElement(navigator);
+               }
+               components = new ArrayList<ComponentData>(1);
+               components.add(unmarshalGadgetApplication(navigator.fork()));
                break;
             case UNKNOWN:
-               // Unmarshal access permissions
-               if (isAccessPermissions(reader))
-               {
-                  accessPermissions = unmarshalAccessPermissions(reader);
-                  break;
-               }
-               // Unmarshal edit permissions
-               else if (isEditPermission(reader))
-               {
-                  editPermission = unmarshalEditPermission(reader);
-                  break;
-               }
-               // Unmarshal container
-               else if (isContainer(reader))
-               {
-                  components = new ArrayList<ComponentData>(1);
-                  components.add(unmarshalContainerData(reader));
-               }
-               // Unmarshal portlet application
-               else if (isPortletApplication(reader))
-               {
-                  if (components == null)
-                  {
-                     components = new ArrayList<ComponentData>();
-                  }
-                  components.add(unmarshalPortletApplication(reader));
-               }
-               else if (isGadgetApplication(reader))
-               {
-                  if (components == null)
-                  {
-                     components = new ArrayList<ComponentData>();
-                  }
-                  components.add(unmarshalGadgetApplication(reader));
-               }
-               else
-               {
-                  throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() +
-                     "' while unmarshalling page.", reader.currentReadEvent().getLocation());
-               }
+               throw unknownElement(navigator);
             default:
-               break;
+               throw unexpectedElement(navigator);
          }
       }
+      //TODO: We should raise this exception as soon as we know so location is accurate
+      if (name == null) throw expectedElement(navigator, Element.NAME);
+      if (accessPermissions == null) throw expectedElement(navigator, Element.ACCESS_PERMISSIONS);
+
+      // Ensure children is not null
       if (components == null) components = Collections.emptyList();
-      if (accessPermissions == null) accessPermissions = Collections.emptyList();
+
       return new PageData(null, null, name, null, null, null, title, description, null, null, accessPermissions, components, "", "", editPermission, showMaxWindow);
    }
 }

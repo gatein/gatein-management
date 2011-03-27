@@ -22,36 +22,37 @@
 
 package org.gatein.management.portalobjects.binding.impl;
 
-import org.gatein.staxbuilder.EnumNamespace;
+import org.exoplatform.portal.pom.config.Utils;
+import org.staxnav.StaxNavException;
+import org.staxnav.ValueType;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Namespace implements EnumNamespace<Namespace>
+public class DelimitedValueType extends ValueType<List<String>>
 {
-   GATEIN_OBJECTS_1_1("http://www.gatein.org/xml/ns/gatein_objects_1_1"),
-   GATEIN_OBJECTS_1_2("http://www.gatein.org/xml/ns/gatein_objects_1_2");
+   public static DelimitedValueType SEMI_COLON = new DelimitedValueType(";");
 
-   /**
-    * The current namespace version.
-    */
-   public static final Namespace CURRENT = GATEIN_OBJECTS_1_1;
+   private final String delimiter;
 
-   private final String name;
-
-   Namespace(final String name)
+   public DelimitedValueType(String delimiter)
    {
-      this.name = name;
+      this.delimiter = delimiter;
    }
 
-   /**
-    * Get the URI of this namespace.
-    *
-    * @return the URI
-    */
-   public String getUri()
+   @Override
+   protected List<String> parse(String s) throws Exception
    {
-      return name;
+      return Arrays.asList(Utils.split(delimiter, s));
+   }
+
+   @Override
+   protected String print(List<String> value) throws StaxNavException
+   {
+      return Utils.join(delimiter, value);
    }
 }

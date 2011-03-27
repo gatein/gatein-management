@@ -20,38 +20,43 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl;
+package org.gatein.common.xml.stax.writer.builder;
 
-import org.gatein.staxbuilder.EnumNamespace;
+import org.staxnav.Naming;
+import org.staxnav.StaxNavException;
+import org.staxnav.StaxWriter;
+import org.staxnav.XmlStreamingFormatter;
+
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.Result;
+import java.io.OutputStream;
+import java.io.Writer;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Namespace implements EnumNamespace<Namespace>
+public interface StaxWriterBuilder
 {
-   GATEIN_OBJECTS_1_1("http://www.gatein.org/xml/ns/gatein_objects_1_1"),
-   GATEIN_OBJECTS_1_2("http://www.gatein.org/xml/ns/gatein_objects_1_2");
+   StaxWriterBuilder withProperty(String name, Object value);
 
-   /**
-    * The current namespace version.
-    */
-   public static final Namespace CURRENT = GATEIN_OBJECTS_1_1;
+   StaxWriterBuilder withPropertyIfSupported(String name, Object value);
 
-   private final String name;
+   StaxWriterBuilder withEncoding(String encoding);
 
-   Namespace(final String name)
-   {
-      this.name = name;
-   }
+   StaxWriterBuilder withVersion(String version);
 
-   /**
-    * Get the URI of this namespace.
-    *
-    * @return the URI
-    */
-   public String getUri()
-   {
-      return name;
-   }
+   StaxWriterBuilder withFormatting(XmlStreamingFormatter formatter);
+
+   StaxWriterBuilder withOutputStream(OutputStream outputStream);
+
+   StaxWriterBuilder withOutputStream(OutputStream outputStream, String encoding);
+
+   StaxWriterBuilder withWriter(Writer writer);
+
+   StaxWriterBuilder withResult(Result result);
+
+   StaxWriterBuilder withXmlStreamWriter(XMLStreamWriter writer);
+
+   <N> StaxWriter<N> build(Naming<N> naming) throws StaxNavException, IllegalStateException;
 }

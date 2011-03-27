@@ -27,13 +27,13 @@ import org.exoplatform.portal.pom.data.BodyType;
 import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.PortalData;
+import org.gatein.common.xml.stax.navigator.StaxNavUtils;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
-import org.gatein.staxbuilder.reader.StaxReader;
-import org.gatein.staxbuilder.reader.StaxReaderBuilder;
-import org.gatein.staxbuilder.writer.StaxWriter;
-import org.gatein.staxbuilder.writer.StaxWriterBuilder;
+import org.gatein.management.portalobjects.binding.impl.Element;
+import org.staxnav.StaxNavigator;
+import org.staxnav.StaxWriter;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
@@ -44,6 +44,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.gatein.common.xml.stax.navigator.Exceptions.*;
+import static org.gatein.common.xml.stax.navigator.StaxNavUtils.*;
+import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -57,16 +61,15 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
    {
       try
       {
-         StaxWriter writer = new StaxWriterBuilder().withOutputStream(outputStream).withEncoding("UTF-8").withDefaultFormatting().build();
-         writer.writeStartDocument();
+         StaxWriter<Element> writer = createWriter(Element.class, outputStream);
 
          // root element
          writer.writeStartElement(Element.PORTAL_CONFIG);
-         writeGateinObjectsRootElement(writer);
+         writeGateinObjectsNamespace(writer);
 
          marshalPortalData(writer, object);
 
-         writer.writeEndElement().writeEndDocument(); // End of portal-config, end document
+         writer.finish();
       }
       catch (XMLStreamException e)
       {
@@ -79,11 +82,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
    {
       try
       {
-         StaxWriter writer = new StaxWriterBuilder().withOutputStream(outputStream).
-            withEncoding("UTF-8").withDefaultFormatting().build();
+         StaxWriter<Element> writer = createWriter(Element.class, outputStream);
 
          // gatein_objects format does not allow multiple portal config elements, but we can still support the marshalling and unmarshalling of such
-         writer.writeStartDocument().writeStartElement("portal-configs");
+         writer.writeStartElement(Element.PORTAL_CONFIGS);
 
          for (PortalData data : objects)
          {
@@ -92,7 +94,7 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
             writer.writeEndElement(); // End of portal-config
          }
 
-         writer.writeEndElement().writeEndDocument();
+         writer.finish();
       }
       catch (XMLStreamException e)
       {
@@ -105,14 +107,15 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
    {
       try
       {
-         StaxReader reader = new StaxReaderBuilder().withInputStream(is).build();
-         if (reader.readNextTag().getLocalName().equals(Element.PORTAL_CONFIG.getLocalName()))
+         StaxNavigator<Element> navigator = StaxNavUtils.createNavigator(Element.class, Element.UNKNOWN, is);
+
+         if (navigator.getName() == Element.PORTAL_CONFIG)
          {
-            return unmarshalPortalData(reader);
+            return unmarshalPortalData(navigator);
          }
          else
          {
-            throw new XMLStreamException("Unknown root element.", reader.currentReadEvent().getLocation());
+            throw unknownElement(navigator);
          }
       }
       catch (XMLStreamException e)
@@ -126,32 +129,27 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
    {
       try
       {
-         StaxReader reader = new StaxReaderBuilder().withInputStream(is).build();
-         if (reader.readNextTag().getLocalName().equals(Element.PORTAL_CONFIGS.getLocalName()))
+         StaxNavigator<Element> navigator = StaxNavUtils.createNavigator(Element.class, Element.UNKNOWN, is);
+         if (navigator.getName() == Element.PORTAL_CONFIGS)
          {
-            Collection<PortalData> data = new ArrayList<PortalData>();
-            while (reader.hasNext())
+            if (navigator.child(Element.PORTAL_CONFIG))
             {
-               switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+               Collection<PortalData> data = new ArrayList<PortalData>();
+               for (StaxNavigator<Element> fork : navigator.fork(Element.PORTAL_CONFIG))
                {
-                  case PORTAL_CONFIG:
-                     data.add(unmarshalPortalData(reader));
-                     break;
-                  case UNKNOWN:
-                     throw new XMLStreamException("Uknown element '" + reader.currentReadEvent().getLocalName() +
-                        "' while unmarshalling multiple portal data's.", reader.currentReadEvent().getLocation());
-                  case SKIP:
-                     break;
-                  default:
-                     break;
+                  data.add(unmarshalPortalData(fork));
                }
-            }
 
-            return data;
+               return data;
+            }
+            else
+            {
+               throw unknownElement(navigator);
+            }
          }
          else
          {
-            throw new XMLStreamException("Unknown root element.", reader.currentReadEvent().getLocation());
+            throw unknownElement(navigator);
          }
       }
       catch (XMLStreamException e)
@@ -160,10 +158,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
       }
    }
 
-   private void marshalPortalData(StaxWriter writer, PortalData portalData) throws XMLStreamException
+   private void marshalPortalData(StaxWriter<Element> writer, PortalData portalData) throws XMLStreamException
    {
       writer.writeElement(Element.PORTAL_NAME, portalData.getName());
-      writer.writeOptionalElement(Element.LOCALE, portalData.getLocale());
+      writeOptionalElement(writer, Element.LOCALE, portalData.getLocale());
 
       // Access permissions
       marshalAccessPermissions(writer, portalData.getAccessPermissions());
@@ -171,10 +169,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
       // Edit permission
       marshalEditPermission(writer, portalData.getEditPermission());
 
-      writer.writeOptionalElement(Element.SKIN, portalData.getSkin());
+      writeOptionalElement(writer, Element.SKIN, portalData.getSkin());
 
       boolean propertiesWritten = false;
-      Map<String,String> properties = portalData.getProperties();
+      Map<String, String> properties = portalData.getProperties();
       if (properties != null)
       {
          for (String key : properties.keySet())
@@ -187,8 +185,9 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
             String value = properties.get(key);
             if (value != null)
             {
-               writer.writeStartElement(Element.PROPERTIES_ENTRY).
-                  writeAttribute(Attribute.PROPERTIES_KEY, key).writeCharacters(value).writeEndElement();
+               writer.writeStartElement(Element.PROPERTIES_ENTRY);
+               writer.writeAttribute(Attribute.PROPERTIES_KEY.getLocalName(), key);
+               writer.writeContent(value).writeEndElement();
             }
          }
          if (propertiesWritten)
@@ -213,99 +212,101 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
       }
    }
 
-   private PortalData unmarshalPortalData(StaxReader reader) throws XMLStreamException
+   private PortalData unmarshalPortalData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
       String portalName = null;
       String locale = null;
       List<String> accessPermissions = Collections.emptyList();
       String editPermission = null;
       String skin = null;
-      Map<String,String> properties = Collections.emptyMap();
+      Map<String, String> properties = Collections.emptyMap();
       ContainerData portalLayout = null;
       List<ComponentData> components = null;
 
-      reader.buildReadEvent().withNestedRead().untilElement(Element.PORTAL_CONFIG).end();
-      while (reader.hasNext())
+      Element current = navigator.child();
+      while (current != null)
       {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         switch (current)
          {
             case PORTAL_NAME:
-               portalName = reader.currentReadEvent().elementText();
+               portalName = navigator.getContent();
+               current = navigator.sibling();
                break;
             case LOCALE:
-               locale = reader.currentReadEvent().elementText();
+               locale = navigator.getContent();
+               current = navigator.sibling();
                break;
             case SKIN:
-               skin = reader.currentReadEvent().elementText();
+               skin = navigator.getContent();
+               current = navigator.sibling();
                break;
             case PROPERTIES:
-               properties = new HashMap<String,String>();
+               properties = new HashMap<String, String>();
+               for (StaxNavigator<Element> fork : navigator.fork(Element.PROPERTIES_ENTRY))
+               {
+                  String key = getRequiredAttribute(fork, Attribute.PROPERTIES_KEY.getLocalName());
+                  String value = getRequiredContent(fork, false);
+                  properties.put(key, value);
+               }
+               current = navigator.next();
+               break;
+            case ACCESS_PERMISSIONS:
+               accessPermissions = unmarshalAccessPermissions(navigator);
+               current = navigator.sibling();
+               break;
+            case EDIT_PERMISSION:
+               editPermission = unmarshalEditPermission(navigator);
+               current = navigator.sibling();
                break;
             case PORTAL_LAYOUT:
                components = new ArrayList<ComponentData>();
+               current = navigator.child();
                break;
             case PAGE_BODY:
                if (components == null)
                {
-                  throw new XMLStreamException("Unexpected " + Element.PAGE_BODY.getLocalName() +" without parent " + Element.PORTAL_LAYOUT.getLocalName());
+                  throw expectedElement(navigator, Element.PORTAL_LAYOUT);
                }
                components.add(new BodyData(null, BodyType.PAGE));
+               current = navigator.sibling();
                break;
-            case PROPERTIES_ENTRY:
-               int count = reader.currentReadEvent().getAttributeCount();
-               if (count == 0)
+            case PORTLET_APPLICATION:
+               if (components == null)
                {
-                  throw new XMLStreamException("No attribute for properties entry element.", reader.currentReadEvent().getLocation());
+                  throw expectedElement(navigator, Element.PORTAL_LAYOUT);
                }
-               for (int i=0; i<count; i++)
-               {
-                  String name = reader.currentReadEvent().getAttributeLocalName(i);
-                  if (Attribute.PROPERTIES_KEY.getLocalName().equals(name))
-                  {
-                     String key = reader.currentReadEvent().getAttributeValue(i);
-                     String value = reader.currentReadEvent().elementText();
-                     properties.put(key, value);
-                     break;
-                  }
-               }
+               components.add(unmarshalPortletApplication(navigator.fork()));
+               current = navigator.getName();
                break;
-            case SKIP:
+            case GADGET_APPLICATION:
+               if (components == null)
+               {
+                  throw expectedElement(navigator, Element.PORTAL_LAYOUT);
+               }
+               components.add(unmarshalGadgetApplication(navigator.fork()));
+               current = navigator.getName();
+               break;
+            case CONTAINER:
+               if (components == null)
+               {
+                  throw expectedElement(navigator, Element.PORTAL_LAYOUT);
+               }
+               components.add(unmarshalContainerData(navigator.fork()));
+               current = navigator.getName();
                break;
             case UNKNOWN:
-               if (isAccessPermissions(reader))
-               {
-                  accessPermissions = unmarshalAccessPermissions(reader);
-               }
-               else if (isEditPermission(reader))
-               {
-                  editPermission = unmarshalEditPermission(reader);
-               }
-               else if (isPortletApplication(reader))
-               {
-                  if (components == null)
-                  {
-                     throw new XMLStreamException("Unexpected portlet application without parent " + Element.PORTAL_LAYOUT.getLocalName());
-                  }
-                  components.add(unmarshalPortletApplication(reader));
-               }
-               else if (isContainer(reader))
-               {
-                  if (components == null)
-                  {
-                     throw new XMLStreamException("Unexpected container without parent " + Element.PORTAL_LAYOUT.getLocalName());
-                  }
-                  components.add(unmarshalContainerData(reader));
-               }
-               else
-               {
-                  throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() + "' while unmarshalling portal data.");
-               }
-               break;
+               throw unknownElement(navigator);
             default:
-               break;
+               throw unexpectedElement(navigator);
          }
       }
+
+      //TODO: We should raise this exception as soon as we know so location is accurate
+      if (accessPermissions == null) throw expectedElement(navigator, Element.ACCESS_PERMISSIONS);
+
+      if (components == null) components = Collections.emptyList();
       portalLayout = new ContainerData(null, null, null, null, null, null, null, null, null, null, Collections.<String>emptyList(), components);
+
       return new PortalData(null, portalName, "", locale, accessPermissions, editPermission, properties, skin, portalLayout);
    }
 }

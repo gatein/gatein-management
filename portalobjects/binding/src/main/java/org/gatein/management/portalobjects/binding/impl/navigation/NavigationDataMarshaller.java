@@ -25,24 +25,27 @@ package org.gatein.management.portalobjects.binding.impl.navigation;
 import org.exoplatform.portal.mop.Visibility;
 import org.exoplatform.portal.pom.data.NavigationData;
 import org.exoplatform.portal.pom.data.NavigationNodeData;
+import org.gatein.common.xml.stax.navigator.StaxNavUtils;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
-import org.gatein.staxbuilder.reader.NavigationReadEvent;
-import org.gatein.staxbuilder.reader.StaxReader;
-import org.gatein.staxbuilder.reader.StaxReaderBuilder;
-import org.gatein.staxbuilder.writer.StaxWriter;
-import org.gatein.staxbuilder.writer.StaxWriterBuilder;
+import org.gatein.management.portalobjects.binding.impl.Element;
+import org.staxnav.StaxNavigator;
+import org.staxnav.StaxWriter;
+import org.staxnav.ValueType;
 
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static org.gatein.common.xml.stax.navigator.Exceptions.*;
+import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -57,11 +60,8 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
    {
       try
       {
-         StaxWriter writer = new StaxWriterBuilder().withOutputStream(outputStream).withEncoding("UTF-8").withDefaultFormatting().build();
-         writer.writeStartDocument();
-
+         StaxWriter<Element> writer = createWriter(Element.class, outputStream);
          marshalNavigationData(writer, object);
-         writer.writeEndDocument();
       }
       catch (XMLStreamException e)
       {
@@ -80,9 +80,8 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
    {
       try
       {
-         StaxReader reader = new StaxReaderBuilder().withInputStream(is).build();
-
-         return unmarshalNavigationData(reader);
+         StaxNavigator<Element> navigator = StaxNavUtils.createNavigator(Element.class, Element.UNKNOWN, is);
+         return unmarshalNavigationData(navigator);
       }
       catch (XMLStreamException e)
       {
@@ -97,15 +96,15 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
    }
 
 
-   private void marshalNavigationData(StaxWriter writer, NavigationData navigation) throws XMLStreamException
+   private void marshalNavigationData(StaxWriter<Element> writer, NavigationData navigation) throws XMLStreamException
    {
       writer.writeStartElement(Element.NODE_NAVIGATION);
 
       // Write gatein_objects xml namespace
-      writeGateinObjectsRootElement(writer);
+      //writeGateinObjectsNamespace(writer);
 
       // Priority
-      writer.writeElement(Element.PRIORITY, String.valueOf(navigation.getPriority()));
+      writer.writeElement(Element.PRIORITY, ValueType.INTEGER, navigation.getPriority());
 
       // Page nodes
       writer.writeStartElement(Element.PAGE_NODES);
@@ -120,20 +119,20 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writer.writeEndElement().writeEndElement(); // End page-nodes and node-navigation
    }
 
-   public void marshallNavigationNodeData(StaxWriter writer, NavigationNodeData node) throws XMLStreamException
+   public void marshallNavigationNodeData(StaxWriter<Element> writer, NavigationNodeData node) throws XMLStreamException
    {
       writer.writeStartElement(Element.NODE);
-      writer.writeOptionalElement(Element.URI, node.getURI());
+      writeOptionalElement(writer, Element.URI, node.getURI());
       writer.writeElement(Element.NAME, node.getName());
-      writer.writeOptionalElement(Element.LABEL, node.getLabel());
-      writer.writeOptionalElement(Element.ICON, node.getIcon());
+      writeOptionalElement(writer, Element.LABEL, node.getLabel());
+      writeOptionalElement(writer, Element.ICON, node.getIcon());
 
-      writeOptionalDateTime(writer, Element.START_PUBLICATION_DATE, node.getStartPublicationDate());
-      writeOptionalDateTime(writer, Element.END_PUBLICATION_DATE, node.getEndPublicationDate());
+      writeOptionalElement(writer, Element.START_PUBLICATION_DATE, ValueType.DATE_TIME, node.getStartPublicationDate());
+      writeOptionalElement(writer, Element.END_PUBLICATION_DATE, ValueType.DATE_TIME, node.getEndPublicationDate());
 
-      String visiblity = (node.getVisibility() == null) ? null : node.getVisibility().name();
-      writer.writeOptionalElement(Element.VISIBILITY, visiblity);
-      writer.writeOptionalElement(Element.PAGE_REFERENCE, node.getPageReference());
+      String visibility = (node.getVisibility() == null) ? null : node.getVisibility().name();
+      writeOptionalElement(writer, Element.VISIBILITY, visibility);
+      writeOptionalElement(writer, Element.PAGE_REFERENCE, node.getPageReference());
 
       // Marshall children
       List<NavigationNodeData> children = node.getNodes();
@@ -148,53 +147,46 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writer.writeEndElement(); // End of node
    }
 
-   private NavigationData unmarshalNavigationData(StaxReader reader) throws XMLStreamException
+   private NavigationData unmarshalNavigationData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      if (reader.readNextTag().getLocalName().equals(Element.NODE_NAVIGATION.getLocalName()))
+      if (navigator.getName() == Element.NODE_NAVIGATION)
       {
          List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
          Integer priority = null;
 
          // Unmarshal priority
-         NavigationReadEvent navigation = reader.buildReadEvent().withNavigation();
-         if (navigation.child(Element.PRIORITY.getLocalName()).success())
+         if (navigator.child(Element.PRIORITY))
          {
-            priority = Integer.valueOf(navigation.getText());
+            priority = Integer.valueOf(navigator.parseContent(ValueType.INTEGER));
          }
 
-         if (navigation.sibling(Element.PAGE_NODES.getLocalName()).success())
+         if (navigator.sibling(Element.PAGE_NODES))
          {
-            while (reader.hasNext())
+            if (navigator.child(Element.NODE))
             {
-               switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+               for (StaxNavigator<Element> fork : navigator.fork(Element.NODE))
                {
-                  case NODE:
-                     // Unmarshal navigation nodes
-                     NavigationNodeData node = unmarshalNavigationNodeData(reader);
-                     nodes.add(node);
-                     break;
-                  case SKIP:
-                     break;
-                  case UNKNOWN:
-                     throw new XMLStreamException("Unknown element " + reader.currentReadEvent().getLocalName(), reader.currentReadEvent().getLocation());
-                  default:
-                     break;
+                  nodes.add(unmarshalNavigationNodeData(fork));
                }
+            }
+            else
+            {
+               throw unknownElement(navigator);
             }
          }
          else
          {
-            throw new XMLStreamException("Unknown child element " + reader.currentReadEvent().getLocalName(), reader.currentReadEvent().getLocation());
+            throw unknownElement(navigator);
          }
          return new NavigationData("", "", priority, nodes);
       }
       else
       {
-         throw new XMLStreamException("Unknown root element " + reader.currentReadEvent().getLocalName(), reader.currentReadEvent().getLocation());
+         throw unknownElement(navigator);
       }
    }
 
-   private NavigationNodeData unmarshalNavigationNodeData(StaxReader reader) throws XMLStreamException
+   private NavigationNodeData unmarshalNavigationNodeData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
       String uri = null;
       String name = null;
@@ -206,50 +198,53 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       String pageRef = null;
       List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
 
-      // This will continue reading until the end of the node element.
-      reader.buildReadEvent().withNestedRead().untilElement(Element.NODE).end();
-      while (reader.hasNext())
+      Set<Element> children = new HashSet<Element>();
+      children.add(Element.URI);
+      children.add(Element.NAME);
+      children.add(Element.LABEL);
+      children.add(Element.ICON);
+      children.add(Element.START_PUBLICATION_DATE);
+      children.add(Element.END_PUBLICATION_DATE);
+      children.add(Element.VISIBILITY);
+      children.add(Element.PAGE_REFERENCE);
+      children.add(Element.NODE);
+
+      while (navigator.next(children) != null)
       {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         switch (navigator.getName())
          {
             case URI:
-               uri = reader.currentReadEvent().elementText();
+               uri = navigator.getContent();
                break;
             case NAME:
-               name = reader.currentReadEvent().elementText();
+               name = navigator.getContent();
                break;
             case LABEL:
-               label = reader.currentReadEvent().elementText();
+               label = navigator.getContent();
                break;
             case ICON:
-               icon = reader.currentReadEvent().elementText();
+               icon = navigator.getContent();
                break;
             case START_PUBLICATION_DATE:
-               start = reader.currentReadEvent().convertElementText(DatatypeConstants.DATETIME, Calendar.class).getTime();
+               start = navigator.parseContent(ValueType.DATE_TIME);
                break;
             case END_PUBLICATION_DATE:
-               end = reader.currentReadEvent().convertElementText(DatatypeConstants.DATETIME, Calendar.class).getTime();
+               end = navigator.parseContent(ValueType.DATE_TIME);
                break;
             case VISIBILITY:
-               String vis = reader.currentReadEvent().elementText();
-               if (vis != null)
-               {
-                  visibility = Visibility.valueOf(vis.toUpperCase());
-               }
+               visibility = navigator.parseContent(ValueType.get(Visibility.class));
                break;
             case PAGE_REFERENCE:
-               pageRef = reader.currentReadEvent().elementText();
+               pageRef = navigator.getContent();
                break;
             case NODE:
-               NavigationNodeData node = unmarshalNavigationNodeData(reader);
+               NavigationNodeData node = unmarshalNavigationNodeData(navigator.fork());
                nodes.add(node);
                break;
-            case SKIP:
-               break;
             case UNKNOWN:
-               throw new XMLStreamException("Unknown element.", reader.currentReadEvent().getLocation());
+               throw unknownElement(navigator);
             default:
-               break;
+               throw unexpectedElement(navigator);
          }
       }
 

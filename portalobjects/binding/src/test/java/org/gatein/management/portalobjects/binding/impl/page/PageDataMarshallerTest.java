@@ -30,6 +30,7 @@ import org.exoplatform.portal.pom.data.ApplicationData;
 import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.PageData;
+import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
 import org.gatein.management.portalobjects.binding.impl.AbstractMarshallerTest;
@@ -229,28 +230,28 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          assertEquals("300px", orgContainer.getHeight());
          assertEquals("/platform/users", Utils.join(";", orgContainer.getAccessPermissions()));
          {
-            // Verify org mgmt application
+            // Verify calendar gadget application
             assertNotNull(orgContainer.getChildren());
             assertEquals(1, orgContainer.getChildren().size());
-            ComponentData orgappComp = orgContainer.getChildren().get(0);
-            assertTrue(orgappComp instanceof ApplicationData);
+            ComponentData gadgetComponent = orgContainer.getChildren().get(0);
+            assertTrue(gadgetComponent instanceof ApplicationData);
             @SuppressWarnings("unchecked")
-            ApplicationData<Portlet> application = (ApplicationData<Portlet>) orgappComp;
-            assertTrue(application.getType() == ApplicationType.PORTLET);
-            ApplicationState<Portlet> state = application.getState();
+            ApplicationData<Gadget> application = (ApplicationData<Gadget>) gadgetComponent;
+            assertTrue(application.getType() == ApplicationType.GADGET);
+            ApplicationState<Gadget> state = application.getState();
             assertNotNull(state);
             assertTrue(state instanceof TransientApplicationState);
-            TransientApplicationState<Portlet> tas = (TransientApplicationState<Portlet>) state;
-            assertEquals("exoadmin/OrganizationPortlet", tas.getContentId());
+            TransientApplicationState<Gadget> tas = (TransientApplicationState<Gadget>) state;
+            assertEquals("Calendar", tas.getContentId());
             assertNull(tas.getContentState());
 
             assertEquals("Vista:VistaTheme::Mac:MacTheme::Default:DefaultTheme", application.getTheme());
-            assertEquals("Organization Management", application.getTitle());
+            assertEquals("Calendar Title", application.getTitle());
             assertEquals("*:/platform/administrators;*:/organization/management/executive-board", Utils.join(";", application.getAccessPermissions()));
             assertTrue(application.isShowInfoBar());
             assertFalse(application.isShowApplicationState());
             assertFalse(application.isShowApplicationMode());
-            assertEquals("Organization Management", application.getDescription());
+            assertEquals("Calendar Description", application.getDescription());
             assertEquals("StarAwardIcon", application.getIcon());
             assertEquals("100px", application.getWidth());
             assertEquals("200px", application.getHeight());
@@ -328,6 +329,38 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
 
       PageDataMarshaller marshaller = new PageDataMarshaller();
       marshaller.marshal(expected, baos);
+
+      //System.out.println(baos.toString());
+      
+      PageData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
+
+      comparePages(expected, actual);
+   }
+
+   @Test
+   public void testPageMarshallingWithGadget()
+   {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+      Gadget gadget = null;
+      //TODO: Uncomment when gadget user-prefs are supported in gatein_objects
+      //Gadget gadget = new Gadget();
+      //gadget.setUserPref("user-pref");
+
+      ApplicationState<Gadget> state = new TransientApplicationState<Gadget>("gadget-ref", gadget);
+      ApplicationData<Gadget> applicationData = new ApplicationData<Gadget>(null, null,
+         ApplicationType.GADGET, state, null, "app-title", "app-icon", "app-description", false, true, false,
+         "app-theme", "app-wdith", "app-height", new HashMap<String,String>(),
+         Collections.singletonList("app-edit-permissions"));
+
+      List<ComponentData> children = Collections.singletonList((ComponentData) applicationData);
+      PageData expected = new PageData(null, null, "page-name", null, null, null, "Page Title", null, null, null,
+         Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
+
+      PageDataMarshaller marshaller = new PageDataMarshaller();
+      marshaller.marshal(expected, baos);
+
+      //System.out.println(baos.toString());
 
       PageData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
 

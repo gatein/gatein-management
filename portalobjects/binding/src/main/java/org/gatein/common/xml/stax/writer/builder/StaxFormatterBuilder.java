@@ -20,38 +20,22 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl;
+package org.gatein.common.xml.stax.writer.builder;
 
-import org.gatein.staxbuilder.EnumNamespace;
+
+import org.staxnav.XmlStreamingFormatter;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Namespace implements EnumNamespace<Namespace>
+public interface StaxFormatterBuilder
 {
-   GATEIN_OBJECTS_1_1("http://www.gatein.org/xml/ns/gatein_objects_1_1"),
-   GATEIN_OBJECTS_1_2("http://www.gatein.org/xml/ns/gatein_objects_1_2");
+   StaxFormatterBuilder withIndentCharacter(char indentCharacter);
 
-   /**
-    * The current namespace version.
-    */
-   public static final Namespace CURRENT = GATEIN_OBJECTS_1_1;
+   StaxFormatterBuilder ofIndentSize(int indentSize);
 
-   private final String name;
+   StaxFormatterBuilder withNewline(String newline);
 
-   Namespace(final String name)
-   {
-      this.name = name;
-   }
-
-   /**
-    * Get the URI of this namespace.
-    *
-    * @return the URI
-    */
-   public String getUri()
-   {
-      return name;
-   }
+   XmlStreamingFormatter build() throws IllegalStateException;
 }

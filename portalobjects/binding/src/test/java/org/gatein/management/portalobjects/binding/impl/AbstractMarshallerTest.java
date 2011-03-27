@@ -95,7 +95,7 @@ public abstract class AbstractMarshallerTest
       else
       {
          assertNotNull(actual.getState());
-         compareApplicationState(actual.getState(), expected.getState());
+         compareApplicationState(expected.getState(), actual.getState());
       }
 
       assertNull(actual.getStorageId());

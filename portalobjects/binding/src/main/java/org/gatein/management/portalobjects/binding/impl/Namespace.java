@@ -22,13 +22,11 @@
 
 package org.gatein.management.portalobjects.binding.impl;
 
-import org.gatein.staxbuilder.EnumNamespace;
-
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Namespace implements EnumNamespace<Namespace>
+public enum Namespace
 {
    GATEIN_OBJECTS_1_1("http://www.gatein.org/xml/ns/gatein_objects_1_1"),
    GATEIN_OBJECTS_1_2("http://www.gatein.org/xml/ns/gatein_objects_1_2");

@@ -22,8 +22,8 @@
 
 package org.gatein.common.xml.stax.writer.builder;
 
-import org.staxnav.SimpleFormatter;
-import org.staxnav.XmlStreamingFormatter;
+import org.gatein.common.xml.stax.writer.formatting.SimpleFormatter;
+import org.gatein.common.xml.stax.writer.formatting.XmlStreamingFormatter;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

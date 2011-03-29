@@ -28,12 +28,12 @@ import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.common.xml.stax.navigator.StaxNavUtils;
+import org.gatein.common.xml.stax.writer.StaxWriter;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
 import org.gatein.management.portalobjects.binding.impl.Element;
 import org.staxnav.StaxNavigator;
-import org.staxnav.StaxWriter;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;

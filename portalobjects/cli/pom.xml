@@ -122,7 +122,7 @@
                            <include>org.gatein.common:common-logging</include>
                            <include>org.gatein.common:common-common</include>
                            <include>picocontainer:picocontainer</include>
-                           <include>org.gatein.staxbuilder:stax-builder</include>
+                           <include>org.staxnav:staxnav.core</include>
                            <include>javax.ws.rs:jsr311-api</include>
                            <include>org.jboss.resteasy:*</include>
                            <include>org.apache.httpcomponents:*</include>

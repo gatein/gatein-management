@@ -22,11 +22,11 @@
 
 package org.gatein.common.xml.stax.writer.builder;
 
+import org.gatein.common.xml.stax.writer.StaxWriter;
+import org.gatein.common.xml.stax.writer.StaxWriterImpl;
+import org.gatein.common.xml.stax.writer.formatting.XmlStreamingFormatter;
 import org.staxnav.Naming;
 import org.staxnav.StaxNavException;
-import org.staxnav.StaxWriter;
-import org.staxnav.StaxWriterImpl;
-import org.staxnav.XmlStreamingFormatter;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -189,7 +189,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
                }
                catch (XMLStreamException e)
                {
-                  throw new StaxNavException("Exception creating XMLStreamWriter with OutputStream: " + output, e);
+                  throw new StaxNavException(null, "Exception creating XMLStreamWriter with OutputStream: " + output, e);
                }
             }
          }
@@ -201,7 +201,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
             }
             catch (XMLStreamException e)
             {
-               throw new StaxNavException("Exception creating XMLStreamWriter with Writer: " + output, e);
+               throw new StaxNavException(null, "Exception creating XMLStreamWriter with Writer: " + output, e);
             }
          }
          else if (output instanceof Result)
@@ -212,7 +212,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
             }
             catch (XMLStreamException e)
             {
-               throw new StaxNavException("Exception creating XMLStreamWriter with Result: " + output, e);
+               throw new StaxNavException(null, "Exception creating XMLStreamWriter with Result: " + output, e);
             }
          }
          else

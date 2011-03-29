@@ -26,12 +26,13 @@ import org.exoplatform.portal.mop.Visibility;
 import org.exoplatform.portal.pom.data.NavigationData;
 import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.gatein.common.xml.stax.navigator.StaxNavUtils;
+import org.gatein.common.xml.stax.writer.StaxWriter;
+import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
 import org.gatein.management.portalobjects.binding.impl.Element;
 import org.staxnav.StaxNavigator;
-import org.staxnav.StaxWriter;
 import org.staxnav.ValueType;
 
 import javax.xml.stream.XMLStreamException;
@@ -104,7 +105,7 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       //writeGateinObjectsNamespace(writer);
 
       // Priority
-      writer.writeElement(Element.PRIORITY, ValueType.INTEGER, navigation.getPriority());
+      writer.writeElement(Element.PRIORITY, WritableValueTypes.INTEGER, navigation.getPriority());
 
       // Page nodes
       writer.writeStartElement(Element.PAGE_NODES);
@@ -127,8 +128,8 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writeOptionalElement(writer, Element.LABEL, node.getLabel());
       writeOptionalElement(writer, Element.ICON, node.getIcon());
 
-      writeOptionalElement(writer, Element.START_PUBLICATION_DATE, ValueType.DATE_TIME, node.getStartPublicationDate());
-      writeOptionalElement(writer, Element.END_PUBLICATION_DATE, ValueType.DATE_TIME, node.getEndPublicationDate());
+      writeOptionalElement(writer, Element.START_PUBLICATION_DATE, WritableValueTypes.DATE_TIME, node.getStartPublicationDate());
+      writeOptionalElement(writer, Element.END_PUBLICATION_DATE, WritableValueTypes.DATE_TIME, node.getEndPublicationDate());
 
       String visibility = (node.getVisibility() == null) ? null : node.getVisibility().name();
       writeOptionalElement(writer, Element.VISIBILITY, visibility);

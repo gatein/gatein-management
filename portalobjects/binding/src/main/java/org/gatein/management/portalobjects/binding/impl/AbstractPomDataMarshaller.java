@@ -28,7 +28,6 @@ import org.exoplatform.container.PortalContainer;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.TransientApplicationState;
-import org.exoplatform.portal.pom.config.Utils;
 import org.exoplatform.portal.pom.data.ApplicationData;
 import org.exoplatform.portal.pom.data.BodyData;
 import org.exoplatform.portal.pom.data.ComponentData;
@@ -39,9 +38,10 @@ import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.PortletBuilder;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
+import org.gatein.common.xml.stax.writer.StaxWriter;
+import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.binding.api.Marshaller;
 import org.staxnav.StaxNavigator;
-import org.staxnav.StaxWriter;
 import org.staxnav.ValueType;
 
 import javax.xml.XMLConstants;
@@ -255,7 +255,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
             {
                writeOptionalElement(writer, Element.PREFERENCE_VALUE, value);
             }
-            writeOptionalElement(writer, Element.PREFERENCE_READONLY, ValueType.BOOLEAN, preference.isReadOnly());
+            writeOptionalElement(writer, Element.PREFERENCE_READONLY, WritableValueTypes.BOOLEAN, preference.isReadOnly());
             writer.writeEndElement(); // End of preference
          }
          if (prefsWritten)
@@ -580,10 +580,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
 
    protected void marshalAccessPermissions(StaxWriter<Element> writer, List<String> accessPermissionsList) throws XMLStreamException
    {
-      String accessPermissions = Utils.join(PERMISSIONS_SEPARATOR, accessPermissionsList);
-      if (accessPermissions != null && accessPermissions.trim().length() == 0) accessPermissions = null;
-
-      writeOptionalElement(writer, Element.ACCESS_PERMISSIONS, accessPermissions);
+      writeOptionalElement(writer, Element.ACCESS_PERMISSIONS, DelimitedValueType.SEMI_COLON, accessPermissionsList);
    }
 
    protected List<String> unmarshalAccessPermissions(StaxNavigator<Element> navigator) throws XMLStreamException

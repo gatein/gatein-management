@@ -23,6 +23,7 @@
 package org.gatein.management.portalobjects.binding.impl;
 
 import org.exoplatform.portal.pom.config.Utils;
+import org.gatein.common.xml.stax.writer.WritableValueType;
 import org.staxnav.StaxNavException;
 import org.staxnav.ValueType;
 
@@ -33,7 +34,7 @@ import java.util.List;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class DelimitedValueType extends ValueType<List<String>>
+public class DelimitedValueType extends ValueType<List<String>> implements WritableValueType<List<String>>
 {
    public static DelimitedValueType SEMI_COLON = new DelimitedValueType(";");
 
@@ -51,8 +52,17 @@ public class DelimitedValueType extends ValueType<List<String>>
    }
 
    @Override
-   protected String print(List<String> value) throws StaxNavException
+   public String format(List<String> value) throws StaxNavException
    {
-      return Utils.join(delimiter, value);
+      String s = Utils.join(delimiter, value);
+
+      if (s != null && s.trim().length() == 0)
+      {
+         return null;
+      }
+      else
+      {
+         return s;
+      }
    }
 }

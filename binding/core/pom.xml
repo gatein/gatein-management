@@ -56,10 +56,6 @@
          <artifactId>picocontainer</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.gatein.staxbuilder</groupId>
-         <artifactId>stax-builder</artifactId>
-      </dependency>
-      <dependency>
          <groupId>junit</groupId>
          <artifactId>junit</artifactId>
          <scope>test</scope>

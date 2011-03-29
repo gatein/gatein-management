@@ -26,12 +26,10 @@ import org.gatein.common.xml.stax.writer.builder.StaxFormatterBuilder;
 import org.gatein.common.xml.stax.writer.builder.StaxFormatterBuilderImpl;
 import org.gatein.common.xml.stax.writer.builder.StaxWriterBuilder;
 import org.gatein.common.xml.stax.writer.builder.StaxWriterBuilderImpl;
+import org.gatein.common.xml.stax.writer.formatting.XmlStreamingFormatter;
 import org.staxnav.EnumElement;
 import org.staxnav.Naming;
 import org.staxnav.StaxNavException;
-import org.staxnav.StaxWriter;
-import org.staxnav.ValueType;
-import org.staxnav.XmlStreamingFormatter;
 
 import javax.xml.namespace.QName;
 import java.io.OutputStream;
@@ -136,7 +134,7 @@ public class StaxWriterUtils
       writer.writeElement(element, content);
    }
 
-   public static <N, V> void writeOptionalElement(StaxWriter<N> writer, N element, ValueType<V> valueType, V value)
+   public static <N, V> void writeOptionalElement(StaxWriter<N> writer, N element, WritableValueType<V> valueType, V value)
    {
       if (value == null) return;
 
@@ -145,7 +143,7 @@ public class StaxWriterUtils
 
    private static StaxWriterBuilder buildDefaultWriter()
    {
-      return new StaxWriterBuilderImpl().withEncoding("UTF-8").withVersion("1.0")
+      return buildWriter().withEncoding("UTF-8").withVersion("1.0")
          .withPropertyIfSupported("com.ctc.wstx.outputEscapeCr", Boolean.FALSE)
          .withFormatting(createFormatter());
    }

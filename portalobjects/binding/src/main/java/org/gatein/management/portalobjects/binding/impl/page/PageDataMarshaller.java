@@ -24,12 +24,13 @@ package org.gatein.management.portalobjects.binding.impl.page;
 
 import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.PageData;
+import org.gatein.common.xml.stax.writer.StaxWriter;
+import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
 import org.gatein.management.portalobjects.binding.impl.Element;
 import org.staxnav.StaxNavigator;
-import org.staxnav.StaxWriter;
 import org.staxnav.ValueType;
 
 import javax.xml.stream.XMLStreamException;
@@ -131,7 +132,7 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
       marshalAccessPermissions(writer, pageData.getAccessPermissions());
       marshalEditPermission(writer, pageData.getEditPermission());
 
-      writeOptionalElement(writer, Element.SHOW_MAX_WINDOW, ValueType.BOOLEAN, pageData.isShowMaxWindow());
+      writeOptionalElement(writer, Element.SHOW_MAX_WINDOW, WritableValueTypes.BOOLEAN, pageData.isShowMaxWindow());
 
       List<ComponentData> components = pageData.getChildren();
       for (ComponentData component : components)

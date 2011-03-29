@@ -168,7 +168,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
                }
                catch (XMLStreamException e)
                {
-                  throw new StaxNavException("Exception creating XMLStreamReader with inputStream: " + input, e);
+                  throw new StaxNavException(null, "Exception creating XMLStreamReader with inputStream: " + input, e);
                }
             }
          }
@@ -180,7 +180,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
             }
             catch (XMLStreamException e)
             {
-               throw new StaxNavException("Exception creating XMLStreamReader with reader: " + input, e);
+               throw new StaxNavException(null, "Exception creating XMLStreamReader with reader: " + input, e);
             }
          }
          else if (input instanceof Source)
@@ -191,7 +191,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
             }
             catch (XMLStreamException e)
             {
-               throw new StaxNavException("Exception creating XMLStreamReader with Source: " + input, e);
+               throw new StaxNavException(null, "Exception creating XMLStreamReader with Source: " + input, e);
             }
          }
          else

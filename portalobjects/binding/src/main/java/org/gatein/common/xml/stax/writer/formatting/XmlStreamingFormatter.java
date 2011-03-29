@@ -20,43 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.common.xml.stax.writer.builder;
+package org.gatein.common.xml.stax.writer.formatting;
 
-import org.gatein.common.xml.stax.writer.StaxWriter;
-import org.gatein.common.xml.stax.writer.formatting.XmlStreamingFormatter;
-import org.staxnav.Naming;
-import org.staxnav.StaxNavException;
-
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.Result;
-import java.io.OutputStream;
-import java.io.Writer;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface StaxWriterBuilder
+public interface XmlStreamingFormatter extends XMLStreamConstants
 {
-   StaxWriterBuilder withProperty(String name, Object value);
+   void before(XMLStreamWriter writer, int event) throws XMLStreamException;
 
-   StaxWriterBuilder withPropertyIfSupported(String name, Object value);
-
-   StaxWriterBuilder withEncoding(String encoding);
-
-   StaxWriterBuilder withVersion(String version);
-
-   StaxWriterBuilder withFormatting(XmlStreamingFormatter formatter);
-
-   StaxWriterBuilder withOutputStream(OutputStream outputStream);
-
-   StaxWriterBuilder withOutputStream(OutputStream outputStream, String encoding);
-
-   StaxWriterBuilder withWriter(Writer writer);
-
-   StaxWriterBuilder withResult(Result result);
-
-   StaxWriterBuilder withXmlStreamWriter(XMLStreamWriter writer);
-
-   <N> StaxWriter<N> build(Naming<N> naming) throws StaxNavException, IllegalStateException;
+   void after(XMLStreamWriter writer, int event) throws XMLStreamException;
 }

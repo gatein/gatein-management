@@ -66,6 +66,6 @@ public class Exceptions
 
    public static StaxNavException invalidParent(StaxNavigator navigator)
    {
-      return new StaxNavException("Invalid parent for element '" + navigator.getLocalName() + "'");
+      return new StaxNavException(null, "Invalid parent for element '" + navigator.getLocalName() + "'");
    }
 }

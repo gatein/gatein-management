@@ -102,7 +102,7 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writer.writeStartElement(Element.NODE_NAVIGATION);
 
       // Write gatein_objects xml namespace
-      //writeGateinObjectsNamespace(writer);
+      writeGateinObjectsNamespace(writer);
 
       // Priority
       writer.writeElement(Element.PRIORITY, WritableValueTypes.INTEGER, navigation.getPriority());

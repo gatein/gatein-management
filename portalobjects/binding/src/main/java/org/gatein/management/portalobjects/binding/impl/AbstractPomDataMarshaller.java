@@ -110,11 +110,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    {
       writer.writeStartElement(Element.CONTAINER);
 
+      writeOptionalAttribute(writer, Attribute.ID, componentData.getId());
       writeOptionalAttribute(writer, Attribute.TEMPLATE, componentData.getTemplate());
       writeOptionalAttribute(writer, Attribute.WIDTH, componentData.getWidth());
       writeOptionalAttribute(writer, Attribute.HEIGHT, componentData.getHeight());
 
+      writeOptionalElement(writer, Element.NAME, componentData.getName());
       writeOptionalElement(writer, Element.TITLE, componentData.getTitle());
+      writeOptionalElement(writer, Element.ICON, componentData.getIcon());
       writeOptionalElement(writer, Element.DESCRIPTION, componentData.getDescription());
 
       marshalAccessPermissions(writer, componentData.getAccessPermissions());
@@ -132,11 +135,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
 
    protected ContainerData unmarshalContainerData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
+      String id = navigator.getAttribute(Attribute.ID.getLocalName());
       String template = navigator.getAttribute(Attribute.TEMPLATE.getLocalName());
       String width = navigator.getAttribute(Attribute.WIDTH.getLocalName());
       String height = navigator.getAttribute(Attribute.HEIGHT.getLocalName());
 
+      String name = null;
       String title = null;
+      String icon = null;
       String description = null;
       List<String> accessPermissions = null;
       String factoryId = null;
@@ -147,8 +153,16 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       {
          switch (current)
          {
+            case NAME:
+               name = navigator.getContent();
+               current = navigator.sibling();
+               break;
             case TITLE:
                title = navigator.getContent();
+               current = navigator.sibling();
+               break;
+            case ICON:
+               icon = navigator.getContent();
                current = navigator.sibling();
                break;
             case DESCRIPTION:
@@ -156,7 +170,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(navigator);
+               accessPermissions = unmarshalAccessPermissions(navigator, false);
                current = navigator.sibling();
                break;
             case FACTORY_ID:
@@ -182,7 +196,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
          }
       }
 
-      return new ContainerData(null, null, null, null, template, factoryId, title, description, width, height, accessPermissions, components);
+      return new ContainerData(null, id, name, icon, template, factoryId, title, description, width, height, accessPermissions, components);
    }
 
    protected void marshalPortletApplication(StaxWriter<Element> writer, ApplicationData<Portlet> portletApplication) throws XMLStreamException
@@ -241,7 +255,6 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       // Marshal preferences
       if (portlet != null)
       {
-
          boolean prefsWritten = false;
          for (Preference preference : portlet)
          {
@@ -250,12 +263,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                writer.writeStartElement(Element.PREFERENCES);
                prefsWritten = true;
             }
-            writer.writeStartElement(Element.PREFERENCE).writeElement(Element.NAME, preference.getName());
+
+            writer.writeStartElement(Element.PREFERENCE);
+            writer.writeElement(Element.NAME, preference.getName());
             for (String value : preference.getValues())
             {
-               writeOptionalElement(writer, Element.PREFERENCE_VALUE, value);
+               writeOptionalContent(writer, Element.PREFERENCE_VALUE, value);
             }
-            writeOptionalElement(writer, Element.PREFERENCE_READONLY, WritableValueTypes.BOOLEAN, preference.isReadOnly());
+            writer.writeElement(Element.PREFERENCE_READONLY, WritableValueTypes.BOOLEAN, preference.isReadOnly());
             writer.writeEndElement(); // End of preference
          }
          if (prefsWritten)
@@ -300,7 +315,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(navigator);
+               accessPermissions = unmarshalAccessPermissions(navigator, true);
                current = navigator.sibling();
                break;
             case SHOW_INFO_BAR:
@@ -364,27 +379,43 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
          portletBuilder = new PortletBuilder();
          for (StaxNavigator<Element> fork : navigator.fork(Element.PREFERENCE))
          {
+            // Preference name
             requiresChild(fork, Element.NAME);
             String prefName = getRequiredContent(fork, false);
 
-            List<String> prefValue = null;
-            while (fork.sibling(Element.PREFERENCE_VALUE))
+            // Preference values
+            List<String> values = null;
+            while (fork.sibling() == Element.PREFERENCE_VALUE)
             {
-               if (prefValue == null) prefValue = new ArrayList<String>();
-               prefValue.add(getRequiredContent(fork, false));
+               if (values == null) values = new ArrayList<String>();
+               values.add(getContent(fork, false));
             }
-            if (prefValue == null)
+            if (values == null)
             {
-               throw expectedElement(fork, Element.PREFERENCE_VALUE);
+               values = Collections.singletonList(null);
             }
 
-            boolean readOnly = false;
-            if (fork.sibling() == Element.PREFERENCE_READONLY)
+            // Preference readonly
+            Boolean readOnly = null;
+            if (fork.getName() == Element.PREFERENCE_READONLY)
             {
                readOnly = parseRequiredContent(fork,  ValueType.BOOLEAN);
             }
 
-            portletBuilder.add(prefName, prefValue, readOnly);
+            // Ensure nothing is left.
+            if (fork.next() != null)
+            {
+               throw unexpectedElement(fork);
+            }
+
+            if (readOnly == null)
+            {
+               portletBuilder.add(prefName, values);
+            }
+            else
+            {
+               portletBuilder.add(prefName, values, readOnly);
+            }
          }
       }
 
@@ -493,7 +524,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(navigator);
+               accessPermissions = unmarshalAccessPermissions(navigator, true);
                current = navigator.sibling();
                break;
             case SHOW_INFO_BAR:
@@ -547,7 +578,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       //TODO: Implement userPref unmarshalling when gatein_objects support it
       Gadget gadget = null;
 
-      if (navigator.hasNext())
+      if (navigator.next() != null)
       {
          throw unexpectedElement(navigator);
       }
@@ -583,9 +614,16 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       writeOptionalElement(writer, Element.ACCESS_PERMISSIONS, DelimitedValueType.SEMI_COLON, accessPermissionsList);
    }
 
-   protected List<String> unmarshalAccessPermissions(StaxNavigator<Element> navigator) throws XMLStreamException
+   protected List<String> unmarshalAccessPermissions(StaxNavigator<Element> navigator, boolean required) throws XMLStreamException
    {
-      return parseRequiredContent(navigator, DelimitedValueType.SEMI_COLON);
+      if (required)
+      {
+         return parseRequiredContent(navigator, DelimitedValueType.SEMI_COLON);
+      }
+      else
+      {
+         return parseContent(navigator, DelimitedValueType.SEMI_COLON, null);
+      }
    }
 
    protected void marshalEditPermission(StaxWriter<Element> writer, String editPermission) throws XMLStreamException
@@ -623,6 +661,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
 
    private static enum Attribute
    {
+      ID("id"),
       TEMPLATE("template"),
       WIDTH("width"),
       HEIGHT("height");

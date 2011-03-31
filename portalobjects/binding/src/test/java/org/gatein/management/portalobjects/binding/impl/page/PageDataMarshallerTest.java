@@ -119,7 +119,8 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
 
       // Verify root container
       ContainerData rootContainer = (ContainerData) component;
-      assertEquals(rootContainer.getTemplate(), "system:/groovy/portal/webui/container/UIContainer.gtmpl");
+      assertEquals("rootContainer", rootContainer.getId());
+      assertEquals("system:/groovy/portal/webui/container/UIContainer.gtmpl", rootContainer.getTemplate());
       assertEquals("Everyone", Utils.join(";", rootContainer.getAccessPermissions()));
 
       // Verify root container children
@@ -132,7 +133,8 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
       assertNotNull(c1);
       assertTrue(c1 instanceof ContainerData);
       ContainerData container1 = (ContainerData) c1;
-      assertEquals(container1.getTemplate(), "system:/groovy/portal/webui/container/UIContainer.gtmpl");
+      assertEquals("c1", container1.getId());
+      assertEquals("system:/groovy/portal/webui/container/UIContainer.gtmpl", container1.getTemplate());
       assertEquals("*:/platform/users", Utils.join(";", container1.getAccessPermissions()));
       {
          // Verify homepage application
@@ -154,12 +156,24 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          {
             count++;
          }
-         assertEquals(1, count);
+         assertEquals(3, count);
          Preference pref = portlet.getPreference("template");
          assertNotNull(pref);
          assertEquals("template", pref.getName());
          assertEquals("system:/templates/groovy/webui/component/UIHomePagePortlet.gtmpl", pref.getValue());
          assertTrue(pref.isReadOnly());
+
+         pref = portlet.getPreference("empty-preference-value");
+         assertNotNull(pref);
+         assertEquals("empty-preference-value", pref.getName());
+         assertNull(pref.getValue());
+         assertFalse(pref.isReadOnly());
+
+         pref = portlet.getPreference("no-preference-value");
+         assertNotNull(pref);
+         assertEquals("no-preference-value", pref.getName());
+         assertNull(pref.getValue());
+         assertFalse(pref.isReadOnly());
 
          assertEquals("Mac:MacTheme::Default:DefaultTheme::Vista:VistaTheme", application.getTheme());
          assertEquals("Home Page portlet", application.getTitle());
@@ -178,7 +192,8 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
       assertNotNull(c2);
       assertTrue(c2 instanceof ContainerData);
       ContainerData container2 = (ContainerData) c2;
-      assertEquals(container2.getTemplate(), "system:/groovy/portal/webui/container/UITableColumnContainer.gtmpl");
+      assertEquals("c2", container2.getId());
+      assertEquals("system:/groovy/portal/webui/container/UITableColumnContainer.gtmpl", container2.getTemplate());
       assertEquals("*:/platform/guests", Utils.join(";", container2.getAccessPermissions()));
       assertEquals("TableColumnContainer", container2.getFactoryId());
       assertNotNull(container2.getChildren());
@@ -189,7 +204,8 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          ComponentData appregComp = container2.getChildren().get(0);
          assertTrue(appregComp instanceof ContainerData);
          ContainerData appregContainer = (ContainerData) appregComp;
-         assertEquals(appregContainer.getTemplate(), "system:/groovy/portal/webui/container/UIContainer.gtmpl");
+         assertEquals("c2-1", appregContainer.getId());
+         assertEquals("system:/groovy/portal/webui/container/UIContainer.gtmpl", appregContainer.getTemplate());
          assertEquals("300px", appregContainer.getWidth());
          assertEquals("400px", appregContainer.getHeight());
          assertEquals("Everyone", Utils.join(";", appregContainer.getAccessPermissions()));
@@ -225,7 +241,8 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          ComponentData orgComp = container2.getChildren().get(1);
          assertTrue(orgComp instanceof ContainerData);
          ContainerData orgContainer = (ContainerData) orgComp;
-         assertEquals(orgContainer.getTemplate(), "system:/groovy/portal/webui/container/UIContainer.gtmpl");
+         assertEquals("c2-2", orgContainer.getId());
+         assertEquals("system:/groovy/portal/webui/container/UIContainer.gtmpl", orgContainer.getTemplate());
          assertEquals("200px", orgContainer.getWidth());
          assertEquals("300px", orgContainer.getHeight());
          assertEquals("/platform/users", Utils.join(";", orgContainer.getAccessPermissions()));
@@ -263,6 +280,8 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
       assertNotNull(c3);
       assertTrue(c3 instanceof ContainerData);
       ContainerData container3 = (ContainerData) c3;
+      assertEquals("c3", container3.getId());
+      assertEquals("system:/groovy/portal/webui/container/UIContainer.gtmpl", container3.getTemplate());
       assertEquals(container3.getTemplate(), "system:/groovy/portal/webui/container/UIContainer.gtmpl");
       assertEquals("Everyone", Utils.join(";", container3.getAccessPermissions()));
       assertNull(container3.getFactoryId());
@@ -316,6 +335,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
       portlet.putPreference(new Preference("pref-1", "value-1", true));
       portlet.putPreference(new Preference("pref-2", "value-2", false));
       portlet.putPreference(new Preference("multi-value-pref", Arrays.asList("one", "two", "three"), false));
+      portlet.putPreference(new Preference("empty-value-pref", (String) null, true));
 
       ApplicationState<Portlet> state = new TransientApplicationState<Portlet>("app-ref/portlet-ref", portlet);
       ApplicationData<Portlet> applicationData = new ApplicationData<Portlet>(null, null,
@@ -323,7 +343,9 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          "app-theme", "app-wdith", "app-height", new HashMap<String,String>(),
          Collections.singletonList("app-edit-permissions"));
 
-      List<ComponentData> children = Collections.singletonList((ComponentData) applicationData);
+      ContainerData containerData = new ContainerData(null, "cd-id", "cd-name", "cd-icon", "cd-template", "cd-factoryId", "cd-title", "cd-description", "cd-width", "cd-height", Collections.singletonList("cd-access-permissions"), Collections.singletonList((ComponentData) applicationData));
+      List<ComponentData> children = Collections.singletonList((ComponentData) containerData);
+      
       PageData expected = new PageData(null, null, "page-name", null, null, null, "Page Title", null, null, null,
          Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
 

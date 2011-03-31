@@ -30,13 +30,13 @@ import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
 import org.gatein.management.portalobjects.binding.impl.Element;
+import org.staxnav.StaxNavException;
 import org.staxnav.StaxNavigator;
 import org.staxnav.ValueType;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,6 +78,10 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
 
          writer.finish();
       }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
+      }
       catch (XMLStreamException e)
       {
          throw new BindingException(e);
@@ -102,16 +106,35 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
          if (navigator.getName() == Element.PAGE_SET)
          {
             Collection<PageData> pages = new ArrayList<PageData>();
-            for (StaxNavigator<Element> fork : navigator.fork(Element.PAGE))
+            Element next = navigator.child();
+            if (next == Element.PAGE)
             {
-               pages.add(unmarshalPageData(fork));
+               for (StaxNavigator<Element> fork : navigator.fork(Element.PAGE))
+               {
+                  pages.add(unmarshalPageData(fork));
+               }
             }
+            else if (next != null)
+            {
+               throw unexpectedElement(navigator);
+            }
+
+            //TODO: Seems like next should be null here...
+            if (navigator.sibling() != null)
+            {
+               throw unexpectedElement(navigator);
+            }
+
             return pages;
          }
          else
          {
             throw unknownElement(navigator);
          }
+      }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
       }
       catch (XMLStreamException e)
       {
@@ -145,74 +168,53 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
 
    private PageData unmarshalPageData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      String name = null;
+      requiresChild(navigator, Element.NAME);
+      String name = getRequiredContent(navigator, true);
+
       String title = null;
       String description = null;
       List<String> accessPermissions = null;
       String editPermission = null;
       boolean showMaxWindow = false;
-      List<ComponentData> components = null;
+      List<ComponentData> components = new ArrayList<ComponentData>();
 
       //TODO: Need valid way to ensure a sequence of xml elements, with a mix of required and optional elements.
-      ArrayDeque<Element> required = new ArrayDeque<Element>();
-      required.push(Element.ACCESS_PERMISSIONS);
-      required.push(Element.NAME);
-
-      navigator.child();
-      boolean pop = false;
-      while (navigator.hasNext())
+      Element current = navigator.sibling();
+      while (current != null)
       {
-         if (pop) required.pop();
-
-         switch (navigator.getName())
+         switch (current)
          {
-            case NAME:
-               name = getRequiredContent(navigator, true);
-               navigator.sibling();
-               break;
             case TITLE:
                title = getContent(navigator, false);
-               navigator.sibling();
+               current = navigator.sibling();
                break;
             case DESCRIPTION:
                description = getContent(navigator, false);
-               navigator.sibling();
+               current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(navigator);
-               navigator.sibling();
+               accessPermissions = unmarshalAccessPermissions(navigator, true);
+               current = navigator.sibling();
                break;
             case EDIT_PERMISSION:
                editPermission = unmarshalEditPermission(navigator);
-               navigator.sibling();
+               current = navigator.sibling();
                break;
             case SHOW_MAX_WINDOW:
                showMaxWindow = parseRequiredContent(navigator, ValueType.BOOLEAN);
-               navigator.sibling();
+               current = navigator.sibling();
                break;
             case CONTAINER:
-               if (components != null)
-               {
-                  throw unexpectedElement(navigator);
-               }
-               components = new ArrayList<ComponentData>(1);
                components.add(unmarshalContainerData(navigator.fork()));
+               current = navigator.getName();
                break;
             case PORTLET_APPLICATION:
-               if (components != null)
-               {
-                  throw unexpectedElement(navigator);
-               }
-               components = new ArrayList<ComponentData>(1);
                components.add(unmarshalPortletApplication(navigator.fork()));
+               current = navigator.getName();
                break;
             case GADGET_APPLICATION:
-               if (components != null)
-               {
-                  throw unexpectedElement(navigator);
-               }
-               components = new ArrayList<ComponentData>(1);
                components.add(unmarshalGadgetApplication(navigator.fork()));
+               current = navigator.getName();
                break;
             case UNKNOWN:
                throw unknownElement(navigator);
@@ -223,9 +225,6 @@ public class PageDataMarshaller extends AbstractPomDataMarshaller<PageData>
       //TODO: We should raise this exception as soon as we know so location is accurate
       if (name == null) throw expectedElement(navigator, Element.NAME);
       if (accessPermissions == null) throw expectedElement(navigator, Element.ACCESS_PERMISSIONS);
-
-      // Ensure children is not null
-      if (components == null) components = Collections.emptyList();
 
       return new PageData(null, null, name, null, null, null, title, description, null, null, accessPermissions, components, "", "", editPermission, showMaxWindow);
    }

@@ -66,6 +66,11 @@ public class Exceptions
 
    public static StaxNavException invalidParent(StaxNavigator navigator)
    {
-      return new StaxNavException(null, "Invalid parent for element '" + navigator.getLocalName() + "'");
+      return new StaxNavException(navigator.getLocation(), "Invalid parent for element '" + navigator.getLocalName() + "'");
+   }
+
+   public static StaxNavException unexpectedEndOfFile(StaxNavigator navigator)
+   {
+      return new StaxNavException(navigator.getLocation(), "Unexpected end of file.");
    }
 }

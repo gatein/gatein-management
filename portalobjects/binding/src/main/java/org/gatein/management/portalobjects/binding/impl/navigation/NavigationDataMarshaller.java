@@ -25,13 +25,13 @@ package org.gatein.management.portalobjects.binding.impl.navigation;
 import org.exoplatform.portal.mop.Visibility;
 import org.exoplatform.portal.pom.data.NavigationData;
 import org.exoplatform.portal.pom.data.NavigationNodeData;
-import org.gatein.common.xml.stax.navigator.StaxNavUtils;
 import org.gatein.common.xml.stax.writer.StaxWriter;
 import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
 import org.gatein.management.portalobjects.binding.impl.Element;
+import org.staxnav.StaxNavException;
 import org.staxnav.StaxNavigator;
 import org.staxnav.ValueType;
 
@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gatein.common.xml.stax.navigator.Exceptions.*;
+import static org.gatein.common.xml.stax.navigator.StaxNavUtils.*;
 import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
 
 /**
@@ -64,6 +65,10 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
          StaxWriter<Element> writer = createWriter(Element.class, outputStream);
          marshalNavigationData(writer, object);
       }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
+      }
       catch (XMLStreamException e)
       {
          throw new BindingException(e);
@@ -81,10 +86,10 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
    {
       try
       {
-         StaxNavigator<Element> navigator = StaxNavUtils.createNavigator(Element.class, Element.UNKNOWN, is);
+         StaxNavigator<Element> navigator = createNavigator(Element.class, Element.UNKNOWN, is);
          return unmarshalNavigationData(navigator);
       }
-      catch (XMLStreamException e)
+      catch (StaxNavException e)
       {
          throw new BindingException(e);
       }
@@ -148,37 +153,40 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writer.writeEndElement(); // End of node
    }
 
-   private NavigationData unmarshalNavigationData(StaxNavigator<Element> navigator) throws XMLStreamException
+   private NavigationData unmarshalNavigationData(StaxNavigator<Element> navigator) throws StaxNavException
    {
       if (navigator.getName() == Element.NODE_NAVIGATION)
       {
-         List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
-         Integer priority = null;
-
-         // Unmarshal priority
-         if (navigator.child(Element.PRIORITY))
+         Element next = navigator.child();
+         if (next != Element.PRIORITY)
          {
-            priority = Integer.valueOf(navigator.parseContent(ValueType.INTEGER));
+            throw expectedElement(navigator, Element.PRIORITY);
          }
+         Integer priority = parseRequiredContent(navigator, ValueType.INTEGER);
 
-         if (navigator.sibling(Element.PAGE_NODES))
+         List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
+
+         next = navigator.sibling();
+         if (next == Element.PAGE_NODES)
          {
-            if (navigator.child(Element.NODE))
+            next = navigator.child();
+            if (next == Element.NODE)
             {
                for (StaxNavigator<Element> fork : navigator.fork(Element.NODE))
                {
                   nodes.add(unmarshalNavigationNodeData(fork));
                }
             }
-            else
+            else if (next != null)
             {
                throw unknownElement(navigator);
             }
          }
-         else
+         else if (next != null)
          {
-            throw unknownElement(navigator);
+            throw expectedElement(navigator, Element.PAGE_NODES);
          }
+
          return new NavigationData("", "", priority, nodes);
       }
       else
@@ -187,7 +195,7 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       }
    }
 
-   private NavigationNodeData unmarshalNavigationNodeData(StaxNavigator<Element> navigator) throws XMLStreamException
+   private NavigationNodeData unmarshalNavigationNodeData(StaxNavigator<Element> navigator) throws StaxNavException
    {
       String uri = null;
       String name = null;

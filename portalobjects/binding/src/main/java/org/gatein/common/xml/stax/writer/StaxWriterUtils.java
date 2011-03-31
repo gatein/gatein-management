@@ -141,6 +141,26 @@ public class StaxWriterUtils
       writer.writeElement(element, valueType, value);
    }
 
+   public static <N> void writeOptionalContent(StaxWriter<N> writer, N element, String content)
+   {
+      writer.writeStartElement(element);
+      if (content != null)
+      {
+         writer.writeContent(content);
+      }
+      writer.writeEndElement();
+   }
+
+   public static <N, V> void writeOptionalContent(StaxWriter<N> writer, N element, WritableValueType<V> valueType, V value)
+   {
+      writer.writeStartElement(element);
+      if (value != null)
+      {
+         writer.writeContent(valueType, value);
+      }
+      writer.writeEndElement();
+   }
+
    private static StaxWriterBuilder buildDefaultWriter()
    {
       return buildWriter().withEncoding("UTF-8").withVersion("1.0")

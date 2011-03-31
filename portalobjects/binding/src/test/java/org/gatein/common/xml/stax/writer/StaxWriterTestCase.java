@@ -170,6 +170,12 @@ public abstract class StaxWriterTestCase<N>
       verify(stream).writeCharacters("some value");
    }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void testWriteNullContent() throws Exception
+   {
+      writer.writeContent(null);
+   }
+
    @Test
    public void testNamespace() throws Exception
    {

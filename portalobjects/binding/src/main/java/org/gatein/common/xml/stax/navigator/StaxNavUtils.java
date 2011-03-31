@@ -34,6 +34,9 @@ import org.staxnav.ValueType;
 import javax.xml.namespace.QName;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.gatein.common.xml.stax.navigator.Exceptions.*;
 
@@ -105,10 +108,9 @@ public class StaxNavUtils
       return createNavigator(naming, reader);
    }
 
-
    public static void requiresChild(StaxNavigator<Element> navigator, Element element)
    {
-      if (!navigator.child(element))
+      if (navigator.child() != element)
       {
          throw expectedElement(navigator, element);
       }
@@ -180,6 +182,11 @@ public class StaxNavUtils
       }
 
       return value;
+   }
+
+   public static <N> Set<N> forNames(N...names)
+   {
+      return new HashSet<N>(Arrays.asList(names));
    }
 
    private static StaxNavBuilder buildDefaultNavigator()

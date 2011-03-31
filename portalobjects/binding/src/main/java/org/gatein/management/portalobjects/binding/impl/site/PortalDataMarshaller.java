@@ -33,6 +33,7 @@ import org.gatein.management.binding.api.BindingException;
 import org.gatein.management.binding.api.Bindings;
 import org.gatein.management.portalobjects.binding.impl.AbstractPomDataMarshaller;
 import org.gatein.management.portalobjects.binding.impl.Element;
+import org.staxnav.StaxNavException;
 import org.staxnav.StaxNavigator;
 
 import javax.xml.stream.XMLStreamException;
@@ -71,6 +72,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
 
          writer.finish();
       }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
+      }
       catch (XMLStreamException e)
       {
          throw new BindingException(e);
@@ -96,6 +101,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
 
          writer.finish();
       }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
+      }
       catch (XMLStreamException e)
       {
          throw new BindingException(e);
@@ -117,6 +126,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
          {
             throw unknownElement(navigator);
          }
+      }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
       }
       catch (XMLStreamException e)
       {
@@ -151,6 +164,10 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
          {
             throw unknownElement(navigator);
          }
+      }
+      catch (StaxNavException e)
+      {
+         throw new BindingException(e);
       }
       catch (XMLStreamException e)
       {
@@ -251,7 +268,7 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
                current = navigator.next();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(navigator);
+               accessPermissions = unmarshalAccessPermissions(navigator, false);
                current = navigator.sibling();
                break;
             case EDIT_PERMISSION:

@@ -20,30 +20,26 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl.site;
+package org.gatein.common.xml.stax.writer.formatting;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Attribute
+public class NoOpFormatter implements XmlStreamingFormatter
 {
-   PROPERTIES_KEY("key");
-
-   private final String name;
-
-   Attribute(final String name)
+   @Override
+   public void before(XMLStreamWriter writer, int event) throws XMLStreamException
    {
-      this.name = name;
+      // No-op
    }
 
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
-   public String getLocalName()
+   @Override
+   public void after(XMLStreamWriter writer, int event) throws XMLStreamException
    {
-      return name;
+      // No-op
    }
 }

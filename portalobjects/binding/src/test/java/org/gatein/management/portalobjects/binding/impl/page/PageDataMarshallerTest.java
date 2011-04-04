@@ -30,6 +30,7 @@ import org.exoplatform.portal.pom.data.ApplicationData;
 import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.PageData;
+import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
 import org.gatein.management.portalobjects.binding.impl.AbstractMarshallerTest;
@@ -155,12 +156,24 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          {
             count++;
          }
-         assertEquals(1, count);
+         assertEquals(3, count);
          Preference pref = portlet.getPreference("template");
          assertNotNull(pref);
          assertEquals("template", pref.getName());
          assertEquals("system:/templates/groovy/webui/component/UIHomePagePortlet.gtmpl", pref.getValue());
          assertTrue(pref.isReadOnly());
+
+         pref = portlet.getPreference("empty-preference-value");
+         assertNotNull(pref);
+         assertEquals("empty-preference-value", pref.getName());
+         assertNull(pref.getValue());
+         assertFalse(pref.isReadOnly());
+
+         pref = portlet.getPreference("no-preference-value");
+         assertNotNull(pref);
+         assertEquals("no-preference-value", pref.getName());
+         assertNull(pref.getValue());
+         assertFalse(pref.isReadOnly());
 
          assertEquals("Mac:MacTheme::Default:DefaultTheme::Vista:VistaTheme", application.getTheme());
          assertEquals("Home Page portlet", application.getTitle());
@@ -234,28 +247,28 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          assertEquals("300px", orgContainer.getHeight());
          assertEquals("/platform/users", Utils.join(";", orgContainer.getAccessPermissions()));
          {
-            // Verify org mgmt application
+            // Verify calendar gadget application
             assertNotNull(orgContainer.getChildren());
             assertEquals(1, orgContainer.getChildren().size());
-            ComponentData orgappComp = orgContainer.getChildren().get(0);
-            assertTrue(orgappComp instanceof ApplicationData);
+            ComponentData gadgetComponent = orgContainer.getChildren().get(0);
+            assertTrue(gadgetComponent instanceof ApplicationData);
             @SuppressWarnings("unchecked")
-            ApplicationData<Portlet> application = (ApplicationData<Portlet>) orgappComp;
-            assertTrue(application.getType() == ApplicationType.PORTLET);
-            ApplicationState<Portlet> state = application.getState();
+            ApplicationData<Gadget> application = (ApplicationData<Gadget>) gadgetComponent;
+            assertTrue(application.getType() == ApplicationType.GADGET);
+            ApplicationState<Gadget> state = application.getState();
             assertNotNull(state);
             assertTrue(state instanceof TransientApplicationState);
-            TransientApplicationState<Portlet> tas = (TransientApplicationState<Portlet>) state;
-            assertEquals("exoadmin/OrganizationPortlet", tas.getContentId());
+            TransientApplicationState<Gadget> tas = (TransientApplicationState<Gadget>) state;
+            assertEquals("Calendar", tas.getContentId());
             assertNull(tas.getContentState());
 
             assertEquals("Vista:VistaTheme::Mac:MacTheme::Default:DefaultTheme", application.getTheme());
-            assertEquals("Organization Management", application.getTitle());
+            assertEquals("Calendar Title", application.getTitle());
             assertEquals("*:/platform/administrators;*:/organization/management/executive-board", Utils.join(";", application.getAccessPermissions()));
             assertTrue(application.isShowInfoBar());
             assertFalse(application.isShowApplicationState());
             assertFalse(application.isShowApplicationMode());
-            assertEquals("Organization Management", application.getDescription());
+            assertEquals("Calendar Description", application.getDescription());
             assertEquals("StarAwardIcon", application.getIcon());
             assertEquals("100px", application.getWidth());
             assertEquals("200px", application.getHeight());
@@ -269,6 +282,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
       ContainerData container3 = (ContainerData) c3;
       assertEquals("c3", container3.getId());
       assertEquals("system:/groovy/portal/webui/container/UIContainer.gtmpl", container3.getTemplate());
+      assertEquals(container3.getTemplate(), "system:/groovy/portal/webui/container/UIContainer.gtmpl");
       assertEquals("Everyone", Utils.join(";", container3.getAccessPermissions()));
       assertNull(container3.getFactoryId());
       {
@@ -321,6 +335,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
       portlet.putPreference(new Preference("pref-1", "value-1", true));
       portlet.putPreference(new Preference("pref-2", "value-2", false));
       portlet.putPreference(new Preference("multi-value-pref", Arrays.asList("one", "two", "three"), false));
+      portlet.putPreference(new Preference("empty-value-pref", (String) null, true));
 
       ApplicationState<Portlet> state = new TransientApplicationState<Portlet>("app-ref/portlet-ref", portlet);
       ApplicationData<Portlet> applicationData = new ApplicationData<Portlet>(null, null,
@@ -330,11 +345,44 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
 
       ContainerData containerData = new ContainerData(null, "cd-id", "cd-name", "cd-icon", "cd-template", "cd-factoryId", "cd-title", "cd-description", "cd-width", "cd-height", Collections.singletonList("cd-access-permissions"), Collections.singletonList((ComponentData) applicationData));
       List<ComponentData> children = Collections.singletonList((ComponentData) containerData);
+      
       PageData expected = new PageData(null, null, "page-name", null, null, null, "Page Title", null, null, null,
          Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
 
       PageDataMarshaller marshaller = new PageDataMarshaller();
       marshaller.marshal(expected, baos);
+
+      //System.out.println(baos.toString());
+      
+      PageData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
+
+      comparePages(expected, actual);
+   }
+
+   @Test
+   public void testPageMarshallingWithGadget()
+   {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+      Gadget gadget = null;
+      //TODO: Uncomment when gadget user-prefs are supported in gatein_objects
+      //Gadget gadget = new Gadget();
+      //gadget.setUserPref("user-pref");
+
+      ApplicationState<Gadget> state = new TransientApplicationState<Gadget>("gadget-ref", gadget);
+      ApplicationData<Gadget> applicationData = new ApplicationData<Gadget>(null, null,
+         ApplicationType.GADGET, state, null, "app-title", "app-icon", "app-description", false, true, false,
+         "app-theme", "app-wdith", "app-height", new HashMap<String,String>(),
+         Collections.singletonList("app-edit-permissions"));
+
+      List<ComponentData> children = Collections.singletonList((ComponentData) applicationData);
+      PageData expected = new PageData(null, null, "page-name", null, null, null, "Page Title", null, null, null,
+         Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
+
+      PageDataMarshaller marshaller = new PageDataMarshaller();
+      marshaller.marshal(expected, baos);
+
+      //System.out.println(baos.toString());
 
       PageData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
 

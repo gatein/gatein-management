@@ -20,30 +20,22 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl.site;
+package org.gatein.common.xml.stax.writer.builder;
+
+
+import org.gatein.common.xml.stax.writer.formatting.XmlStreamingFormatter;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Attribute
+public interface StaxFormatterBuilder
 {
-   PROPERTIES_KEY("key");
+   StaxFormatterBuilder withIndentCharacter(char indentCharacter);
 
-   private final String name;
+   StaxFormatterBuilder ofIndentSize(int indentSize);
 
-   Attribute(final String name)
-   {
-      this.name = name;
-   }
+   StaxFormatterBuilder withNewline(String newline);
 
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
-   public String getLocalName()
-   {
-      return name;
-   }
+   XmlStreamingFormatter build() throws IllegalStateException;
 }

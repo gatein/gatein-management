@@ -20,30 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl.site;
+package org.gatein.common.xml.stax.writer;
+
+import org.staxnav.StaxNavException;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Attribute
+public interface WritableValueType<V>
 {
-   PROPERTIES_KEY("key");
-
-   private final String name;
-
-   Attribute(final String name)
-   {
-      this.name = name;
-   }
-
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
-   public String getLocalName()
-   {
-      return name;
-   }
+   String format(V value) throws StaxNavException;
 }

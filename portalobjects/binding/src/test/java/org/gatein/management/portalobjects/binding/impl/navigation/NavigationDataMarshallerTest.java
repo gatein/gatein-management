@@ -66,6 +66,17 @@ public class NavigationDataMarshallerTest
    }
 
    @Test
+   public void testEmptyNavigationUnmarshalling()
+   {
+      NavigationDataMarshaller marshaller = new NavigationDataMarshaller();
+      NavigationData data = marshaller.unmarshal(getClass().getResourceAsStream("/empty-navigation.xml"));
+      assertNotNull(data);
+      assertEquals(3, data.getPriority());
+      assertNotNull(data.getNodes());
+      assertTrue(data.getNodes().isEmpty());
+   }
+
+   @Test
    public void testNavigationMarshalling()
    {
       Calendar startCal = Calendar.getInstance();

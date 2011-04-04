@@ -28,7 +28,6 @@ import org.exoplatform.container.PortalContainer;
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.TransientApplicationState;
-import org.exoplatform.portal.pom.config.Utils;
 import org.exoplatform.portal.pom.data.ApplicationData;
 import org.exoplatform.portal.pom.data.BodyData;
 import org.exoplatform.portal.pom.data.ComponentData;
@@ -39,22 +38,22 @@ import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.PortletBuilder;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
+import org.gatein.common.xml.stax.writer.StaxWriter;
+import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.binding.api.Marshaller;
-import org.gatein.staxbuilder.EnumAttribute;
-import org.gatein.staxbuilder.EnumElement;
-import org.gatein.staxbuilder.reader.StaxReader;
-import org.gatein.staxbuilder.writer.StaxWriter;
+import org.staxnav.StaxNavigator;
+import org.staxnav.ValueType;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static org.gatein.common.xml.stax.navigator.Exceptions.*;
+import static org.gatein.common.xml.stax.navigator.StaxNavUtils.*;
+import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -69,7 +68,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
    {
    }
 
-   protected void marshalComponentData(StaxWriter writer, ComponentData componentData) throws XMLStreamException
+   protected void marshalComponentData(StaxWriter<Element> writer, ComponentData componentData) throws XMLStreamException
    {
       if (componentData instanceof ApplicationData)
       {
@@ -99,7 +98,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       }
       else if (componentData instanceof BodyData)
       {
-         writer.writeStartElement("page-body").writeEndElement();
+         writer.writeStartElement(Element.PAGE_BODY).writeEndElement();
       }
       else
       {
@@ -107,7 +106,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       }
    }
 
-   protected void marshalContainerData(StaxWriter writer, ContainerData componentData) throws XMLStreamException
+   protected void marshalContainerData(StaxWriter<Element> writer, ContainerData componentData) throws XMLStreamException
    {
       writer.writeStartElement(Element.CONTAINER);
 
@@ -116,14 +115,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       writeOptionalAttribute(writer, Attribute.WIDTH, componentData.getWidth());
       writeOptionalAttribute(writer, Attribute.HEIGHT, componentData.getHeight());
 
-      writer.writeOptionalElement(Element.NAME, componentData.getName());
-      writer.writeOptionalElement(Element.TITLE, componentData.getTitle());
-      writer.writeOptionalElement(Element.ICON, componentData.getIcon());
-      writer.writeOptionalElement(Element.DESCRIPTION, componentData.getDescription());
+      writeOptionalElement(writer, Element.NAME, componentData.getName());
+      writeOptionalElement(writer, Element.TITLE, componentData.getTitle());
+      writeOptionalElement(writer, Element.ICON, componentData.getIcon());
+      writeOptionalElement(writer, Element.DESCRIPTION, componentData.getDescription());
 
       marshalAccessPermissions(writer, componentData.getAccessPermissions());
 
-      writer.writeOptionalElement(Element.FACTORY_ID, componentData.getFactoryId());
+      writeOptionalElement(writer, Element.FACTORY_ID, componentData.getFactoryId());
 
       List<ComponentData> components = componentData.getChildren();
       for (ComponentData component : components)
@@ -134,89 +133,73 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       writer.writeEndElement(); // End of container element
    }
 
-   protected ContainerData unmarshalContainerData(StaxReader reader) throws XMLStreamException
+   protected ContainerData unmarshalContainerData(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      String id = null;
+      String id = navigator.getAttribute(Attribute.ID.getLocalName());
+      String template = navigator.getAttribute(Attribute.TEMPLATE.getLocalName());
+      String width = navigator.getAttribute(Attribute.WIDTH.getLocalName());
+      String height = navigator.getAttribute(Attribute.HEIGHT.getLocalName());
+
       String name = null;
       String title = null;
       String icon = null;
-      String template = null;
-      String width = null;
-      String height = null;
       String description = null;
       List<String> accessPermissions = null;
       String factoryId = null;
       List<ComponentData> components = new ArrayList<ComponentData>();
 
-      int count = reader.currentReadEvent().getAttributeCount();
-      for (int i=0; i<count; i++)
+      Element current = navigator.child();
+      while (current != null)
       {
-         String attributeName = reader.currentReadEvent().getAttributeLocalName(i);
-         if (Attribute.ID.getLocalName().equals(attributeName))
-         {
-            id = reader.currentReadEvent().getAttributeValue(i);
-         }
-         else if (Attribute.TEMPLATE.getLocalName().equals(attributeName))
-         {
-            template = reader.currentReadEvent().getAttributeValue(i);
-         }
-         else if (Attribute.WIDTH.getLocalName().endsWith(attributeName))
-         {
-            width = reader.currentReadEvent().getAttributeValue(i);
-         }
-         else if (Attribute.HEIGHT.getLocalName().equals(attributeName))
-         {
-            height = reader.currentReadEvent().getAttributeValue(i);
-         }
-      }
-      reader.buildReadEvent().withNestedRead().untilElement(Element.CONTAINER).end();
-      while (reader.hasNext())
-      {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         switch (current)
          {
             case NAME:
-               name = reader.currentReadEvent().elementText();
+               name = navigator.getContent();
+               current = navigator.sibling();
                break;
             case TITLE:
-               title = reader.currentReadEvent().elementText();
+               title = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ICON:
-               icon = reader.currentReadEvent().elementText();
+               icon = navigator.getContent();
+               current = navigator.sibling();
                break;
             case DESCRIPTION:
-               description = reader.currentReadEvent().elementText();
+               description = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(reader);
+               accessPermissions = unmarshalAccessPermissions(navigator, false);
+               current = navigator.sibling();
                break;
             case FACTORY_ID:
-               factoryId = reader.currentReadEvent().elementText();
+               factoryId = navigator.getContent();
+               current = navigator.sibling();
                break;
             case CONTAINER:
-               components.add(unmarshalContainerData(reader));
+               components.add(unmarshalContainerData(navigator.fork()));
+               current = navigator.getName();
                break;
             case PORTLET_APPLICATION:
-               components.add(unmarshalPortletApplication(reader));
+               components.add(unmarshalPortletApplication(navigator.fork()));
+               current = navigator.getName();
+               break;
+            case GADGET_APPLICATION:
+               components.add(unmarshalGadgetApplication(navigator.fork()));
+               current = navigator.getName();
                break;
             case UNKNOWN:
-               throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() +
-                  "' while unmarshalling container.", reader.currentReadEvent().getLocation());
-            case SKIP:
-               break;
+               throw unknownElement(navigator);
             default:
-               break;
+               throw unexpectedElement(navigator);
          }
       }
 
       return new ContainerData(null, id, name, icon, template, factoryId, title, description, width, height, accessPermissions, components);
    }
 
-   protected boolean isContainer(StaxReader reader) throws XMLStreamException
-   {
-      return isCurrentElement(reader, Element.CONTAINER);
-   }
-
-   protected void marshalPortletApplication(StaxWriter writer, ApplicationData<Portlet> portletApplication) throws XMLStreamException
+   protected void marshalPortletApplication(StaxWriter<Element> writer, ApplicationData<Portlet> portletApplication) throws XMLStreamException
    {
       writer.writeStartElement(Element.PORTLET_APPLICATION).writeStartElement(Element.PORTLET);
 
@@ -272,7 +255,6 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       // Marshal preferences
       if (portlet != null)
       {
-
          boolean prefsWritten = false;
          for (Preference preference : portlet)
          {
@@ -281,13 +263,14 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
                writer.writeStartElement(Element.PREFERENCES);
                prefsWritten = true;
             }
-            writer.writeStartElement(Element.PREFERENCE).writeElement(Element.NAME, preference.getName());
-            //TODO: what to do for multivalue preference values ? i think JiBX accepts multiple values here, xsd does not
+
+            writer.writeStartElement(Element.PREFERENCE);
+            writer.writeElement(Element.NAME, preference.getName());
             for (String value : preference.getValues())
             {
-               writer.writeOptionalElement(Element.PREFERENCE_VALUE, value);
+               writeOptionalContent(writer, Element.PREFERENCE_VALUE, value);
             }
-            writer.writeOptionalElement(Element.PREFERENCE_READONLY, String.valueOf(preference.isReadOnly()));
+            writer.writeElement(Element.PREFERENCE_READONLY, WritableValueTypes.BOOLEAN, preference.isReadOnly());
             writer.writeEndElement(); // End of preference
          }
          if (prefsWritten)
@@ -302,136 +285,140 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       writer.writeEndElement(); // End of portlet-application
    }
 
-   protected ApplicationData<Portlet> unmarshalPortletApplication(StaxReader reader) throws XMLStreamException
+   protected ApplicationData<Portlet> unmarshalPortletApplication(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      ApplicationState<Portlet> state = null;
       String theme = null;
       String title = null;
       String description = null;
       List<String> accessPermissions = null;
-      boolean showInfoBar = false;
+      Boolean showInfoBar = null;
       boolean showApplicationState = false;
       boolean showApplicationMode = false;
       String icon = null;
       String width = null;
       String height = null;
 
-      reader.buildReadEvent().withNestedRead().untilElement(Element.PORTLET_APPLICATION).end();
-      while(reader.hasNext())
+      requiresChild(navigator, Element.PORTLET);
+      ApplicationState<Portlet> state = unmarshalPortletApplicationState(navigator.fork());
+
+      Element current = navigator.getName();
+      while (current != null)
       {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         switch (current)
          {
-            case PORTLET:
-               state = unmarshalPortletApplicationState(reader);
-               break;
             case THEME:
-               theme = reader.currentReadEvent().elementText();
+               theme = navigator.getContent();
+               current = navigator.sibling();
                break;
             case TITLE:
-               title = reader.currentReadEvent().elementText();
-               break;
-            case DESCRIPTION:
-               description = reader.currentReadEvent().elementText();
+               title = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(reader);
+               accessPermissions = unmarshalAccessPermissions(navigator, true);
+               current = navigator.sibling();
                break;
             case SHOW_INFO_BAR:
-               showInfoBar = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showInfoBar = parseRequiredContent(navigator, ValueType.BOOLEAN);
+               current = navigator.sibling();
                break;
             case SHOW_APPLICATION_STATE:
-               showApplicationState = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showApplicationState = navigator.parseContent(ValueType.BOOLEAN);
+               current = navigator.sibling();
                break;
             case SHOW_APPLICATION_MODE:
-               showApplicationMode = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showApplicationMode = navigator.parseContent(ValueType.BOOLEAN);
+               current = navigator.sibling();
+               break;
+            case DESCRIPTION:
+               description = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ICON:
-               icon = reader.currentReadEvent().elementText();
+               icon = navigator.getContent();
+               current = navigator.sibling();
                break;
             case WIDTH:
-               width = reader.currentReadEvent().elementText();
+               width = navigator.getContent();
+               current = navigator.sibling();
                break;
             case HEIGHT:
-               height = reader.currentReadEvent().elementText();
+               height = navigator.getContent();
+               current = navigator.sibling();
                break;
             case UNKNOWN:
-               throw new XMLStreamException("Uknown element '" + reader.currentReadEvent().getLocalName() +
-                  "' while unmarshalling portlet application.", reader.currentReadEvent().getLocation());
-            case SKIP:
-               break;
+               throw unknownElement(navigator);
             default:
-               break;
+               throw unexpectedElement(navigator);
          }
       }
+
+      //TODO: We should raise this exception as soon as we know so location is accurate
+      if (accessPermissions == null) throw expectedElement(navigator, Element.ACCESS_PERMISSIONS);
+      if (showInfoBar == null) throw expectedElement(navigator, Element.SHOW_INFO_BAR);
 
       return new ApplicationData<Portlet>(null, null, ApplicationType.PORTLET, state, null, title, icon, description,
          showInfoBar, showApplicationState, showApplicationMode, theme, width, height, Collections.<String, String>emptyMap(), accessPermissions);
    }
 
-   private ApplicationState<Portlet> unmarshalPortletApplicationState(StaxReader reader)
-      throws XMLStreamException
+   private ApplicationState<Portlet> unmarshalPortletApplicationState(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      String applicationRef = null;
-      String portletRef = null;
+      // Application name
+      requiresChild(navigator, Element.APPLICATION_REF);
+      String applicationRef = getRequiredContent(navigator, true);
+
+      // Portlet name
+      requiresSibling(navigator, Element.PORTLET_REF);
+      String portletRef = getRequiredContent(navigator, true);
+
+      // Preferences
       PortletBuilder portletBuilder = null;
-      reader.buildReadEvent().withNestedRead().untilElement(Element.PORTLET).end();
-      while (reader.hasNext())
+      if (navigator.sibling() == Element.PREFERENCES)
       {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         requiresChild(navigator, Element.PREFERENCE);
+         portletBuilder = new PortletBuilder();
+         for (StaxNavigator<Element> fork : navigator.fork(Element.PREFERENCE))
          {
-            case APPLICATION_REF:
-               applicationRef = reader.currentReadEvent().elementText();
-               break;
-            case PORTLET_REF:
-               portletRef = reader.currentReadEvent().elementText();
-               break;
-            case PREFERENCES:
-               portletBuilder = new PortletBuilder();
-               break;
-            case PREFERENCE:
-               if (portletBuilder == null)
-               {
-                  throw new XMLStreamException("Cannot have " + Element.PREFERENCE.getLocalName() +
-                     " element without parent " + Element.PREFERENCES + " element.");
-               }
-               String prefName = null;
-               List<String> prefValue = null;
-               boolean readOnly = true;
-               reader.buildReadEvent().withNestedRead().untilElement(Element.PREFERENCE).end();
-               while (reader.hasNext())
-               {
-                  switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
-                  {
-                     case NAME:
-                        prefName = reader.currentReadEvent().elementText();
-                        break;
-                     case PREFERENCE_VALUE:
-                        if (prefValue == null) prefValue = new ArrayList<String>();
-                        prefValue.add(reader.currentReadEvent().elementText());
-                        break;
-                     case PREFERENCE_READONLY:
-                        readOnly = Boolean.valueOf(reader.currentReadEvent().elementText());
-                        break;
-                     case UNKNOWN:
-                        throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() + "' while unmarshalling preference.",
-                           reader.currentReadEvent().getLocation());
-                     case SKIP:
-                        break;
-                     default:
-                        break;
-                  }
-               }
-               portletBuilder.add(prefName, prefValue, readOnly);
-               break;
-            case UNKNOWN:
-               throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() +
-                  "' while unmarshalling portlet", reader.currentReadEvent().getLocation());
-            case SKIP:
-               break;
-            default:
-               break;
+            // Preference name
+            requiresChild(fork, Element.NAME);
+            String prefName = getRequiredContent(fork, false);
+
+            // Preference values
+            List<String> values = null;
+            while (fork.sibling() == Element.PREFERENCE_VALUE)
+            {
+               if (values == null) values = new ArrayList<String>();
+               values.add(getContent(fork, false));
+            }
+            if (values == null)
+            {
+               values = Collections.singletonList(null);
+            }
+
+            // Preference readonly
+            Boolean readOnly = null;
+            if (fork.getName() == Element.PREFERENCE_READONLY)
+            {
+               readOnly = parseRequiredContent(fork,  ValueType.BOOLEAN);
+            }
+
+            // Ensure nothing is left.
+            if (fork.next() != null)
+            {
+               throw unexpectedElement(fork);
+            }
+
+            if (readOnly == null)
+            {
+               portletBuilder.add(prefName, values);
+            }
+            else
+            {
+               portletBuilder.add(prefName, values, readOnly);
+            }
          }
       }
+
       TransientApplicationState<Portlet> state = new TransientApplicationState<Portlet>(applicationRef + "/" + portletRef);
       if (portletBuilder != null)
       {
@@ -441,12 +428,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       return state;
    }
 
-   protected boolean isPortletApplication(StaxReader reader) throws XMLStreamException
-   {
-      return isCurrentElement(reader, Element.PORTLET_APPLICATION);
-   }
-
-   protected void marshalGadgetApplication(StaxWriter writer, ApplicationData<Gadget> gadgetApplication) throws XMLStreamException
+   protected void marshalGadgetApplication(StaxWriter<Element> writer, ApplicationData<Gadget> gadgetApplication) throws XMLStreamException
    {
       writer.writeStartElement(Element.GADGET_APPLICATION).writeStartElement(Element.GADGET);
 
@@ -512,178 +494,156 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       writer.writeEndElement(); // End of gadget-application
    }
 
-   protected ApplicationData<Gadget> unmarshalGadgetApplication(StaxReader reader) throws XMLStreamException
+   protected ApplicationData<Gadget> unmarshalGadgetApplication(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      ApplicationState<Gadget> state = null;
       String theme = null;
       String title = null;
       String description = null;
       List<String> accessPermissions = null;
-      boolean showInfoBar = false;
+      Boolean showInfoBar = null;
       boolean showApplicationState = false;
       boolean showApplicationMode = false;
       String icon = null;
       String width = null;
       String height = null;
 
-      reader.buildReadEvent().withNestedRead().untilElement(Element.GADGET_APPLICATION).end();
-      while(reader.hasNext())
+      requiresChild(navigator, Element.GADGET);
+      ApplicationState<Gadget> state = unmarshalGadgetApplicationState(navigator.fork());
+
+      Element current = navigator.getName();
+      while (current != null)
       {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
+         switch (current)
          {
-            case GADGET:
-               state = unmarshalGadgetApplicationState(reader);
-               break;
             case THEME:
-               theme = reader.currentReadEvent().elementText();
+               theme = navigator.getContent();
+               current = navigator.sibling();
                break;
             case TITLE:
-               title = reader.currentReadEvent().elementText();
-               break;
-            case DESCRIPTION:
-               description = reader.currentReadEvent().elementText();
+               title = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ACCESS_PERMISSIONS:
-               accessPermissions = unmarshalAccessPermissions(reader);
+               accessPermissions = unmarshalAccessPermissions(navigator, true);
+               current = navigator.sibling();
                break;
             case SHOW_INFO_BAR:
-               showInfoBar = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showInfoBar = parseRequiredContent(navigator, ValueType.BOOLEAN);
+               current = navigator.sibling();
                break;
             case SHOW_APPLICATION_STATE:
-               showApplicationState = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showApplicationState = navigator.parseContent(ValueType.BOOLEAN);
+               current = navigator.sibling();
                break;
             case SHOW_APPLICATION_MODE:
-               showApplicationMode = Boolean.valueOf(reader.currentReadEvent().elementText());
+               showApplicationMode = navigator.parseContent(ValueType.BOOLEAN);
+               current = navigator.sibling();
+               break;
+            case DESCRIPTION:
+               description = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ICON:
-               icon = reader.currentReadEvent().elementText();
+               icon = navigator.getContent();
+               current = navigator.sibling();
                break;
             case WIDTH:
-               width = reader.currentReadEvent().elementText();
+               width = navigator.getContent();
+               current = navigator.sibling();
                break;
             case HEIGHT:
-               height = reader.currentReadEvent().elementText();
+               height = navigator.getContent();
+               current = navigator.sibling();
                break;
             case UNKNOWN:
-               throw new XMLStreamException("Uknown element '" + reader.currentReadEvent().getLocalName() +
-                  "' while unmarshalling gadget application.", reader.currentReadEvent().getLocation());
-            case SKIP:
-               break;
+               throw unknownElement(navigator);
             default:
-               break;
+               throw unexpectedElement(navigator);
          }
       }
+
+      //TODO: We should raise this exception as soon as we know so location is accurate
+      if (accessPermissions == null) throw expectedElement(navigator, Element.ACCESS_PERMISSIONS);
+      if (showInfoBar == null) throw expectedElement(navigator, Element.SHOW_INFO_BAR);
 
       return new ApplicationData<Gadget>(null, null, ApplicationType.GADGET, state, null, title, icon, description,
          showInfoBar, showApplicationState, showApplicationMode, theme, width, height, Collections.<String, String>emptyMap(), accessPermissions);
    }
 
-   private ApplicationState<Gadget> unmarshalGadgetApplicationState(StaxReader reader) throws XMLStreamException
+   private ApplicationState<Gadget> unmarshalGadgetApplicationState(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      String gadgetRef = null;
-      String userPref = null;
-      reader.buildReadEvent().withNestedRead().untilElement(Element.GADGET).end();
-      while (reader.hasNext())
+      requiresChild(navigator, Element.GADGET_REF);
+      String gadgetRef = getRequiredContent(navigator, true);
+
+      //TODO: Implement userPref unmarshalling when gatein_objects support it
+      Gadget gadget = null;
+
+      if (navigator.next() != null)
       {
-         switch (reader.read().match().onElement(Element.class, Element.UNKNOWN, Element.SKIP))
-         {
-            case GADGET_REF:
-               gadgetRef = reader.currentReadEvent().elementText();
-               break;
-            //TODO: When user-prefs are supported uncomment
-            /*case PREFERENCES:
-               userPref = reader.currentReadEvent().elementText();
-               break;*/
-            case UNKNOWN:
-               throw new XMLStreamException("Unknown element '" + reader.currentReadEvent().getLocalName() +
-                  "' while unmarshalling gadget", reader.currentReadEvent().getLocation());
-            case SKIP:
-               break;
-            default:
-               break;
-         }
+         throw unexpectedElement(navigator);
       }
-      Gadget gadget = new Gadget();
-      gadget.setUserPref(userPref);
+
       return new TransientApplicationState<Gadget>(gadgetRef, gadget);
    }
 
-   protected boolean isGadgetApplication(StaxReader reader) throws XMLStreamException
-   {
-      return isCurrentElement(reader, Element.GADGET_APPLICATION);
-   }
-
-   protected void marshalApplication(StaxWriter writer, ApplicationData<?> application) throws XMLStreamException
+   protected void marshalApplication(StaxWriter<Element> writer, ApplicationData<?> application) throws XMLStreamException
    {
       // Theme, Title
-      writer.writeOptionalElement(Element.THEME, application.getTheme());
-      writer.writeOptionalElement(Element.TITLE, application.getTitle());
+      writeOptionalElement(writer, Element.THEME, application.getTheme());
+      writeOptionalElement(writer, Element.TITLE, application.getTitle());
 
       // Access Permissions
       marshalAccessPermissions(writer, application.getAccessPermissions());
 
       // common application elements
-      writer.writeOptionalElement(Element.SHOW_INFO_BAR, String.valueOf(application.isShowInfoBar()));
-      writer.writeOptionalElement(Element.SHOW_APPLICATION_STATE, String.valueOf(application.isShowApplicationState()));
-      writer.writeOptionalElement(Element.SHOW_APPLICATION_MODE, String.valueOf(application.isShowApplicationMode()));
+      writeOptionalElement(writer, Element.SHOW_INFO_BAR, String.valueOf(application.isShowInfoBar()));
+      writeOptionalElement(writer, Element.SHOW_APPLICATION_STATE, String.valueOf(application.isShowApplicationState()));
+      writeOptionalElement(writer, Element.SHOW_APPLICATION_MODE, String.valueOf(application.isShowApplicationMode()));
 
       // Description, Icon
-      writer.writeOptionalElement(Element.DESCRIPTION, application.getDescription());
-      writer.writeOptionalElement(Element.ICON, application.getIcon());
+      writeOptionalElement(writer, Element.DESCRIPTION, application.getDescription());
+      writeOptionalElement(writer, Element.ICON, application.getIcon());
 
       // Width & Height
-      writer.writeOptionalElement(Element.WIDTH, application.getWidth());
-      writer.writeOptionalElement(Element.HEIGHT, application.getHeight());
+      writeOptionalElement(writer, Element.WIDTH, application.getWidth());
+      writeOptionalElement(writer, Element.HEIGHT, application.getHeight());
    }
 
-   protected void marshalAccessPermissions(StaxWriter writer, List<String> accessPermissionsList) throws XMLStreamException
+   protected void marshalAccessPermissions(StaxWriter<Element> writer, List<String> accessPermissionsList) throws XMLStreamException
    {
-      String accessPermissions = Utils.join(PERMISSIONS_SEPARATOR, accessPermissionsList);
-      if (accessPermissions != null && accessPermissions.trim().length() == 0) accessPermissions = null;
-      writer.writeOptionalElement(Element.ACCESS_PERMISSIONS, accessPermissions);
+      writeOptionalElement(writer, Element.ACCESS_PERMISSIONS, DelimitedValueType.SEMI_COLON, accessPermissionsList);
    }
 
-   protected List<String> unmarshalAccessPermissions(StaxReader reader) throws XMLStreamException
+   protected List<String> unmarshalAccessPermissions(StaxNavigator<Element> navigator, boolean required) throws XMLStreamException
    {
-      return Arrays.asList(Utils.split(PERMISSIONS_SEPARATOR, reader.currentReadEvent().elementText()));
+      if (required)
+      {
+         return parseRequiredContent(navigator, DelimitedValueType.SEMI_COLON);
+      }
+      else
+      {
+         return parseContent(navigator, DelimitedValueType.SEMI_COLON, null);
+      }
    }
 
-   protected boolean isAccessPermissions(StaxReader reader) throws XMLStreamException
+   protected void marshalEditPermission(StaxWriter<Element> writer, String editPermission) throws XMLStreamException
    {
-      return isCurrentElement(reader, Element.ACCESS_PERMISSIONS);
+      writeOptionalElement(writer, Element.EDIT_PERMISSION, editPermission);
    }
 
-   protected void marshalEditPermission(StaxWriter writer, String editPermission) throws XMLStreamException
+   protected String unmarshalEditPermission(StaxNavigator<Element> navigator) throws XMLStreamException
    {
-      writer.writeOptionalElement(Element.EDIT_PERMISSION, editPermission);
+      return getContent(navigator, true);
    }
 
-   protected String unmarshalEditPermission(StaxReader reader) throws XMLStreamException
-   {
-      return reader.currentReadEvent().elementText();
-   }
-
-   protected boolean isEditPermission(StaxReader reader) throws XMLStreamException
-   {
-      return isCurrentElement(reader, Element.EDIT_PERMISSION);
-   }
-
-   protected void writeGateinObjectsRootElement(StaxWriter writer) throws XMLStreamException
+   protected void writeGateinObjectsNamespace(StaxWriter<Element> writer) throws XMLStreamException
    {
       String gatein_object_ns = Namespace.CURRENT.getUri();
       String location = new StringBuilder().append(gatein_object_ns).append(" ").append(gatein_object_ns).toString();
-      writer.writeDefaultNamespace(gatein_object_ns)
-         .writeNamespace("xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI)
-         .writeAttribute(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation", location);
-   }
 
-   protected void writeOptionalDateTime(StaxWriter writer, EnumElement element, Date date) throws XMLStreamException
-   {
-      if (date == null) return;
-
-      Calendar cal = Calendar.getInstance();
-      cal.setTime(date);
-      writer.writeStartElement(element).writeDateTime(cal).writeEndElement();
+      writer.writeDefaultNamespace(gatein_object_ns);
+      writer.writeNamespace("xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI);
+      writer.writeAttribute(new QName(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation"), location);
    }
 
    @SuppressWarnings("unchecked")
@@ -692,90 +652,15 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       return (ApplicationData<S>) data;
    }
 
-   private boolean isCurrentElement(StaxReader reader, Element element) throws XMLStreamException
-   {
-      return reader.currentReadEvent().getLocalName().equals(element.getLocalName());
-   }
-
-   private void writeOptionalAttribute(StaxWriter writer, Attribute attribute, String value) throws XMLStreamException
+   private static void writeOptionalAttribute(StaxWriter writer, Attribute attribute, String value) throws XMLStreamException
    {
       if (value == null) return;
 
-      writer.writeAttribute(attribute, value);
+      writer.writeAttribute(attribute.getLocalName(), value);
    }
 
-   private static enum Element implements EnumElement<Element>
+   private static enum Attribute
    {
-      UNKNOWN(null),
-      SKIP("skip"),
-      NAME("name"),
-      TITLE("title"),
-      DESCRIPTION("description"),
-      FACTORY_ID("factory-id"),
-      ACCESS_PERMISSIONS("access-permissions"),
-      EDIT_PERMISSION("edit-permission"),
-      PORTLET_APPLICATION("portlet-application"),
-      GADGET_APPLICATION("gadget-application"),
-      CONTAINER("container"),
-      APPLICATION_REF("application-ref"),
-      PORTLET_REF("portlet-ref"),
-      PORTLET("portlet"),
-      GADGET_REF("gadget-ref"),
-      GADGET("gadget"),
-      THEME("theme"),
-      SHOW_INFO_BAR("show-info-bar"),
-      SHOW_APPLICATION_STATE("show-application-state"),
-      SHOW_APPLICATION_MODE("show-application-mode"),
-      ICON("icon"),
-      WIDTH("width"),
-      HEIGHT("height"),
-      PREFERENCES("preferences"),
-      PREFERENCE("preference"),
-      // Used above in NAME
-      // PREFERENCE_NAME("name"),
-      PREFERENCE_VALUE("value"),
-      PREFERENCE_READONLY("read-only"),
-      ;
-      private final String name;
-
-      Element(final String name)
-      {
-         this.name = name;
-      }
-
-      /**
-       * Get the local name of this element.
-       *
-       * @return the local name
-       */
-      public String getLocalName()
-      {
-         return name;
-      }
-
-      private static final Map<String, Element> MAP;
-
-      static
-      {
-         final Map<String, Element> map = new HashMap<String, Element>();
-         for (Element element : values())
-         {
-            final String name = element.getLocalName();
-            if (name != null) map.put(name, element);
-         }
-         MAP = map;
-      }
-
-      public static Element forName(String localName)
-      {
-         final Element element = MAP.get(localName);
-         return element == null ? UNKNOWN : element;
-      }
-   }
-
-   private static enum Attribute implements EnumAttribute<Attribute>
-   {
-      UNKNOWN(null),
       ID("id"),
       TEMPLATE("template"),
       WIDTH("width"),
@@ -796,25 +681,6 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       public String getLocalName()
       {
          return name;
-      }
-
-      private static final Map<String, Attribute> MAP;
-
-      static
-      {
-         final Map<String, Attribute> map = new HashMap<String, Attribute>();
-         for (Attribute attribute : values())
-         {
-            final String name = attribute.getLocalName();
-            if (name != null) map.put(name, attribute);
-         }
-         MAP = map;
-      }
-
-      public static Attribute forName(String localName)
-      {
-         final Attribute attribute = MAP.get(localName);
-         return attribute == null ? UNKNOWN : attribute;
       }
    }
 }

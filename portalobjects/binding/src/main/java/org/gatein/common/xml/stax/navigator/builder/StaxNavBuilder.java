@@ -20,30 +20,36 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl.site;
+package org.gatein.common.xml.stax.navigator.builder;
+
+import org.staxnav.Naming;
+import org.staxnav.StaxNavException;
+import org.staxnav.StaxNavigator;
+
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.Source;
+import java.io.InputStream;
+import java.io.Reader;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Attribute
+public interface StaxNavBuilder
 {
-   PROPERTIES_KEY("key");
+   StaxNavBuilder withProperty(String name, Object value);
 
-   private final String name;
+   StaxNavBuilder withPropertyIfSupported(String name, Object value);
 
-   Attribute(final String name)
-   {
-      this.name = name;
-   }
+   StaxNavBuilder withInputStream(InputStream inputStream);
 
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
-   public String getLocalName()
-   {
-      return name;
-   }
+   StaxNavBuilder withInputStream(InputStream inputStream, String encoding);
+
+   StaxNavBuilder withReader(Reader reader);
+
+   StaxNavBuilder withSource(Source source);
+
+   StaxNavBuilder withXmlStreamReader(XMLStreamReader reader);
+
+   <N> StaxNavigator<N> build(Naming<N> naming) throws StaxNavException, IllegalStateException;
 }

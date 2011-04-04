@@ -172,6 +172,7 @@ public class PortalDataMarshallerTest extends AbstractMarshallerTest
       portlet.putPreference(new Preference("pref-1", "value-1", true));
       portlet.putPreference(new Preference("pref-2", "value-2", false));
       portlet.putPreference(new Preference("multi-value-pref", Arrays.asList("one", "two", "three"), false));
+      portlet.putPreference(new Preference("no-value-pref", (String) null, true));
 
       ApplicationState<Portlet> state = new TransientApplicationState<Portlet>("app-ref/portlet-ref", portlet);
       ApplicationData<Portlet> application = new ApplicationData<Portlet>(null, null,
@@ -195,6 +196,8 @@ public class PortalDataMarshallerTest extends AbstractMarshallerTest
 
       PortalDataMarshaller marshaller = new PortalDataMarshaller();
       marshaller.marshal(expected, baos);
+
+//      System.out.println(baos.toString());
 
       PortalData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
       assertNotNull(actual);

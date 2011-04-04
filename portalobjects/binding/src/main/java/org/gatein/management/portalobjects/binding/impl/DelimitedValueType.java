@@ -20,30 +20,49 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.portalobjects.binding.impl.site;
+package org.gatein.management.portalobjects.binding.impl;
+
+import org.exoplatform.portal.pom.config.Utils;
+import org.gatein.common.xml.stax.writer.WritableValueType;
+import org.staxnav.StaxNavException;
+import org.staxnav.ValueType;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum Attribute
+public class DelimitedValueType extends ValueType<List<String>> implements WritableValueType<List<String>>
 {
-   PROPERTIES_KEY("key");
+   public static DelimitedValueType SEMI_COLON = new DelimitedValueType(";");
 
-   private final String name;
+   private final String delimiter;
 
-   Attribute(final String name)
+   public DelimitedValueType(String delimiter)
    {
-      this.name = name;
+      this.delimiter = delimiter;
    }
 
-   /**
-    * Get the local name of this element.
-    *
-    * @return the local name
-    */
-   public String getLocalName()
+   @Override
+   protected List<String> parse(String s) throws Exception
    {
-      return name;
+      return Arrays.asList(Utils.split(delimiter, s));
+   }
+
+   @Override
+   public String format(List<String> value) throws StaxNavException
+   {
+      String s = Utils.join(delimiter, value);
+
+      if (s != null && s.trim().length() == 0)
+      {
+         return null;
+      }
+      else
+      {
+         return s;
+      }
    }
 }

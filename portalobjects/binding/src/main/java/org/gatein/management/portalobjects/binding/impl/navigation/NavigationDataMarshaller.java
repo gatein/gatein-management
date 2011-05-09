@@ -207,48 +207,47 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       String pageRef = null;
       List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
 
-      Set<Element> children = new HashSet<Element>();
-      children.add(Element.URI);
-      children.add(Element.NAME);
-      children.add(Element.LABEL);
-      children.add(Element.ICON);
-      children.add(Element.START_PUBLICATION_DATE);
-      children.add(Element.END_PUBLICATION_DATE);
-      children.add(Element.VISIBILITY);
-      children.add(Element.PAGE_REFERENCE);
-      children.add(Element.NODE);
-
-      while (navigator.next(children) != null)
+      Element current = navigator.child();
+      while (current != null)
       {
          switch (navigator.getName())
          {
             case URI:
                uri = navigator.getContent();
+               current = navigator.sibling();
                break;
             case NAME:
                name = navigator.getContent();
+               current = navigator.sibling();
                break;
             case LABEL:
                label = navigator.getContent();
+               current = navigator.sibling();
                break;
             case ICON:
                icon = navigator.getContent();
+               current = navigator.sibling();
                break;
             case START_PUBLICATION_DATE:
                start = navigator.parseContent(ValueType.DATE_TIME);
+               current = navigator.sibling();
                break;
             case END_PUBLICATION_DATE:
                end = navigator.parseContent(ValueType.DATE_TIME);
+               current = navigator.sibling();
                break;
             case VISIBILITY:
                visibility = navigator.parseContent(ValueType.get(Visibility.class));
+               current = navigator.sibling();
                break;
             case PAGE_REFERENCE:
                pageRef = navigator.getContent();
+               current = navigator.sibling();
                break;
             case NODE:
                NavigationNodeData node = unmarshalNavigationNodeData(navigator.fork());
                nodes.add(node);
+               current = navigator.getName();
                break;
             case UNKNOWN:
                throw unknownElement(navigator);

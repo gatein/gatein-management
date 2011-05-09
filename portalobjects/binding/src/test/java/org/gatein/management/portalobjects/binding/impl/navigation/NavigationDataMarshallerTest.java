@@ -51,7 +51,7 @@ public class NavigationDataMarshallerTest
       assertNotNull(data);
       assertEquals(111, data.getPriority());
       assertNotNull(data.getNodes());
-      assertEquals(6, data.getNodes().size());
+      assertEquals(7, data.getNodes().size());
       NavigationNodeData node = data.getNodes().get(0);
       verifyNode(node, "home", "#{portal.classic.home}", "home", Visibility.DISPLAYED, "portal::classic::homepage", null, null, null, 1);
       node = node.getNodes().get(0);
@@ -63,6 +63,20 @@ public class NavigationDataMarshallerTest
 
       node = data.getNodes().get(5);
       verifyNode(node, "notfound", "NotFound", "notfound", Visibility.SYSTEM, null, null, null, null, 0);
+
+      node = data.getNodes().get(6);
+      verifyNode(node, "n0", "n0", "n0", Visibility.DISPLAYED, "portal::classic::n0", null, null, null, 1);
+      node = node.getNodes().get(0);
+      verifyNode(node, "n0", "n0", "n0/n0", Visibility.DISPLAYED, "portal::classic::n0_n0", null, null, null, 10);
+      for (int i=0; i<10; i++)
+      {
+         String name = "n" + i;
+         String uri = "n0/n0/n" + i;
+         String pageref = uri.replace("/", "_");
+
+         NavigationNodeData child = node.getNodes().get(i);
+         verifyNode(child, name, name, uri, Visibility.DISPLAYED, "portal::classic::" + pageref, null, null, null, 0);
+      }
    }
 
    @Test

@@ -71,6 +71,13 @@ public class ManagementServiceImpl implements ManagementService, Startable
    }
 
    @Override
+   public void reloadExtensions()
+   {
+      stop();
+      start();
+   }
+
+   @Override
    public void start()
    {
       extensions = new ArrayList<ManagementExtension>();

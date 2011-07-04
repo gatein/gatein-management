@@ -33,4 +33,6 @@ public interface ManagementService
    ManagedResource getManagedResource(PathAddress address);
 
    BindingProvider getBindingProvider(String componentName);
+
+   void reloadExtensions();
 }

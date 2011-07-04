@@ -36,16 +36,16 @@
    
    <dependencies>
       <dependency>
-         <groupId>org.staxnav</groupId>
-         <artifactId>staxnav.core</artifactId>
-      </dependency>
-      <dependency>
          <groupId>org.gatein.management</groupId>
          <artifactId>management-api</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.management</groupId>
          <artifactId>management-spi</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>management-common</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.common</groupId>

@@ -39,7 +39,6 @@
    <name>GateIn Management - Portal Objects Parent</name>
    
    <modules>
-      <module>binding</module>
       <module>rest</module>
       <module>common</module>
       <module>exportimport</module>

@@ -119,11 +119,6 @@
          </dependency>
          <dependency>
             <groupId>org.gatein.management.portalobjects</groupId>
-            <artifactId>portalobjects-binding</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.portalobjects</groupId>
             <artifactId>portalobjects-rest</artifactId>
             <version>${project.version}</version>
          </dependency>

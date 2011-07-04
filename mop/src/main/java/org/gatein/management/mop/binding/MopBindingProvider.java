@@ -23,12 +23,14 @@
 package org.gatein.management.mop.binding;
 
 import org.exoplatform.portal.pom.data.PageData;
+import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.mop.binding.navigation.XmlNavigationMarshaller;
-import org.gatein.management.mop.binding.page.XmlPageMarshaller;
+import org.gatein.management.mop.binding.xml.page.PageDataMarshaller;
+import org.gatein.management.mop.binding.xml.site.PortalDataMarshaller;
 import org.gatein.management.mop.model.PageDataContainer;
 import org.gatein.mop.api.workspace.Navigation;
 
@@ -70,6 +72,10 @@ public class MopBindingProvider implements BindingProvider
       {
          return (Marshaller<T>) XmlMarshallers.navigation_marshaller;
       }
+      else if (PortalData.class.isAssignableFrom(type))
+      {
+         return (Marshaller<T>) XmlMarshallers.site_marshaller;
+      }
 
       return null;
    }
@@ -78,7 +84,7 @@ public class MopBindingProvider implements BindingProvider
    {
 
       //------------------------------------ Page Marshallers ------------------------------------//
-      private static Marshaller<PageDataContainer> pages_marshaller = new XmlPageMarshaller();
+      private static Marshaller<PageDataContainer> pages_marshaller = new PageDataMarshaller();
 
       private static Marshaller<PageData> page_marshaller = new Marshaller<PageData>()
       {
@@ -104,5 +110,7 @@ public class MopBindingProvider implements BindingProvider
       };
 
       private static Marshaller<Navigation> navigation_marshaller = new XmlNavigationMarshaller();
+
+      private static Marshaller<PortalData> site_marshaller = new PortalDataMarshaller();
    }
 }

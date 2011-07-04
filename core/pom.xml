@@ -36,6 +36,14 @@
    
    <dependencies>
       <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>management-api</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>management-spi</artifactId>
+      </dependency>
+      <dependency>
          <groupId>org.gatein.management.binding</groupId>
          <artifactId>binding-api</artifactId>
       </dependency>
@@ -46,6 +54,10 @@
       <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.portal</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.mockito</groupId>
+         <artifactId>mockito-core</artifactId>
       </dependency>
    </dependencies>
 

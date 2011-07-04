@@ -80,7 +80,7 @@ public class PortalObjectsUtils
       else if (data instanceof PortalData)
       {
          PortalData pd = (PortalData) data;
-         return (T) new PortalData(pd.getStorageId(), pd.getName(), ownerType, pd.getLocale(),
+         return (T) new PortalData(pd.getStorageId(), pd.getName(), ownerType, pd.getLocale(), pd.getLabel(), pd.getDescription(),
             pd.getAccessPermissions(), pd.getEditPermission(), pd.getProperties(), pd.getSkin(), pd.getPortalLayout());
       }
       else

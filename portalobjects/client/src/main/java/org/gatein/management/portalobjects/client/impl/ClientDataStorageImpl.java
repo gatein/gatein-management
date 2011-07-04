@@ -32,6 +32,7 @@ import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
 import org.exoplatform.portal.config.model.Container;
 import org.exoplatform.portal.config.model.Dashboard;
+import org.exoplatform.portal.config.model.ModelObject;
 import org.exoplatform.portal.config.model.Page;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PortalConfig;
@@ -240,5 +241,17 @@ public class ClientDataStorageImpl implements DataStorage
    public List<String> getAllPortalNames() throws Exception
    {
       throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public <A> A adapt(ModelObject modelObject, Class<A> type)
+   {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public <A> A adapt(ModelObject modelObject, Class<A> type, boolean create)
+   {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
    }
 }

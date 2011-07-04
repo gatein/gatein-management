@@ -61,6 +61,8 @@ public class PortalDataMarshallerTest extends AbstractMarshallerTest
       PortalData data = marshaller.unmarshal(getClass().getResourceAsStream("/portal.xml"));
       assertNotNull(data);
       assertEquals("classic", data.getName());
+      assertEquals("site-label", data.getLabel());
+      assertEquals("site-description", data.getDescription());
       assertEquals("en", data.getLocale());
       assertEquals("Everyone", Utils.join(";", data.getAccessPermissions()));
       assertEquals("*:/platform/administrators", data.getEditPermission());
@@ -191,7 +193,7 @@ public class PortalDataMarshallerTest extends AbstractMarshallerTest
       properties.put("key1", "value1");
       properties.put("key2", "value2");
 
-      PortalData expected = new PortalData(null, "name", "type", "locale",
+      PortalData expected = new PortalData(null, "name", "type", "locale", "label", "description",
          Collections.singletonList("access-permissions"), "edit-permissions", properties, "skin", layout);
 
       PortalDataMarshaller marshaller = new PortalDataMarshaller();
@@ -204,6 +206,8 @@ public class PortalDataMarshallerTest extends AbstractMarshallerTest
       assertNull(actual.getStorageId());
       assertNull(actual.getStorageName());
       assertEquals("name", actual.getName());
+      assertEquals("label", actual.getLabel());
+      assertEquals("description", actual.getDescription());
       assertEquals("", actual.getType());
       assertEquals("locale", actual.getLocale());
       assertEquals("access-permissions", Utils.join(";", actual.getAccessPermissions()));

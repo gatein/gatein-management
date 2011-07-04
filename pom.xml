@@ -44,10 +44,11 @@
    <description>GateIn Portal Management Parent Project</description>
 
    <properties>
-      <org.gatein.common.version>2.0.3-GA</org.gatein.common.version>
-      <org.gatein.portal.version>3.1.0-GA</org.gatein.portal.version>
-      <org.exoplatform.kernel.version>2.2.6-GA</org.exoplatform.kernel.version>
-      <org.slf4j.version>1.5.6</org.slf4j.version>
+      <org.gatein.common.version>2.0.4-Beta03</org.gatein.common.version>
+      <org.gatein.portal.version>3.2.0-M01</org.gatein.portal.version>
+      <org.exoplatform.kernel.version>2.3.0-CR2</org.exoplatform.kernel.version>
+      <org.exoplatform.ws.version>2.2.0-CR2</org.exoplatform.ws.version>
+      <org.slf4j.version>1.5.8</org.slf4j.version>
       <com.google.gwt.version>2.1.0</com.google.gwt.version>
       <com.googlecode.gwtupload.version>0.6.3-compat</com.googlecode.gwtupload.version>
       <com.smartgwt.version>2.1</com.smartgwt.version>
@@ -59,7 +60,27 @@
          <!-- GateIn Management -->
          <dependency>
             <groupId>org.gatein.management</groupId>
+            <artifactId>management-api</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management</groupId>
+            <artifactId>management-spi</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management</groupId>
             <artifactId>management-core</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management</groupId>
+            <artifactId>management-rest</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management</groupId>
+            <artifactId>management-mop</artifactId>
             <version>${project.version}</version>
          </dependency>
 
@@ -223,6 +244,10 @@
    </dependencyManagement>
 
    <modules>
+      <module>api</module>
+      <module>spi</module>
+      <module>mop</module>
+      <module>rest</module>
       <module>binding</module>
       <module>core</module>
       <module>portalobjects</module>
@@ -236,6 +261,16 @@
          <groupId>org.slf4j</groupId>
          <artifactId>slf4j-log4j12</artifactId>
          <version>${org.slf4j.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.mockito</groupId>
+         <artifactId>mockito-core</artifactId>
          <scope>test</scope>
       </dependency>
    </dependencies>

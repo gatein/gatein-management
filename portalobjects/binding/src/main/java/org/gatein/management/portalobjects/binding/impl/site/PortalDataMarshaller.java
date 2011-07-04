@@ -178,6 +178,8 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
    private void marshalPortalData(StaxWriter<Element> writer, PortalData portalData) throws XMLStreamException
    {
       writer.writeElement(Element.PORTAL_NAME, portalData.getName());
+      writeOptionalElement(writer, Element.LABEL, portalData.getLabel());
+      writeOptionalElement(writer, Element.DESCRIPTION, portalData.getDescription());
       writeOptionalElement(writer, Element.LOCALE, portalData.getLocale());
 
       // Access permissions
@@ -233,6 +235,8 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
    {
       String portalName = null;
       String locale = null;
+      String label = null;
+      String description = null;
       List<String> accessPermissions = Collections.emptyList();
       String editPermission = null;
       String skin = null;
@@ -251,6 +255,14 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
                break;
             case LOCALE:
                locale = navigator.getContent();
+               current = navigator.sibling();
+               break;
+            case LABEL:
+               label = navigator.getContent();
+               current = navigator.sibling();
+               break;
+            case DESCRIPTION:
+               description = navigator.getContent();
                current = navigator.sibling();
                break;
             case SKIN:
@@ -324,6 +336,6 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
       if (components == null) components = Collections.emptyList();
       portalLayout = new ContainerData(null, null, null, null, null, null, null, null, null, null, Collections.<String>emptyList(), components);
 
-      return new PortalData(null, portalName, "", locale, accessPermissions, editPermission, properties, skin, portalLayout);
+      return new PortalData(null, portalName, "", locale, label, description, accessPermissions, editPermission, properties, skin, portalLayout);
    }
 }

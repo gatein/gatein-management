@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -121,6 +122,8 @@ public class ExportImportUtils
          PortalObjectsContext context = new PortalObjectsContext();
          while ( (entry = zis.getNextEntry()) != null)
          {
+            if (entry.isDirectory()) continue;
+
             String[] parts = parseEntry(entry);
             String ownerType = parts[0];
             String ownerId = parts[1];
@@ -181,10 +184,11 @@ public class ExportImportUtils
       String name = entry.getName();
       if (name.endsWith(PORTAL_FILE) || name.endsWith(PAGES_FILE) || name.endsWith(NAVIGATION_FILE))
       {
-         String[] parts = new String[3];
-         parts[0] = name.substring(0, name.indexOf("/"));
-         parts[1] = name.substring(parts[0].length() + 1, name.lastIndexOf("/"));
-         parts[2] = name.substring(name.lastIndexOf("/") + 1);
+         String[] parts = name.split("/");
+         if (parts.length != 3)
+         {
+            throw new IOException("Invalid entry " + name + " in zip file.");
+         }
          return parts;
       }
       else

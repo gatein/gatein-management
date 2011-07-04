@@ -24,7 +24,6 @@ package org.gatein.common.xml.stax.navigator;
 
 import org.gatein.common.xml.stax.navigator.builder.StaxNavBuilder;
 import org.gatein.common.xml.stax.navigator.builder.StaxNavBuilderImpl;
-import org.gatein.management.portalobjects.binding.impl.Element;
 import org.staxnav.EnumElement;
 import org.staxnav.Naming;
 import org.staxnav.StaxNavException;
@@ -108,7 +107,7 @@ public class StaxNavUtils
       return createNavigator(naming, reader);
    }
 
-   public static void requiresChild(StaxNavigator<Element> navigator, Element element)
+   public static <N> void requiresChild(StaxNavigator<N> navigator, N element)
    {
       if (navigator.child() != element)
       {
@@ -116,7 +115,7 @@ public class StaxNavUtils
       }
    }
 
-   public static void requiresSibling(StaxNavigator<Element> navigator, Element element)
+   public static <N> void requiresSibling(StaxNavigator<N> navigator, N element)
    {
       if (!navigator.sibling(element))
       {

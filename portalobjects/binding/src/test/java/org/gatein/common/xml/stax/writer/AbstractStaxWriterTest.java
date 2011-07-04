@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class StaxWriterTestCase<N>
+public abstract class AbstractStaxWriterTest<N>
 {
    static final String ENCODING = "UTF-8";
    static final String VERSION = "1.0";
@@ -364,35 +364,5 @@ public abstract class StaxWriterTestCase<N>
    private static interface VerifyClosure
    {
       void verify(InOrder order) throws Exception;
-   }
-
-   public static class LocalStaxWriterTestCase extends StaxWriterTestCase<String>
-   {
-      @Override
-      public Naming<String> getNaming()
-      {
-         return new Naming.Local();
-      }
-   }
-
-   public static class QualifiedStaxWriterTestCase extends StaxWriterTestCase<QName>
-   {
-      @Override
-      public Naming<QName> getNaming()
-      {
-         return new Naming.Qualified();
-      }
-
-      public void testWriteQualifiedStartElement() throws Exception
-      {
-         QName bar = new QName("uri", "pre", "bar");
-
-         writer.writeStartElement(bar);
-         verify(stream).writeStartElement(bar.getPrefix(), bar.getLocalPart(), bar.getNamespaceURI());
-
-         QName foobar = new QName("http://www.gatein.org/xml/ns/gatein_objects_1_0", "foobar");
-         writer.writeStartElement(foobar);
-         verify(stream).writeStartElement(foobar.getNamespaceURI(), foobar.getLocalPart());
-      }
    }
 }

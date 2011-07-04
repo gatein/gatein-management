@@ -37,8 +37,6 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gatein.common.util.ParameterValidation.*;
-
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
@@ -58,8 +56,8 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withProperty(String name, Object value)
    {
-      throwIllegalArgExceptionIfNull(name, "name");
-      throwIllegalArgExceptionIfNull(value, "value");
+      if (name == null) throw new IllegalArgumentException("name is null");
+      if (value == null) throw new IllegalArgumentException("value is null");
 
       properties.put(name, value);
       return this;
@@ -67,8 +65,8 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withPropertyIfSupported(String name, Object value)
    {
-      throwIllegalArgExceptionIfNull(name, "name");
-      throwIllegalArgExceptionIfNull(value, "value");
+      if (name == null) throw new IllegalArgumentException("name is null");
+      if (value == null) throw new IllegalArgumentException("value is null");
 
       supportedProperties.put(name, value);
       return this;
@@ -76,7 +74,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withOutputStream(OutputStream outputStream)
    {
-      throwIllegalArgExceptionIfNull(outputStream, "outputStream");
+      if (outputStream == null) throw new IllegalArgumentException("outputStream is null");
 
       output = outputStream;
       return this;
@@ -84,8 +82,8 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withOutputStream(OutputStream outputStream, String encoding)
    {
-      throwIllegalArgExceptionIfNull(outputStream, "outputStream");
-      throwIllegalArgExceptionIfNull(encoding, "encoding");
+      if (outputStream == null) throw new IllegalArgumentException("outputStream is null");
+      if (encoding == null) throw new IllegalArgumentException("encoding is null");
 
       output = outputStream;
       outputEncoding = encoding;
@@ -94,7 +92,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withWriter(Writer writer)
    {
-      throwIllegalArgExceptionIfNull(writer, "writer");
+      if (writer == null) throw new IllegalArgumentException("writer is null");
 
       this.output = writer;
       return this;
@@ -102,7 +100,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withResult(Result result)
    {
-      throwIllegalArgExceptionIfNull(result, "result");
+      if (result == null) throw new IllegalArgumentException("result is null");
 
       output = result;
       return this;
@@ -110,7 +108,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withXmlStreamWriter(XMLStreamWriter writer)
    {
-      throwIllegalArgExceptionIfNull(writer, "XMLStreamWriter");
+      if (writer == null) throw new IllegalArgumentException("writer is null");
 
       this.writer = writer;
       return this;
@@ -118,7 +116,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withEncoding(String encoding)
    {
-      throwIllegalArgExceptionIfNull(encoding, "encoding");
+      if (encoding == null) throw new IllegalArgumentException("encoding is null");
 
       this.encoding = encoding;
       return this;
@@ -126,7 +124,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withVersion(String version)
    {
-      throwIllegalArgExceptionIfNull(version, version);
+      if (version == null) throw new IllegalArgumentException("version is null");
 
       this.version = version;
       return this;
@@ -134,7 +132,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public StaxWriterBuilder withFormatting(XmlStreamingFormatter formatter)
    {
-      throwIllegalArgExceptionIfNull(formatter, "formatter");
+      if (formatter == null) throw new IllegalArgumentException("formatter is null");
 
       this.formatter = formatter;
       return this;
@@ -142,7 +140,7 @@ public class StaxWriterBuilderImpl implements StaxWriterBuilder
 
    public <N> StaxWriter<N> build(Naming<N> naming) throws StaxNavException, IllegalStateException
    {
-      throwIllegalArgExceptionIfNull(naming, "naming");
+      if (naming == null) throw new IllegalArgumentException("naming is null");
 
       if (writer == null && output == null)
          throw new IllegalStateException("Cannot build stax writer. Try calling withOutputStream/withWriter or pass in own XMLStreamWriter.");

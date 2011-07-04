@@ -70,6 +70,11 @@
          </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
+            <artifactId>management-common</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.gatein.management</groupId>
             <artifactId>management-core</artifactId>
             <version>${project.version}</version>
          </dependency>
@@ -248,6 +253,7 @@
       <module>spi</module>
       <module>mop</module>
       <module>rest</module>
+      <module>common</module>
       <module>binding</module>
       <module>core</module>
       <module>portalobjects</module>

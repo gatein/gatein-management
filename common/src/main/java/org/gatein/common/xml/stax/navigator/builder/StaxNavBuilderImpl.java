@@ -36,8 +36,6 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gatein.common.util.ParameterValidation.*;
-
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
@@ -54,8 +52,8 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withProperty(String name, Object value)
    {
-      throwIllegalArgExceptionIfNull(name, "name");
-      throwIllegalArgExceptionIfNull(value, "value");
+      if (name == null) throw new IllegalArgumentException("name is null");
+      if (value == null) throw new IllegalArgumentException("value is null");
 
       properties.put(name, value);
       return this;
@@ -64,8 +62,8 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withPropertyIfSupported(String name, Object value)
    {
-      throwIllegalArgExceptionIfNull(name, "name");
-      throwIllegalArgExceptionIfNull(value, "value");
+      if (name == null) throw new IllegalArgumentException("name is null");
+      if (value == null) throw new IllegalArgumentException("value is null");
 
       supportedProperties.put(name, value);
       return this;
@@ -74,7 +72,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withInputStream(InputStream inputStream)
    {
-      throwIllegalArgExceptionIfNull(inputStream, "inputStream");
+      if (inputStream == null) throw new IllegalArgumentException("inputStream is null");
 
       input = inputStream;
       return this;
@@ -83,8 +81,8 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withInputStream(InputStream inputStream, String encoding)
    {
-      throwIllegalArgExceptionIfNull(inputStream, "inputStream");
-      throwIllegalArgExceptionIfNull(encoding, "encoding");
+      if (inputStream == null) throw new IllegalArgumentException("inputStream is null");
+      if (encoding == null) throw new IllegalArgumentException("encoding is null");
 
       input = inputStream;
       inputEncoding = encoding;
@@ -94,7 +92,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withReader(Reader reader)
    {
-      throwIllegalArgExceptionIfNull(reader, "reader");
+      if (reader == null) throw new IllegalArgumentException("reader is null");
 
       this.input = reader;
       return this;
@@ -103,7 +101,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withSource(Source source)
    {
-      throwIllegalArgExceptionIfNull(source, "source");
+      if (source == null) throw new IllegalArgumentException("source is null");
 
       input = source;
       return this;
@@ -112,7 +110,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public StaxNavBuilder withXmlStreamReader(XMLStreamReader reader)
    {
-      throwIllegalArgExceptionIfNull(reader, "XMLStreamReader");
+      if (reader == null) throw new IllegalArgumentException("reader is null");
 
       this.reader = reader;
       return this;
@@ -121,7 +119,7 @@ public class StaxNavBuilderImpl implements StaxNavBuilder
    @Override
    public <N> StaxNavigator<N> build(Naming<N> naming) throws StaxNavException, IllegalStateException
    {
-      throwIllegalArgExceptionIfNull(naming, "naming");
+      if (naming == null) throw new IllegalArgumentException("naming is null");
 
       if (reader == null && input == null)
          throw new IllegalStateException("Cannot build stax reader. Try calling withInputStream/withReader or pass in own XMLStreamReader.");

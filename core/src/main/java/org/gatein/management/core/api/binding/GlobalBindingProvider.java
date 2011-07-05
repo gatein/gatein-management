@@ -22,14 +22,11 @@
 
 package org.gatein.management.core.api.binding;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.binding.Marshaller;
-import org.gatein.management.api.operation.model.ReadResourceModel;
-
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.gatein.management.api.operation.model.ExportResourceModel;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -40,70 +37,11 @@ public class GlobalBindingProvider implements BindingProvider
    @Override
    public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
    {
-      switch (contentType)
+      if (contentType == ContentType.ZIP && type == ExportResourceModel.class)
       {
-         case XML:
-            return getXmlMarshaller(type);
-         case JSON:
-            return getJsonMarshaller(type);
-         default:
-            return null;
-      }
-   }
-
-   private <T> Marshaller<T> getJsonMarshaller(Class<T> type)
-   {
-      if (type == ReadResourceModel.class)
-      {
-         return (Marshaller<T>) XmlMarshallers.read_resource;
+         return (Marshaller<T>) ExportResourceModelMarshaller.INSTANCE;
       }
 
       return null;
-   }
-
-   private <T> Marshaller<T> getXmlMarshaller(Class<T> type)
-   {
-      if (type == ReadResourceModel.class)
-      {
-         return (Marshaller<T>) XmlMarshallers.read_resource;
-      }
-
-      return null;
-   }
-
-   private static final class XmlMarshallers
-   {
-      private static final Marshaller<ReadResourceModel> read_resource = new Marshaller<ReadResourceModel>()
-      {
-         @Override
-         public void marshal(ReadResourceModel object, OutputStream outputStream) throws BindingException
-         {
-
-         }
-
-         @Override
-         public ReadResourceModel unmarshal(InputStream inputStream) throws BindingException
-         {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-         }
-      };
-   }
-
-   private static final class JsonMarshallers
-   {
-      private static final Marshaller<ReadResourceModel> read_resource = new Marshaller<ReadResourceModel>()
-      {
-         @Override
-         public void marshal(ReadResourceModel object, OutputStream outputStream) throws BindingException
-         {
-            //To change body of implemented methods use File | Settings | File Templates.
-         }
-
-         @Override
-         public ReadResourceModel unmarshal(InputStream inputStream) throws BindingException
-         {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-         }
-      };
    }
 }

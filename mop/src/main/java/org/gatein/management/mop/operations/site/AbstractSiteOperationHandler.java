@@ -23,8 +23,8 @@
 package org.gatein.management.mop.operations.site;
 
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.mop.operations.AbstractMopOperationHandler;
@@ -43,12 +43,11 @@ public abstract class AbstractSiteOperationHandler extends AbstractMopOperationH
    {
       String operationName = operationContext.getOperationName();
       PathAddress address = operationContext.getAddress();
-      String siteName = address.resolvePathTemplate("site-name");
 
+      String siteName = address.resolvePathTemplate("site-name");
       if (siteName == null) throw new OperationException(operationName, "No site name specified.");
 
       Site site = workspace.getSite(siteType, siteName);
-
       if (site == null) throw new ResourceNotFoundException("No site found for site type " + getSiteType(siteType) + " and site name " + siteName);
 
       execute(operationContext, resultHandler, site);

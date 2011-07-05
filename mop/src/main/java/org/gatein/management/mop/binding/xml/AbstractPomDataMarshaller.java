@@ -61,8 +61,6 @@ import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
  */
 public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
 {
-   private static final String PERMISSIONS_SEPARATOR = ";";
-
    protected void marshalComponentData(StaxWriter<Element> writer, ComponentData componentData) throws XMLStreamException
    {
       if (componentData instanceof ApplicationData)
@@ -213,7 +211,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
       }
       else
       {
-         // The only way to retrieve the information if the state is not transient is if we're within a portal context
+         // The only way to retrieve the information if the state is not transient is if we're within the portal context
          ExoContainer container = ExoContainerContext.getCurrentContainer();
          if (container instanceof PortalContainer)
          {
@@ -224,7 +222,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
             }
             catch (Exception e)
             {
-               throw new XMLStreamException("Could not obtain portlet state from custom context.");
+               throw new XMLStreamException("Could not obtain portlet state.");
             }
 
             try
@@ -233,7 +231,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
             }
             catch (Exception e)
             {
-               throw new XMLStreamException("Could not obtain contentId from custom context.", e);
+               throw new XMLStreamException("Could not obtain contentId.", e);
             }
          }
          else

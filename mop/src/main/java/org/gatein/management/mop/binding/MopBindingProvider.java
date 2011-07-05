@@ -24,9 +24,9 @@ package org.gatein.management.mop.binding;
 
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.mop.binding.navigation.XmlNavigationMarshaller;
 import org.gatein.management.mop.binding.xml.page.PageDataMarshaller;
@@ -44,6 +44,10 @@ import java.util.Collections;
  */
 public class MopBindingProvider implements BindingProvider
 {
+   public static final MopBindingProvider INSTANCE = new MopBindingProvider();
+
+   private MopBindingProvider(){}
+
    @Override
    public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
    {

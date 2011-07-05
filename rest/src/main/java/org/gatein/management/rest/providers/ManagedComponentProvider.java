@@ -24,7 +24,7 @@ package org.gatein.management.rest.providers;
 
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
-import org.gatein.management.api.binding.ContentType;
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.rest.ContentTypeUtils;
 

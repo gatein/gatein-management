@@ -27,14 +27,14 @@ import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.controller.ManagementController;
+import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.ResultHandler;
-import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.core.api.ManagementServiceImpl;
 import org.gatein.management.core.api.operation.OperationContextImpl;
 
@@ -42,6 +42,7 @@ import org.gatein.management.core.api.operation.OperationContextImpl;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
+//TODO: Add some logging
 public class SimpleManagementController implements ManagementController
 {
    private static final Logger log = LoggerFactory.getLogger(SimpleManagementController.class);
@@ -54,12 +55,6 @@ public class SimpleManagementController implements ManagementController
       //TODO: This is a hack to get at the runtime context, let's come up with a better way or just depend on implementation
       this.service = (ManagementServiceImpl) service;
    }
-
-//   @Override
-//   public ManagedResponse execute(PathAddress address, String operationName) throws ResourceNotFoundException, OperationException
-//   {
-//      return execute(address, operationName, null);
-//   }
 
    @Override
    public ManagedResponse execute(ManagedRequest request) throws ResourceNotFoundException, OperationException
@@ -87,7 +82,7 @@ public class SimpleManagementController implements ManagementController
          }
          else
          {
-            return new SuccessfulResponse<Object>(bindingProvider, resultHandler.result);
+            return new SuccessfulResponse<Object>(bindingProvider, resultHandler.result, request.getContentType());
          }
       }
       else

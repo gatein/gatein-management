@@ -24,15 +24,14 @@ package org.gatein.management.rest;
 
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.binding.ContentType;
-import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -91,7 +90,6 @@ public class RestController
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
-   @Consumes(MediaType.APPLICATION_XML)
    public Response xmlGetRequest()
    {
       return xmlGetRequest("");
@@ -100,7 +98,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   @Consumes(MediaType.APPLICATION_XML)
    public Response xmlGetRequest(@PathParam("path") String path)
    {
       return getRequest(ContentType.XML, path);
@@ -109,7 +106,6 @@ public class RestController
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
-   @Consumes(MediaType.APPLICATION_JSON)
    public Response jsonGetRequest()
    {
       return jsonGetRequest("");
@@ -117,11 +113,26 @@ public class RestController
 
    @GET
    @Path("/{path:.*}")
-   @Produces(MediaType.APPLICATION_XML)
-   @Consumes(MediaType.APPLICATION_XML)
+   @Produces(MediaType.APPLICATION_JSON)
    public Response jsonGetRequest(@PathParam("path") String path)
    {
       return getRequest(ContentType.JSON, path);
+   }
+
+   //----------------------------------------- JSON Handlers -----------------------------------------//
+   @GET
+   @Produces("application/zip")
+   public Response zipGetRequest()
+   {
+      return jsonGetRequest("");
+   }
+
+   @GET
+   @Path("/{path:.*}")
+   @Produces("application/zip")
+   public Response zipGetRequest(@PathParam("path") String path)
+   {
+      return getRequest(ContentType.ZIP, path);
    }
 
    //----------------------------------------- Private Impl -----------------------------------------//
@@ -133,13 +144,17 @@ public class RestController
          return Response.notAcceptable(Variant.mediaTypes(ContentTypeUtils.mediaTypes()).build()).build();
       }
 
-      final String operationName = "read-resource";
+      String operationName = "read-resource";
+      if (contentType == ContentType.ZIP)
+      {
+         operationName = "export";
+      }
       MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
 
       final PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
       try
       {
-         ManagedResponse resp = controller.execute(new SimpleManagedRequest(operationName, address, contentType, null));
+         ManagedResponse resp = controller.execute(ManagedRequest.Factory.create(operationName, address, contentType));
          if (resp == null)
          {
             return failure("No response returned for operation " + operationName, Status.INTERNAL_SERVER_ERROR, mediaType);
@@ -247,45 +262,5 @@ public class RestController
    private Response success(ManagedResponse response, MediaType mediaType)
    {
       return Response.ok(response.getResult()).type(mediaType).build();
-   }
-
-   private static class SimpleManagedRequest implements ManagedRequest
-   {
-      private final String operationName;
-      private final PathAddress address;
-      private final ContentType contentType;
-      private final InputStream data;
-
-      public SimpleManagedRequest(String operationName, PathAddress address, ContentType contentType, InputStream data)
-      {
-         this.operationName = operationName;
-         this.address = address;
-         this.contentType = contentType;
-         this.data = data;
-      }
-
-      @Override
-      public String getOperationName()
-      {
-         return operationName;
-      }
-
-      @Override
-      public PathAddress getAddress()
-      {
-         return address;
-      }
-
-      @Override
-      public InputStream getDataStream()
-      {
-         return data;
-      }
-
-      @Override
-      public ContentType getContentType()
-      {
-         return contentType;
-      }
    }
 }

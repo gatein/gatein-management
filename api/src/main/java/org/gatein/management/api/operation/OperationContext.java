@@ -22,6 +22,7 @@
 
 package org.gatein.management.api.operation;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
@@ -33,6 +34,8 @@ import org.gatein.management.api.binding.BindingProvider;
  */
 public interface OperationContext
 {
+   //TODO: Add attributes or some object model to handle attributes for operations
+
    PathAddress getAddress();
 
    String getOperationName();
@@ -46,4 +49,6 @@ public interface OperationContext
    int getAttachmentsCount();
 
    BindingProvider getBindingProvider();
+
+   ContentType getContentType();
 }

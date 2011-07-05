@@ -20,7 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.controller;
+package org.gatein.management.mop.exportimport;
+
+import org.exoplatform.portal.pom.config.POMSession;
+import org.exoplatform.portal.pom.config.tasks.PortalConfigTask;
+import org.exoplatform.portal.pom.data.PortalData;
+import org.exoplatform.portal.pom.data.PortalKey;
+import org.gatein.management.api.binding.Marshaller;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,18 +35,27 @@ import java.io.OutputStream;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ManagedResponse
+public class SiteLayoutExportTask extends POMSessionExportTask
 {
-   Outcome getOutcome();
+   private Marshaller<PortalData> marshaller;
 
-   Object getResult();
-
-   void writeResult(OutputStream outputStream) throws IOException;
-
-   public static interface Outcome
+   public SiteLayoutExportTask(String siteType, String siteName, POMSession session, Marshaller<PortalData> marshaller)
    {
-      boolean isSuccess();
+      super(siteType, siteName, session);
+      this.marshaller = marshaller;
+   }
 
-      String getFailureDescription();
+   @Override
+   protected String getXmlFileName()
+   {
+      return "portal.xml";
+   }
+
+   @Override
+   public void export(OutputStream outputStream) throws IOException
+   {
+      PortalData data = new PortalConfigTask.Load(new PortalKey(siteType, siteName)).run(session);
+
+      marshaller.marshal(data, outputStream);
    }
 }

@@ -22,8 +22,8 @@
 
 package org.gatein.management.api.controller;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.binding.ContentType;
 
 import java.io.InputStream;
 
@@ -41,35 +41,41 @@ public interface ManagedRequest
 
    ContentType getContentType();
 
-//   public static class Factory
-//   {
-//      public static ManagedRequest create(final String operationName, final PathAddress address)
-//      {
-//         return create(operationName, address, null);
-//      }
-//
-//      public static ManagedRequest create(final String operationName, final PathAddress address, final Object model)
-//      {
-//         return new ManagedRequest()
-//         {
-//            @Override
-//            public String getOperationName()
-//            {
-//               return operationName;
-//            }
-//
-//            @Override
-//            public PathAddress getAddress()
-//            {
-//               return address;
-//            }
-//
-//            @Override
-//            public Object getModel()
-//            {
-//               return model;
-//            }
-//         };
-//      }
-//   }
+   public static class Factory
+   {
+      public static ManagedRequest create(final String operationName, final PathAddress address, final ContentType contentType)
+      {
+         return create(operationName, address, null, contentType);
+      }
+
+      public static ManagedRequest create(final String operationName, final PathAddress address, final InputStream dataStream, final ContentType contentType)
+      {
+         return new ManagedRequest()
+         {
+            @Override
+            public String getOperationName()
+            {
+               return operationName;
+            }
+
+            @Override
+            public PathAddress getAddress()
+            {
+               return address;
+            }
+
+            @Override
+            public InputStream getDataStream()
+            {
+               return dataStream;
+            }
+
+            @Override
+            public ContentType getContentType()
+            {
+               return contentType;
+            }
+         };
+      }
+   }
 }

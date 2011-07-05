@@ -22,11 +22,11 @@
 
 package org.gatein.management.core.api.operation;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationContext;
@@ -58,12 +58,6 @@ public class OperationContextImpl implements OperationContext
          public InputStream getStream()
          {
             return request.getDataStream();
-         }
-
-         @Override
-         public ContentType getContentType()
-         {
-            return request.getContentType();
          }
       });
 
@@ -114,5 +108,11 @@ public class OperationContextImpl implements OperationContext
    public BindingProvider getBindingProvider()
    {
       return bindingProvider;
+   }
+
+   @Override
+   public ContentType getContentType()
+   {
+      return request.getContentType();
    }
 }

@@ -22,9 +22,9 @@
 
 package org.gatein.management.rest.providers;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.binding.Marshaller;
 
 import javax.ws.rs.core.UriInfo;
@@ -49,17 +49,6 @@ public class BindingProviderResolver implements ContextResolver<BindingProviderR
    public BindingProviderResolver getContext(Class<?> type)
    {
       return this;
-   }
-
-   public BindingProvider getBindingProvider(UriInfo uriInfo)
-   {
-      String componentName = null;
-      if (uriInfo.getPathSegments().size() >=1)
-      {
-         componentName = uriInfo.getPathSegments().get(1).getPath();
-      }
-      
-      return service.getBindingProvider(componentName);
    }
 
    public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, UriInfo uriInfo)

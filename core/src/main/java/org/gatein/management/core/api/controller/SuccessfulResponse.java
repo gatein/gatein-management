@@ -22,8 +22,8 @@
 
 package org.gatein.management.core.api.controller;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.controller.ManagedResponse;
 
@@ -38,13 +38,15 @@ public class SuccessfulResponse<T> implements ManagedResponse
 {
    private final BindingProvider bindingProvider;
    private final T result;
+   private final ContentType contentType;
 
-   SuccessfulResponse(BindingProvider bindingProvider, T result)
+   SuccessfulResponse(BindingProvider bindingProvider, T result, ContentType contentType)
    {
       if (result == null) throw new IllegalArgumentException("result is null.");
 
       this.bindingProvider = bindingProvider;
       this.result = result;
+      this.contentType = contentType;
    }
 
    @Override
@@ -59,18 +61,18 @@ public class SuccessfulResponse<T> implements ManagedResponse
       return result;
    }
 
-   //   public void writeResult(OutputStream outputStream, ContentType contentType) throws IOException
-//   {
-//      if (bindingProvider == null) throw new IOException("Cannot write result because no binding provider was specified.");
-//
-//      @SuppressWarnings("unchecked")
-//      Class<T> type = (Class<T>) result.getClass();
-//
-//      Marshaller<T> marshaller = bindingProvider.getMarshaller(type, contentType);
-//      if (marshaller == null) throw new IOException("Could not find marshaller for type " + type + " and content type " + contentType);
-//
-//      marshaller.marshal(result, outputStream);
-//   }
+   public void writeResult(OutputStream outputStream) throws IOException
+   {
+      if (bindingProvider == null) throw new IOException("Cannot write result because no binding provider was specified.");
+
+      @SuppressWarnings("unchecked")
+      Class<T> type = (Class<T>) result.getClass();
+
+      Marshaller<T> marshaller = bindingProvider.getMarshaller(type, contentType);
+      if (marshaller == null) throw new IOException("Could not find marshaller for type " + type + " and content type " + contentType);
+
+      marshaller.marshal(result, outputStream);
+   }
 
    private static final Outcome success = new Outcome()
    {

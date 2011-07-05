@@ -22,7 +22,6 @@
 
 package org.gatein.management.core.api.controller;
 
-import org.gatein.management.api.binding.ContentType;
 import org.gatein.management.api.controller.ManagedResponse;
 
 import java.io.IOException;
@@ -53,7 +52,7 @@ public class FailureResponse implements ManagedResponse
       return null;
    }
 
-   public void writeResult(OutputStream outputStream, ContentType contentType) throws IOException
+   public void writeResult(OutputStream outputStream) throws IOException
    {
    }
 

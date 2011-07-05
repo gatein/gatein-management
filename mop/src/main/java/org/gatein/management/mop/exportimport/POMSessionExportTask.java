@@ -20,15 +20,36 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.binding;
+package org.gatein.management.mop.exportimport;
+
+import org.exoplatform.portal.pom.config.POMSession;
+import org.gatein.management.api.operation.model.ExportTask;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface BindingContext
+public abstract class POMSessionExportTask implements ExportTask
 {
-   boolean supports(Class<?> clazz, ContentType contentType);
+   protected String siteType;
+   protected String siteName;
+   protected POMSession session;
 
-   BindingProvider getBindingProvider();
+   public POMSessionExportTask(String siteType, String siteName, POMSession session)
+   {
+      this.siteType = siteType;
+      this.siteName = siteName;
+      this.session = session;
+   }
+
+   @Override
+   public String getEntry()
+   {
+      if (siteName.charAt(0) == '/') siteName = siteName.substring(1, siteName.length());
+
+      return new StringBuilder().
+         append(siteType).append("/").append(siteName).append("/").append(getXmlFileName()).toString();
+   }
+
+   protected abstract String getXmlFileName();
 }

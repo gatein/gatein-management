@@ -20,27 +20,17 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.controller;
-
-import java.io.IOException;
-import java.io.OutputStream;
+package org.gatein.management.api;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ManagedResponse
+public enum ContentType
 {
-   Outcome getOutcome();
+   // Supported content types for management operations
 
-   Object getResult();
-
-   void writeResult(OutputStream outputStream) throws IOException;
-
-   public static interface Outcome
-   {
-      boolean isSuccess();
-
-      String getFailureDescription();
-   }
+   JSON,
+   XML,
+   ZIP
 }

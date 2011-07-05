@@ -40,7 +40,7 @@ public abstract class UpdateOperationHandler<T> implements OperationHandler
    public void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
    {
       OperationAttachment attachment = operationContext.getAttachment(0);
-      Marshaller<T> marshaller = operationContext.getBindingProvider().getMarshaller(getParameterizedType(), attachment.getContentType());
+      Marshaller<T> marshaller = operationContext.getBindingProvider().getMarshaller(getParameterizedType(), operationContext.getContentType());
 
       if (marshaller == null) throw new OperationException(operationContext.getOperationName(), "No marshaller found for address " + operationContext.getAddress());
 

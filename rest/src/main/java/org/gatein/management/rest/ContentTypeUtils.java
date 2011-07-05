@@ -22,13 +22,10 @@
 
 package org.gatein.management.rest;
 
-import com.sun.org.apache.regexp.internal.RE;
-import org.gatein.management.api.binding.ContentType;
+import org.gatein.management.api.ContentType;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
-import java.util.Arrays;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

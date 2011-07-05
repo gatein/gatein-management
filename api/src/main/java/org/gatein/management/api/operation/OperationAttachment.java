@@ -22,8 +22,6 @@
 
 package org.gatein.management.api.operation;
 
-import org.gatein.management.api.binding.ContentType;
-
 import java.io.InputStream;
 
 /**
@@ -33,6 +31,4 @@ import java.io.InputStream;
 public interface OperationAttachment
 {
    InputStream getStream();
-
-   ContentType getContentType();
 }

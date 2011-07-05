@@ -22,11 +22,11 @@
 
 package org.gatein.management.mop.operations.site;
 
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.exceptions.OperationException;
-import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
+import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.mop.operations.AbstractMopOperationHandler;
 import org.gatein.mop.api.workspace.ObjectType;
 import org.gatein.mop.api.workspace.Site;
@@ -46,8 +46,6 @@ public class SiteTypeReadResource extends AbstractMopOperationHandler
    protected void execute(OperationContext operationContext, ResultHandler resultHandler, Workspace workspace, ObjectType<Site> siteType) throws ResourceNotFoundException, OperationException
    {
       Collection<Site> sites = workspace.getSites(siteType);
-      //if (sites == null) throw new OperationException(operationContext.getOperationName(), "No sites found for site type " + getSiteType(siteType));
-
       Set<String> children = new LinkedHashSet<String>(sites.size());
       for (Site site : sites)
       {

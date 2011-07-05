@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.controller;
+package org.gatein.management.api.operation.model;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,18 +29,9 @@ import java.io.OutputStream;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ManagedResponse
+public interface ExportTask
 {
-   Outcome getOutcome();
+   String getEntry();
 
-   Object getResult();
-
-   void writeResult(OutputStream outputStream) throws IOException;
-
-   public static interface Outcome
-   {
-      boolean isSuccess();
-
-      String getFailureDescription();
-   }
+   void export(OutputStream outputStream) throws IOException;
 }

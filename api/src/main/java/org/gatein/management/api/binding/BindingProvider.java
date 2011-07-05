@@ -22,6 +22,8 @@
 
 package org.gatein.management.api.binding;
 
+import org.gatein.management.api.ContentType;
+
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$

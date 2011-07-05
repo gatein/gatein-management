@@ -20,17 +20,38 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.binding;
+package org.gatein.management.api.operation.model;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum ContentType
+public class ExportResourceModel
 {
-   // Supported content types for management operations
+   private List<ExportTask> tasks;
 
-   JSON,
-   XML,
-   ZIP
+   public ExportResourceModel(ExportTask...tasks)
+   {
+      this(Arrays.asList(tasks));
+   }
+
+   public ExportResourceModel(List<ExportTask> tasks)
+   {
+      if (tasks == null) throw new IllegalArgumentException("tasks is null");
+      this.tasks = tasks;
+   }
+
+   public List<ExportTask> getTasks()
+   {
+      return Collections.unmodifiableList(tasks);
+   }
+
+   public void addTask(ExportTask task)
+   {
+      tasks.add(task);
+   }
 }

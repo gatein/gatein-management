@@ -30,6 +30,7 @@ import org.gatein.management.mop.operations.MopReadResource;
 import org.gatein.management.mop.operations.navigation.NavigationReadResource;
 import org.gatein.management.mop.operations.page.PageReadResource;
 import org.gatein.management.mop.operations.page.PagesReadResource;
+import org.gatein.management.mop.operations.site.SiteExportHandler;
 import org.gatein.management.mop.operations.site.SiteReadResource;
 import org.gatein.management.mop.operations.site.SiteTypeReadResource;
 import org.gatein.management.spi.ExtensionContext;
@@ -45,7 +46,7 @@ public class MopManagementExtension implements ManagementExtension
    public void initialize(ExtensionContext context)
    {
       ComponentRegistration registration = context.registerManagedComponent("mop");
-      registration.registerBindingProvider(new MopBindingProvider());
+      registration.registerBindingProvider(MopBindingProvider.INSTANCE);
 
       ManagedResource.Registration mop = registration.registerManagedResource(description("MOP (Model Object for Portal) Managed Resource"));
 
@@ -56,6 +57,7 @@ public class MopManagementExtension implements ManagementExtension
 
       ManagedResource.Registration sites = sitetypes.registerSubResource("{site-name: [\\w\\/]*}", description("Management resource responsible for handling management operations on a specific site."));
       sites.registerOperationHandler("read-resource", new SiteReadResource(), description("Lists all available artifacts for a given site (ie pages, navigation, site layout)"));
+      sites.registerOperationHandler("export", new SiteExportHandler(), description("Exports a site as a zip file."));
 
       // Page management and operation registration
       ManagedResource.Registration pages = sites.registerSubResource("pages", description("Management resource responsible for handling management operations on all pages of a site."));

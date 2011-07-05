@@ -25,12 +25,16 @@ package org.gatein.management.core.api;
 import org.exoplatform.container.PortalContainer;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
+import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.core.api.binding.GlobalBindingProvider;
 import org.gatein.management.core.api.operation.GlobalOperationHandlers;
 import org.gatein.management.core.spi.ExtensionContextImpl;
 import org.gatein.management.spi.ExtensionContext;
@@ -63,11 +67,27 @@ public class ManagementServiceImpl implements ManagementService, Startable
    }
 
    @Override
-   public BindingProvider getBindingProvider(String componentName)
+   public BindingProvider getBindingProvider(final String componentName)
    {
-      BindingProvider bindingProvider = bindingProviders.get(componentName);
+      return new BindingProvider()
+      {
+         @Override
+         public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
+         {
+            Marshaller<T> marshaller = null;
+            BindingProvider bp = bindingProviders.get(componentName);
+            if (bp != null)
+            {
+               marshaller = bp.getMarshaller(type, contentType);
+            }
+            if (marshaller == null)
+            {
+               marshaller = globalBindingProvider.getMarshaller(type, contentType);
+            }
 
-      return (bindingProvider == null) ? globalBindingProvider : bindingProvider;
+            return marshaller;
+         }
+      };
    }
 
    @Override
@@ -107,7 +127,7 @@ public class ManagementServiceImpl implements ManagementService, Startable
 
       rootResource = resource;
       bindingProviders = map;
-      //globalBindingProvider = new GlobalBindingProvider();
+      globalBindingProvider = new GlobalBindingProvider();
    }
 
    @Override

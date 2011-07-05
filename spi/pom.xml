@@ -35,7 +35,7 @@
    <artifactId>management-spi</artifactId>
    <version>1.0.0-Alpha02-SNAPSHOT</version>
 
-   <name>GateIn Management - Service Provider Interface</name>
+   <name>GateIn Management - SPI</name>
 
    <dependencies>
       <dependency>

@@ -83,53 +83,11 @@
             <artifactId>management-rest</artifactId>
             <version>${project.version}</version>
          </dependency>
+
+         <!-- MOP Managemnet Extension -->
          <dependency>
             <groupId>org.gatein.management</groupId>
             <artifactId>management-mop</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-
-         <!-- GateIn Management Binding Modules -->
-         <dependency>
-            <groupId>org.gatein.management.binding</groupId>
-            <artifactId>binding-api</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.binding</groupId>
-            <artifactId>binding-spi</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.binding</groupId>
-            <artifactId>binding-core</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.binding</groupId>
-            <artifactId>binding-rest</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-
-         <!-- GateIn Management Portal Objects Modules -->
-         <dependency>
-            <groupId>org.gatein.management.portalobjects</groupId>
-            <artifactId>portalobjects-common</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.portalobjects</groupId>
-            <artifactId>portalobjects-rest</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.portalobjects</groupId>
-            <artifactId>portalobjects-exportimport</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management.portalobjects</groupId>
-            <artifactId>portalobjects-client</artifactId>
             <version>${project.version}</version>
          </dependency>
 
@@ -249,11 +207,11 @@
       <module>mop</module>
       <module>rest</module>
       <module>common</module>
-      <module>binding</module>
+      <!--<module>binding</module>-->
       <module>core</module>
-      <module>portalobjects</module>
+      <!--<module>portalobjects</module>-->
       <module>web</module>
-      <module>gadget</module>
+      <!--<module>gadget</module>-->
       <module>packaging</module>
    </modules>
 

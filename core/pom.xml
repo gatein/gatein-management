@@ -44,14 +44,6 @@
          <artifactId>management-spi</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.gatein.management.binding</groupId>
-         <artifactId>binding-api</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.binding</groupId>
-         <artifactId>binding-rest</artifactId>
-      </dependency>
-      <dependency>
          <groupId>org.exoplatform.portal</groupId>
          <artifactId>exo.portal.component.portal</artifactId>
       </dependency>

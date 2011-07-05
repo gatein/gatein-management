@@ -43,19 +43,13 @@
          <artifactId>management-web</artifactId>
          <type>war</type>
          <version>${project.version}</version>
-         <exclusions>
-            <exclusion>
-               <groupId>javax.servlet</groupId>
-               <artifactId>servlet-api</artifactId>
-            </exclusion>
-         </exclusions>
       </dependency>
-      <dependency>
-         <groupId>org.gatein.management</groupId>
-         <artifactId>management-gadget</artifactId>
-         <type>war</type>
-         <version>${project.version}</version>
-      </dependency>
+      <!--<dependency>-->
+         <!--<groupId>org.gatein.management</groupId>-->
+         <!--<artifactId>management-gadget</artifactId>-->
+         <!--<type>war</type>-->
+         <!--<version>${project.version}</version>-->
+      <!--</dependency>-->
       <!-- LIBS -->
       <dependency>
          <groupId>org.exoplatform.portal</groupId>
@@ -105,26 +99,6 @@
          <groupId>org.gatein.management</groupId>
          <artifactId>management-mop</artifactId>
       </dependency>
-      <dependency>
-         <groupId>org.gatein.management.binding</groupId>
-         <artifactId>binding-api</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.binding</groupId>
-         <artifactId>binding-spi</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.binding</groupId>
-         <artifactId>binding-core</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-exportimport</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>org.gatein.management.portalobjects</groupId>
-         <artifactId>portalobjects-rest</artifactId>
-      </dependency>
    </dependencies>
 
    <build>
@@ -150,13 +124,13 @@
                      <bundleFileName>management-web.war</bundleFileName>
                      <unpack>true</unpack>
                   </webModule>
-                  <webModule>
-                     <groupId>org.gatein.management</groupId>
-                     <artifactId>management-gadget</artifactId>
-                     <contextRoot>/gatein-management-gadget</contextRoot>
-                     <bundleFileName>management-gadget.war</bundleFileName>
-                     <unpack>true</unpack>
-                  </webModule>
+                  <!--<webModule>-->
+                     <!--<groupId>org.gatein.management</groupId>-->
+                     <!--<artifactId>management-gadget</artifactId>-->
+                     <!--<contextRoot>/gatein-management-gadget</contextRoot>-->
+                     <!--<bundleFileName>management-gadget.war</bundleFileName>-->
+                     <!--<unpack>true</unpack>-->
+                  <!--</webModule>-->
                </modules>
             </configuration>
          </plugin>

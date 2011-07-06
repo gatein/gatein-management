@@ -22,19 +22,31 @@
 
 package org.gatein.management.mop.exportimport;
 
-import org.exoplatform.portal.pom.config.POMSession;
+import org.gatein.management.api.operation.model.ExportTask;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class POMSessionExportTask extends AbstractSiteExportTask
+public abstract class AbstractSiteExportTask implements ExportTask
 {
-   protected POMSession session;
+   protected String siteType;
+   protected String siteName;
 
-   public POMSessionExportTask(String siteType, String siteName, POMSession session)
+   protected AbstractSiteExportTask(String siteType, String siteName)
    {
-      super(siteType, siteName);
-      this.session = session;
+      this.siteType = siteType;
+      this.siteName = siteName;
    }
+
+   @Override
+   public String getEntry()
+   {
+      if (siteName.charAt(0) == '/') siteName = siteName.substring(1, siteName.length());
+
+      return new StringBuilder().
+         append(siteType).append("/").append(siteName).append("/").append(getXmlFileName()).toString();
+   }
+
+   protected abstract String getXmlFileName();
 }

@@ -20,21 +20,37 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.exportimport;
+package org.gatein.management.mop.operations.navigation;
 
-import org.exoplatform.portal.pom.config.POMSession;
+import org.exoplatform.portal.mop.SiteKey;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class POMSessionExportTask extends AbstractSiteExportTask
+public class NavigationKey
 {
-   protected POMSession session;
+   private SiteKey siteKey;
+   private String navUri;
 
-   public POMSessionExportTask(String siteType, String siteName, POMSession session)
+   public NavigationKey(SiteKey siteKey)
    {
-      super(siteType, siteName);
-      this.session = session;
+      this.siteKey = siteKey;
+   }
+
+   public NavigationKey(SiteKey siteKey, String navUri)
+   {
+      this.siteKey = siteKey;
+      this.navUri = navUri;
+   }
+
+   public SiteKey getSiteKey()
+   {
+      return siteKey;
+   }
+
+   public String getNavUri()
+   {
+      return navUri;
    }
 }

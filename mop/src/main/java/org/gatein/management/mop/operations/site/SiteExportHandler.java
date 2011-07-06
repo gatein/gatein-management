@@ -22,20 +22,27 @@
 
 package org.gatein.management.mop.operations.site;
 
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.mop.SiteKey;
+import org.exoplatform.portal.mop.description.DescriptionService;
+import org.exoplatform.portal.mop.navigation.NavigationService;
 import org.exoplatform.portal.pom.config.POMSession;
 import org.exoplatform.portal.pom.config.POMSessionManager;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.api.operation.model.ExportResourceModel;
 import org.gatein.management.api.operation.model.ExportTask;
+import org.gatein.management.mop.exportimport.NavigationExportTask;
 import org.gatein.management.mop.exportimport.PageExportTask;
 import org.gatein.management.mop.exportimport.SiteLayoutExportTask;
 import org.gatein.management.mop.model.PageDataContainer;
+import org.gatein.management.mop.operations.navigation.NavigationKey;
 import org.gatein.mop.api.workspace.Page;
 import org.gatein.mop.api.workspace.Site;
 
@@ -48,6 +55,8 @@ import java.util.List;
  */
 public class SiteExportHandler extends AbstractSiteOperationHandler
 {
+   //TODO: Would like to have this be more of a step operation, where we navigate management structure calling read-resource on each resource
+
    @Override
    protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException
    {
@@ -73,6 +82,15 @@ public class SiteExportHandler extends AbstractSiteOperationHandler
          pageExportTask.addPageName(page.getName());
       }
       tasks.add(pageExportTask);
+
+      // Add navigation export task
+      NavigationService navigationService = operationContext.getRuntimeContext().getRuntimeComponent(NavigationService.class);
+      DescriptionService descriptionService = operationContext.getRuntimeContext().getRuntimeComponent(DescriptionService.class);
+      Marshaller<PageNavigation> navigationMarshaller = bindingProvider.getMarshaller(PageNavigation.class, ContentType.XML);
+      NavigationExportTask navigationExportTask = new NavigationExportTask(
+         new NavigationKey(new SiteKey(siteType, siteName)), navigationService, descriptionService, navigationMarshaller);
+
+      tasks.add(navigationExportTask);
 
       resultHandler.completed(new ExportResourceModel(tasks));
    }

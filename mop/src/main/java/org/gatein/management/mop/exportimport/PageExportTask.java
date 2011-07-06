@@ -33,6 +33,7 @@ import org.gatein.management.mop.model.PageDataContainer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -72,5 +73,10 @@ public class PageExportTask extends POMSessionExportTask implements ExportTask
    public void addPageName(String pageName)
    {
       pageNames.add(pageName);
+   }
+
+   public List<String> getPageNames()
+   {
+      return Collections.unmodifiableList(pageNames);
    }
 }

@@ -147,7 +147,7 @@ public class RestController
       String operationName = "read-resource";
       if (contentType == ContentType.ZIP)
       {
-         operationName = "export";
+         operationName = "export-resource";
       }
       MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
 

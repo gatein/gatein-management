@@ -32,7 +32,7 @@ import org.gatein.management.api.exceptions.ResourceNotFoundException;
 public abstract class QueryOperationHandler<T> implements OperationHandler
 {
    @Override
-   public void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
+   public final void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
    {
       resultHandler.completed(execute(operationContext));
    }

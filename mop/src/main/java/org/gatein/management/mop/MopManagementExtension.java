@@ -27,7 +27,9 @@ import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.mop.binding.MopBindingProvider;
 import org.gatein.management.mop.operations.MopReadResource;
+import org.gatein.management.mop.operations.navigation.NavigationExportResource;
 import org.gatein.management.mop.operations.navigation.NavigationReadResource;
+import org.gatein.management.mop.operations.page.PageExportResource;
 import org.gatein.management.mop.operations.page.PageReadResource;
 import org.gatein.management.mop.operations.page.PagesReadResource;
 import org.gatein.management.mop.operations.site.SiteExportHandler;
@@ -57,22 +59,28 @@ public class MopManagementExtension implements ManagementExtension
 
       ManagedResource.Registration sites = sitetypes.registerSubResource("{site-name: [\\w\\/]*}", description("Management resource responsible for handling management operations on a specific site."));
       sites.registerOperationHandler("read-resource", new SiteReadResource(), description("Lists all available artifacts for a given site (ie pages, navigation, site layout)"));
-      sites.registerOperationHandler("export", new SiteExportHandler(), description("Exports a site as a zip file."));
+      sites.registerOperationHandler("export-resource", new SiteExportHandler(), description("Exports a site as a zip file."));
 
       // Page management and operation registration
+      PageExportResource pageExport = new PageExportResource();
       ManagedResource.Registration pages = sites.registerSubResource("pages", description("Management resource responsible for handling management operations on all pages of a site."));
       pages.registerOperationHandler("read-resource", new PagesReadResource(), description("Lists all available pages available for a site."));
+      pages.registerOperationHandler("export-resource", pageExport, description("Exports all pages for a site as a zip file."));
 
       ManagedResource.Registration page = pages.registerSubResource("{page-name}", description("Page management resource representing an individual page."));
       page.registerOperationHandler("read-resource", new PageReadResource(), description("Retrieves page data for a specific site."));
+      page.registerOperationHandler("export-resource", pageExport, description("Exports a page as a zip file."));
 
       // Navigation management and operation registration
       NavigationReadResource navReadResource = new NavigationReadResource();
+      NavigationExportResource navExport = new NavigationExportResource();
       ManagedResource.Registration navigation = sites.registerSubResource("navigation", description("Navigation management resource representing a sites navigation."));
       navigation.registerOperationHandler("read-resource", navReadResource, description("Retrieves navigation for a specific site."));
+      navigation.registerOperationHandler("export-resource", navExport, description("Exports navigation as a zip file."));
 
       ManagedResource.Registration navigationNode = navigation.registerSubResource("{nav-uri: .*}", description("Navigation node management resource representing a sites navigation."));
       navigationNode.registerOperationHandler("read-resource", navReadResource, description("Retrieves navigation node for a specific site."));
+      navigationNode.registerOperationHandler("export-resource", navExport, description("Exports navigation as a zip file."));
    }
 
    @Override

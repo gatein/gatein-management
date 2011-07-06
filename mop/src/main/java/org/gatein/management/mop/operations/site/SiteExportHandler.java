@@ -55,7 +55,8 @@ import java.util.List;
  */
 public class SiteExportHandler extends AbstractSiteOperationHandler
 {
-   //TODO: Would like to have this be more of a step operation, where we navigate management structure calling read-resource on each resource
+   //TODO: Would like to have this be more of a step operation, where we navigate management structure calling export-resource on each resource.
+   //      This would minimize the duplicated code for exports.
 
    @Override
    protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException

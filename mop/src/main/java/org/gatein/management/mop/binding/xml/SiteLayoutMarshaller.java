@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.binding.xml.site;
+package org.gatein.management.mop.binding.xml;
 
 import org.exoplatform.portal.pom.data.BodyData;
 import org.exoplatform.portal.pom.data.BodyType;
@@ -30,8 +30,6 @@ import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.common.xml.stax.navigator.StaxNavUtils;
 import org.gatein.common.xml.stax.writer.StaxWriter;
 import org.gatein.management.api.binding.BindingException;
-import org.gatein.management.mop.binding.xml.AbstractPomDataMarshaller;
-import org.gatein.management.mop.binding.xml.Element;
 import org.staxnav.StaxNavException;
 import org.staxnav.StaxNavigator;
 
@@ -52,7 +50,7 @@ import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
+public class SiteLayoutMarshaller extends AbstractMarshaller<PortalData>
 {
    @Override
    public void marshal(PortalData object, OutputStream outputStream) throws BindingException
@@ -267,5 +265,27 @@ public class PortalDataMarshaller extends AbstractPomDataMarshaller<PortalData>
       portalLayout = new ContainerData(null, null, null, null, null, null, null, null, null, null, Collections.<String>emptyList(), components);
 
       return new PortalData(null, portalName, "", locale, label, description, accessPermissions, editPermission, properties, skin, portalLayout);
+   }
+
+   private static enum Attribute
+   {
+      PROPERTIES_KEY("key");
+
+      private final String name;
+
+      Attribute(final String name)
+      {
+         this.name = name;
+      }
+
+      /**
+       * Get the local name of this element.
+       *
+       * @return the local name
+       */
+      public String getLocalName()
+      {
+         return name;
+      }
    }
 }

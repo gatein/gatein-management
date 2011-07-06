@@ -20,25 +20,27 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.binding.xml.navigation;
+package org.gatein.management.mop.binding.xml;
 
+import org.exoplatform.portal.config.model.LocalizedValue;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.mop.Visibility;
-import org.exoplatform.portal.pom.data.NavigationData;
-import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.gatein.common.xml.stax.writer.StaxWriter;
 import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.api.binding.BindingException;
-import org.gatein.management.mop.binding.xml.AbstractPomDataMarshaller;
-import org.gatein.management.mop.binding.xml.Element;
+import org.gatein.management.api.binding.Marshaller;
 import org.staxnav.StaxNavException;
 import org.staxnav.StaxNavigator;
 import org.staxnav.ValueType;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 
 import static org.gatein.common.xml.stax.navigator.Exceptions.*;
@@ -49,16 +51,16 @@ import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class NavigationDataMarshaller extends AbstractPomDataMarshaller<NavigationData>
+public class NavigationMarshaller implements Marshaller<PageNavigation>
 {
 
    @Override
-   public void marshal(NavigationData object, OutputStream outputStream) throws BindingException
+   public void marshal(PageNavigation navigation, OutputStream outputStream) throws BindingException
    {
       try
       {
          StaxWriter<Element> writer = createWriter(Element.class, outputStream);
-         marshalNavigationData(writer, object);
+         marshalNavigation(writer, navigation);
       }
       catch (StaxNavException e)
       {
@@ -71,12 +73,12 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
    }
 
    @Override
-   public NavigationData unmarshal(InputStream is) throws BindingException
+   public PageNavigation unmarshal(InputStream is) throws BindingException
    {
       try
       {
          StaxNavigator<Element> navigator = createNavigator(Element.class, Element.UNKNOWN, is);
-         return unmarshalNavigationData(navigator);
+         return unmarshalNavigation(navigator);
       }
       catch (StaxNavException e)
       {
@@ -84,35 +86,47 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       }
    }
 
-   private void marshalNavigationData(StaxWriter<Element> writer, NavigationData navigation) throws XMLStreamException
+   private void marshalNavigation(StaxWriter<Element> writer, PageNavigation navigation) throws XMLStreamException
    {
       writer.writeStartElement(Element.NODE_NAVIGATION);
 
       // Write gatein_objects xml namespace
-      writeGateinObjectsNamespace(writer);
+      Utils.writeGateinObjectsNamespace(writer);
 
       // Priority
       writer.writeElement(Element.PRIORITY, WritableValueTypes.INTEGER, navigation.getPriority());
 
       // Page nodes
       writer.writeStartElement(Element.PAGE_NODES);
-      List<NavigationNodeData> nodes = navigation.getNodes();
+      Collection<PageNode> nodes = navigation.getNodes();
       if (nodes != null && !nodes.isEmpty())
       {
-         for (NavigationNodeData node : nodes)
+         for (PageNode node : nodes)
          {
-            marshallNavigationNodeData(writer, node);
+            marshallNode(writer, node);
          }
       }
       writer.writeEndElement().writeEndElement(); // End page-nodes and node-navigation
    }
 
-   public void marshallNavigationNodeData(StaxWriter<Element> writer, NavigationNodeData node) throws XMLStreamException
+   public void marshallNode(StaxWriter<Element> writer, PageNode node) throws XMLStreamException
    {
       writer.writeStartElement(Element.NODE);
-      writeOptionalElement(writer, Element.URI, node.getURI());
       writer.writeElement(Element.NAME, node.getName());
-      writeOptionalElement(writer, Element.LABEL, node.getLabel());
+
+      if (node.getLabels() != null)
+      {
+         for (LocalizedValue label : node.getLabels())
+         {
+            writer.writeStartElement(Element.LABEL);
+            if (label.getLang() != null)
+            {
+               writer.writeAttribute(new QName(XMLConstants.XML_NS_URI, "lang", "xml"), label.getLang().toString());
+            }
+            writer.writeContent(label.getValue()).writeEndElement();
+         }
+      }
+
       writeOptionalElement(writer, Element.ICON, node.getIcon());
 
       writeOptionalElement(writer, Element.START_PUBLICATION_DATE, WritableValueTypes.DATE_TIME, node.getStartPublicationDate());
@@ -123,20 +137,22 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       writeOptionalElement(writer, Element.PAGE_REFERENCE, node.getPageReference());
 
       // Marshall children
-      List<NavigationNodeData> children = node.getNodes();
+      List<PageNode> children = node.getNodes();
       if (children != null && !children.isEmpty())
       {
-         for (NavigationNodeData child : children)
+         for (PageNode child : children)
          {
-            marshallNavigationNodeData(writer, child);
+            marshallNode(writer, child);
          }
       }
 
       writer.writeEndElement(); // End of node
    }
 
-   private NavigationData unmarshalNavigationData(StaxNavigator<Element> navigator) throws StaxNavException
+   private PageNavigation unmarshalNavigation(StaxNavigator<Element> navigator) throws StaxNavException
    {
+      PageNavigation navigation = new PageNavigation();
+
       if (navigator.getName() == Element.NODE_NAVIGATION)
       {
          Element next = navigator.child();
@@ -145,8 +161,9 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
             throw expectedElement(navigator, Element.PRIORITY);
          }
          Integer priority = parseRequiredContent(navigator, ValueType.INTEGER);
+         navigation.setPriority(priority);
 
-         List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
+         ArrayList<PageNode> nodes = new ArrayList<PageNode>();
 
          next = navigator.sibling();
          if (next == Element.PAGE_NODES)
@@ -156,7 +173,7 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
             {
                for (StaxNavigator<Element> fork : navigator.fork(Element.NODE))
                {
-                  nodes.add(unmarshalNavigationNodeData(fork));
+                  nodes.add(unmarshalNode(fork));
                }
             }
             else if (next != null)
@@ -169,7 +186,8 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
             throw expectedElement(navigator, Element.PAGE_NODES);
          }
 
-         return new NavigationData("", "", priority, nodes);
+         navigation.setNodes(nodes);
+         return navigation;
       }
       else
       {
@@ -177,58 +195,51 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
       }
    }
 
-   private NavigationNodeData unmarshalNavigationNodeData(StaxNavigator<Element> navigator) throws StaxNavException
+   private PageNode unmarshalNode(StaxNavigator<Element> navigator) throws StaxNavException
    {
-      String uri = null;
-      String name = null;
-      String label = null;
-      String icon = null;
-      Date start = null;
-      Date end = null;
-      Visibility visibility = null;
-      String pageRef = null;
-      List<NavigationNodeData> nodes = new ArrayList<NavigationNodeData>();
+      PageNode node = new PageNode();
+      ArrayList<LocalizedValue> labels = new ArrayList<LocalizedValue>();
+      ArrayList<PageNode> children = new ArrayList<PageNode>();
 
       Element current = navigator.child();
       while (current != null)
       {
          switch (navigator.getName())
          {
-            case URI:
-               uri = navigator.getContent();
+            case URI: // For backwards compatibility
                current = navigator.sibling();
                break;
             case NAME:
-               name = navigator.getContent();
+               node.setName(navigator.getContent());
                current = navigator.sibling();
                break;
             case LABEL:
-               label = navigator.getContent();
+               labels.add(Utils.parseLocalizedString(navigator));
                current = navigator.sibling();
                break;
             case ICON:
-               icon = navigator.getContent();
+               node.setIcon(navigator.getContent());
                current = navigator.sibling();
                break;
             case START_PUBLICATION_DATE:
-               start = navigator.parseContent(ValueType.DATE_TIME);
+               node.setStartPublicationDate(navigator.parseContent(ValueType.DATE_TIME));
                current = navigator.sibling();
                break;
             case END_PUBLICATION_DATE:
-               end = navigator.parseContent(ValueType.DATE_TIME);
+               node.setEndPublicationDate(navigator.parseContent(ValueType.DATE_TIME));
                current = navigator.sibling();
                break;
             case VISIBILITY:
-               visibility = navigator.parseContent(ValueType.get(Visibility.class));
+               node.setVisibility(navigator.parseContent(ValueType.get(Visibility.class)));
                current = navigator.sibling();
                break;
             case PAGE_REFERENCE:
-               pageRef = navigator.getContent();
+               node.setPageReference(navigator.getContent());
                current = navigator.sibling();
                break;
             case NODE:
-               NavigationNodeData node = unmarshalNavigationNodeData(navigator.fork());
-               nodes.add(node);
+               PageNode child = unmarshalNode(navigator.fork());
+               children.add(child);
                current = navigator.getName();
                break;
             case UNKNOWN:
@@ -238,6 +249,9 @@ public class NavigationDataMarshaller extends AbstractPomDataMarshaller<Navigati
          }
       }
 
-      return new NavigationNodeData(uri, label, icon, name, start, end, visibility, pageRef, nodes);
+      node.setLabels(labels);
+      node.setChildren(children);
+
+      return node;
    }
 }

@@ -20,19 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.binding.xml.navigation;
+package org.gatein.management.mop.binding.xml;
 
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.mop.Visibility;
-import org.exoplatform.portal.pom.data.NavigationData;
-import org.exoplatform.portal.pom.data.NavigationNodeData;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.TimeZone;
 
 import static org.junit.Assert.*;
@@ -41,18 +41,18 @@ import static org.junit.Assert.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class NavigationDataMarshallerTest
+public class NavigationMarshallerTest
 {
    @Test
    public void testNavigationUnmarshalling()
    {
-      NavigationDataMarshaller marshaller = new NavigationDataMarshaller();
-      NavigationData data = marshaller.unmarshal(getClass().getResourceAsStream("/navigation.xml"));
+      NavigationMarshaller marshaller = new NavigationMarshaller();
+      PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/navigation.xml"));
       assertNotNull(data);
       assertEquals(111, data.getPriority());
       assertNotNull(data.getNodes());
       assertEquals(7, data.getNodes().size());
-      NavigationNodeData node = data.getNodes().get(0);
+      PageNode node = data.getNodes().get(0);
       verifyNode(node, "home", "#{portal.classic.home}", "home", Visibility.DISPLAYED, "portal::classic::homepage", null, null, null, 1);
       node = node.getNodes().get(0);
       Date start = createDate(2011, 1, 10, 12, 13, 55);
@@ -74,7 +74,7 @@ public class NavigationDataMarshallerTest
          String uri = "n0/n0/n" + i;
          String pageref = uri.replace("/", "_");
 
-         NavigationNodeData child = node.getNodes().get(i);
+         PageNode child = node.getNodes().get(i);
          verifyNode(child, name, name, uri, Visibility.DISPLAYED, "portal::classic::" + pageref, null, null, null, 0);
       }
    }
@@ -82,8 +82,8 @@ public class NavigationDataMarshallerTest
    @Test
    public void testEmptyNavigationUnmarshalling()
    {
-      NavigationDataMarshaller marshaller = new NavigationDataMarshaller();
-      NavigationData data = marshaller.unmarshal(getClass().getResourceAsStream("/empty-navigation.xml"));
+      NavigationMarshaller marshaller = new NavigationMarshaller();
+      PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/empty-navigation.xml"));
       assertNotNull(data);
       assertEquals(3, data.getPriority());
       assertNotNull(data.getNodes());
@@ -100,26 +100,26 @@ public class NavigationDataMarshallerTest
       endCal.set(Calendar.MILLISECOND, 0);
       Date end = endCal.getTime();
 
-      NavigationNodeData expectedChild = new NavigationNodeData("node/node-1", "Node 1-1", "Icon-1", "node-1",
-         null, null, null, null, Collections.<NavigationNodeData>emptyList());
-      List<NavigationNodeData> children = Collections.singletonList(expectedChild);
-      NavigationNodeData expectedNode = new NavigationNodeData("node", "Node", "Icon", "node", start, end, Visibility.DISPLAYED, "page-ref", children);
+      PageNode expectedChild = newPageNode("Node 1-1", "Icon-1", "node-1",
+         null, null, Visibility.DISPLAYED, null, new ArrayList<PageNode>());
+      ArrayList<PageNode> children = new ArrayList<PageNode>(Collections.singletonList(expectedChild));
+      PageNode expectedNode = newPageNode("Node", "Icon", "node", start, end, Visibility.HIDDEN, "page-ref", children);
 
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      NavigationDataMarshaller marshaller = new NavigationDataMarshaller();
-      NavigationData expected = new NavigationData("", "", 123, Collections.singletonList(expectedNode));
+      NavigationMarshaller marshaller = new NavigationMarshaller();
+      PageNavigation expected = newPageNavigation("", "", 123, new ArrayList<PageNode>(Collections.singletonList(expectedNode)));
       marshaller.marshal(expected, baos);
 
-      NavigationData actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
+      PageNavigation actual = marshaller.unmarshal(new ByteArrayInputStream(baos.toByteArray()));
 
       assertNotNull(actual);
-      assertEquals("", actual.getOwnerType());
-      assertEquals("", actual.getOwnerId());
+      assertNull(actual.getOwnerType());
+      assertNull(actual.getOwnerId());
       assertEquals(expected.getPriority(), actual.getPriority());
       assertNotNull(expected.getNodes());
       assertEquals(expected.getNodes().size(), actual.getNodes().size());
 
-      NavigationNodeData actualNode = actual.getNodes().get(0);
+      PageNode actualNode = actual.getNodes().get(0);
       compareNode(expectedNode, actualNode);
 
       assertNotNull(actualNode.getNodes());
@@ -127,13 +127,23 @@ public class NavigationDataMarshallerTest
       compareNode(expectedChild, actualNode.getNodes().get(0));
    }
 
-   private void verifyNode(NavigationNodeData node, String name, String label, String uri, Visibility visibility,
+   private PageNavigation newPageNavigation(String ownerType, String ownerId, int priority, ArrayList<PageNode> children)
+   {
+      PageNavigation pageNavigation = new PageNavigation();
+      pageNavigation.setOwnerType(ownerType);
+      pageNavigation.setOwnerId(ownerId);
+      pageNavigation.setPriority(priority);
+      pageNavigation.setNodes(children);
+
+      return pageNavigation;
+   }
+
+   private void verifyNode(PageNode node, String name, String label, String uri, Visibility visibility,
                            String pageRef, Date start, Date end, String icon, int children)
    {
       assertNotNull(node);
       assertEquals(name, node.getName());
       assertEquals(label, node.getLabel());
-      assertEquals(uri, node.getURI());
       assertEquals(visibility, node.getVisibility());
       assertEquals(pageRef, node.getPageReference());
       assertEquals(start, node.getStartPublicationDate());
@@ -143,9 +153,8 @@ public class NavigationDataMarshallerTest
       assertEquals(children, node.getNodes().size());
    }
 
-   private void compareNode(NavigationNodeData expected, NavigationNodeData actual)
+   private void compareNode(PageNode expected, PageNode actual)
    {
-      assertEquals(expected.getURI(), actual.getURI());
       assertEquals(expected.getLabel(), actual.getLabel());
       assertEquals(expected.getIcon(), actual.getIcon());
       assertEquals(expected.getName(), actual.getName());
@@ -168,5 +177,20 @@ public class NavigationDataMarshallerTest
       cal.set(Calendar.MILLISECOND, 0);
       
       return cal.getTime();
+   }
+
+   private PageNode newPageNode(String name, String icon, String label, Date start, Date end, Visibility visibility, String pageref, ArrayList<PageNode> pageNodes)
+   {
+      PageNode pageNode = new PageNode();
+      pageNode.setName(name);
+      pageNode.setIcon(icon);
+      pageNode.setLabel(label);
+      pageNode.setStartPublicationDate(start);
+      pageNode.setEndPublicationDate(end);
+      pageNode.setVisibility(visibility);
+      pageNode.setPageReference(pageref);
+      pageNode.setChildren(pageNodes);
+
+      return pageNode;
    }
 }

@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.binding.xml.site;
+package org.gatein.management.mop.binding.xml;
 
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
@@ -34,7 +34,6 @@ import org.exoplatform.portal.pom.data.ContainerData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
-import org.gatein.management.mop.binding.xml.AbstractMarshallerTest;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -52,12 +51,12 @@ import static org.junit.Assert.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PortalDataMarshallerTest extends AbstractMarshallerTest
+public class SiteLayoutMarshallerTest extends AbstractMarshallerTest
 {
    @Test
    public void testPortalDataUnmarshalling()
    {
-      PortalDataMarshaller marshaller = new PortalDataMarshaller();
+      SiteLayoutMarshaller marshaller = new SiteLayoutMarshaller();
       PortalData data = marshaller.unmarshal(getClass().getResourceAsStream("/portal.xml"));
       assertNotNull(data);
       assertEquals("classic", data.getName());
@@ -196,7 +195,7 @@ public class PortalDataMarshallerTest extends AbstractMarshallerTest
       PortalData expected = new PortalData(null, "name", "type", "locale", "label", "description",
          Collections.singletonList("access-permissions"), "edit-permissions", properties, "skin", layout);
 
-      PortalDataMarshaller marshaller = new PortalDataMarshaller();
+      SiteLayoutMarshaller marshaller = new SiteLayoutMarshaller();
       marshaller.marshal(expected, baos);
 
 //      System.out.println(baos.toString());

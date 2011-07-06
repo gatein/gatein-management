@@ -45,14 +45,14 @@
 
    <properties>
       <org.gatein.common.version>2.0.4-Beta03</org.gatein.common.version>
-      <org.gatein.portal.version>3.2.0-M01</org.gatein.portal.version>
+      <org.gatein.portal.version>3.2.0-M02-SNAPSHOT</org.gatein.portal.version>
       <org.exoplatform.kernel.version>2.3.0-CR2</org.exoplatform.kernel.version>
       <org.exoplatform.ws.version>2.2.0-CR2</org.exoplatform.ws.version>
       <org.slf4j.version>1.5.8</org.slf4j.version>
       <com.google.gwt.version>2.1.0</com.google.gwt.version>
       <com.googlecode.gwtupload.version>0.6.3-compat</com.googlecode.gwtupload.version>
       <com.smartgwt.version>2.1</com.smartgwt.version>
-      <org.staxnav.version>1.1-SNAPSHOT</org.staxnav.version>
+      <org.staxnav.version>0.9.3</org.staxnav.version>
    </properties>
 
    <dependencyManagement>

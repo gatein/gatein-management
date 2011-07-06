@@ -37,6 +37,7 @@ public enum Element implements EnumElement<Element>
    PRIORITY("priority"),
    PAGE_NODES("page-nodes"),
    NODE("node"),
+   @Deprecated
    URI("uri"),
    LABEL("label"),
    START_PUBLICATION_DATE("start-publication-date"),

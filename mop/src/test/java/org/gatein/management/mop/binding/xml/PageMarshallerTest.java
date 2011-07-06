@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.binding.xml.page;
+package org.gatein.management.mop.binding.xml;
 
 import org.exoplatform.portal.config.model.ApplicationState;
 import org.exoplatform.portal.config.model.ApplicationType;
@@ -33,7 +33,6 @@ import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.spi.gadget.Gadget;
 import org.exoplatform.portal.pom.spi.portlet.Portlet;
 import org.exoplatform.portal.pom.spi.portlet.Preference;
-import org.gatein.management.mop.binding.xml.AbstractMarshallerTest;
 import org.gatein.management.mop.model.PageDataContainer;
 import org.junit.Test;
 
@@ -50,12 +49,12 @@ import static org.junit.Assert.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PageDataMarshallerTest extends AbstractMarshallerTest
+public class PageMarshallerTest extends AbstractMarshallerTest
 {
    @Test
    public void testHomePageUnMarshalling()
    {
-      PageDataMarshaller marshaller = new PageDataMarshaller();
+      PageMarshaller marshaller = new PageMarshaller();
       PageDataContainer pages = marshaller.unmarshal(getClass().getResourceAsStream("/home-page.xml"));
       assertNotNull(pages);
       assertNotNull(pages.getPages());
@@ -106,7 +105,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
    @Test
    public void testLoadedPageUnmarshalling()
    {
-      PageDataMarshaller marshaller = new PageDataMarshaller();
+      PageMarshaller marshaller = new PageMarshaller();
       PageDataContainer pages = marshaller.unmarshal(getClass().getResourceAsStream("/loaded-page.xml"));
       assertNotNull(pages);
       assertNotNull(pages.getPages());
@@ -325,7 +324,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
    @Test
    public void testEmptyPageUnmarshalling()
    {
-      PageDataMarshaller marshaller = new PageDataMarshaller();
+      PageMarshaller marshaller = new PageMarshaller();
       PageDataContainer pages = marshaller.unmarshal(getClass().getResourceAsStream("/empty-page.xml"));
       assertNotNull(pages);
       assertNotNull(pages.getPages());
@@ -362,7 +361,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
 
       PageDataContainer expectedPages = new PageDataContainer(Collections.singletonList(expected));
-      PageDataMarshaller marshaller = new PageDataMarshaller();
+      PageMarshaller marshaller = new PageMarshaller();
       marshaller.marshal(expectedPages, baos);
 
       //System.out.println(baos.toString());
@@ -397,7 +396,7 @@ public class PageDataMarshallerTest extends AbstractMarshallerTest
          Collections.singletonList("access-permissions"), children, "", "", "edit-permission", true);
 
       PageDataContainer expectedPages = new PageDataContainer(Collections.singletonList(expected));
-      PageDataMarshaller marshaller = new PageDataMarshaller();
+      PageMarshaller marshaller = new PageMarshaller();
       marshaller.marshal(expectedPages, baos);
 
       //System.out.println(baos.toString());

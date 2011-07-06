@@ -20,15 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.binding.xml.page;
+package org.gatein.management.mop.binding.xml;
 
 import org.exoplatform.portal.pom.data.ComponentData;
 import org.exoplatform.portal.pom.data.PageData;
 import org.gatein.common.xml.stax.writer.StaxWriter;
 import org.gatein.common.xml.stax.writer.WritableValueTypes;
 import org.gatein.management.api.binding.BindingException;
-import org.gatein.management.mop.binding.xml.AbstractPomDataMarshaller;
-import org.gatein.management.mop.binding.xml.Element;
 import org.gatein.management.mop.model.PageDataContainer;
 import org.staxnav.StaxNavException;
 import org.staxnav.StaxNavigator;
@@ -38,7 +36,6 @@ import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static org.gatein.common.xml.stax.navigator.Exceptions.*;
@@ -50,7 +47,7 @@ import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PageDataMarshaller extends AbstractPomDataMarshaller<PageDataContainer>
+public class PageMarshaller extends AbstractMarshaller<PageDataContainer>
 {
    @Override
    public void marshal(PageDataContainer pageContainer, OutputStream outputStream) throws BindingException

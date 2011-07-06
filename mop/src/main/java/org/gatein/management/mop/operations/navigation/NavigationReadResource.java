@@ -22,56 +22,151 @@
 
 package org.gatein.management.mop.operations.navigation;
 
+import org.exoplatform.portal.config.model.LocalizedValue;
+import org.exoplatform.portal.config.model.PageNavigation;
+import org.exoplatform.portal.config.model.PageNode;
+import org.exoplatform.portal.mop.Described;
+import org.exoplatform.portal.mop.SiteKey;
+import org.exoplatform.portal.mop.description.DescriptionService;
+import org.exoplatform.portal.mop.navigation.NavigationContext;
+import org.exoplatform.portal.mop.navigation.NavigationService;
+import org.exoplatform.portal.mop.navigation.NodeContext;
+import org.exoplatform.portal.mop.navigation.NodeModel;
+import org.exoplatform.portal.mop.navigation.Scope;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
-import org.gatein.mop.api.workspace.Navigation;
+import org.gatein.management.mop.operations.site.AbstractSiteOperationHandler;
+import org.gatein.mop.api.workspace.Site;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class NavigationReadResource extends AbstractNavigationOperationHandler
+public class NavigationReadResource extends AbstractSiteOperationHandler
 {
    @Override
-   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Navigation defaultNavigation)
+   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site)
    {
       String navUri = operationContext.getAddress().resolvePathTemplate("nav-uri");
-      if (navUri == null)
+      String siteType = getSiteType(site.getObjectType());
+      String siteName = site.getName();
+      SiteKey siteKey = new SiteKey(siteType, siteName);
+
+      DescriptionService descriptionService = operationContext.getRuntimeContext().getRuntimeComponent(DescriptionService.class);
+      NavigationService navigationService = operationContext.getRuntimeContext().getRuntimeComponent(NavigationService.class);
+      NavigationContext navigation = navigationService.loadNavigation(siteKey);
+
+      NodeContext<NodeContext<?>> node;
+      if (navUri != null)
       {
-         resultHandler.completed(defaultNavigation);
+         PathScope scope = new PathScope(navUri);
+         node = navigationService.loadNode(NodeModel.SELF_MODEL, navigation, scope, null);
+         if (scope.getFoundId() == null) throw new ResourceNotFoundException("Navigation node " + navUri + " not found.");
+
+         node = node.getDescendant(scope.getFoundId());
+         resultHandler.completed(createFragmentedPageNavigation(descriptionService, navigation, node));
       }
       else
       {
-         String[] uris = trim(navUri.split("/"));
-         Navigation nav = null;
-         for (String uri : uris)
-         {
-            nav = defaultNavigation.getChild(uri);
-            if (nav == null)
-            {
-               throw new ResourceNotFoundException("Navigation not found for navigation uri " + navUri);
-            }
-         }
-
-         resultHandler.completed(nav);
+         node = navigationService.loadNode(NodeModel.SELF_MODEL, navigation, Scope.ALL, null);
+         resultHandler.completed(createPageNavigation(descriptionService, navigation, node));
       }
    }
 
-   private String[] trim(String[] array)
+   private PageNavigation createPageNavigation(DescriptionService service, NavigationContext navigation, NodeContext<NodeContext<?>> node)
    {
-      List<String> trimmed = new ArrayList<String>(array.length);
-      for (String s : array)
+      PageNavigation pageNavigation = new PageNavigation();
+      pageNavigation.setPriority(navigation.getState().getPriority());
+      pageNavigation.setOwnerType(navigation.getKey().getTypeName());
+      pageNavigation.setOwnerId(navigation.getKey().getName());
+
+      ArrayList<PageNode> children = new ArrayList<PageNode>(node.getNodeCount());
+      for (NodeContext<?> child : node.getNodes())
       {
-         if (s != null && !"".equals(s))
-         {
-            trimmed.add(s);
-         }
+         children.add(createPageNode(service, (NodeContext<NodeContext<?>>) child));
       }
 
-      return trimmed.toArray(new String[trimmed.size()]);
+      pageNavigation.setNodes(children);
+
+      return pageNavigation;
+   }
+
+   private PageNavigation createFragmentedPageNavigation(DescriptionService service, NavigationContext navigation, NodeContext<NodeContext<?>> node)
+   {
+      PageNavigation pageNavigation = new PageNavigation();
+      pageNavigation.setPriority(navigation.getState().getPriority());
+      pageNavigation.setOwnerType(navigation.getKey().getTypeName());
+      pageNavigation.setOwnerId(navigation.getKey().getName());
+
+      ArrayList<PageNode> children = new ArrayList<PageNode>(1);
+      children.add(createPageNode(service, node));
+
+      pageNavigation.setNodes(children);
+
+      return pageNavigation;
+   }
+
+   private PageNode createPageNode(DescriptionService service, NodeContext<NodeContext<?>> node)
+   {
+      PageNode pageNode = new PageNode();
+      pageNode.setName(node.getName());
+
+      if (node.getState().getLabel() == null)
+      {
+         Map<Locale, Described.State> descriptions = service.getDescriptions(node.getId());
+         if (descriptions != null && !descriptions.isEmpty())
+         {
+            ArrayList<LocalizedValue> labels = new ArrayList<LocalizedValue>(descriptions.size());
+            for (Map.Entry<Locale, Described.State> entry : descriptions.entrySet())
+            {
+               labels.add(new LocalizedValue(entry.getValue().getName(), entry.getKey()));
+            }
+
+            pageNode.setLabels(labels);
+         }
+      }
+      else
+      {
+         pageNode.setLabel(node.getState().getLabel());
+      }
+
+      pageNode.setIcon(node.getState().getIcon());
+      long startPublicationTime = node.getState().getStartPublicationTime();
+      if (startPublicationTime != -1)
+      {
+         pageNode.setStartPublicationDate(new Date(startPublicationTime));
+      }
+
+      long endPublicationTime = node.getState().getEndPublicationTime();
+      if (endPublicationTime != -1)
+      {
+         pageNode.setEndPublicationDate(new Date(endPublicationTime));
+      }
+
+      pageNode.setVisibility(node.getState().getVisibility());
+      pageNode.setPageReference(node.getState().getPageRef());
+
+      if (node.getNodes() != null)
+      {
+         ArrayList<PageNode> children = new ArrayList<PageNode>(node.getNodeCount());
+         for (NodeContext<?> child : node.getNodes())
+         {
+            children.add(createPageNode(service, (NodeContext<NodeContext<?>>) child));
+         }
+
+         pageNode.setChildren(children);
+      }
+      else
+      {
+         pageNode.setChildren(new ArrayList<PageNode>(0));
+      }
+
+      return pageNode;
    }
 }

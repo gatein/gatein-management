@@ -22,17 +22,17 @@
 
 package org.gatein.management.mop.binding;
 
+import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PortalData;
 import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
-import org.gatein.management.mop.binding.navigation.XmlNavigationMarshaller;
-import org.gatein.management.mop.binding.xml.page.PageDataMarshaller;
-import org.gatein.management.mop.binding.xml.site.PortalDataMarshaller;
+import org.gatein.management.mop.binding.xml.NavigationMarshaller;
+import org.gatein.management.mop.binding.xml.PageMarshaller;
+import org.gatein.management.mop.binding.xml.SiteLayoutMarshaller;
 import org.gatein.management.mop.model.PageDataContainer;
-import org.gatein.mop.api.workspace.Navigation;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -72,7 +72,7 @@ public class MopBindingProvider implements BindingProvider
       {
          return (Marshaller<T>) XmlMarshallers.pages_marshaller;
       }
-      else if (Navigation.class.isAssignableFrom(type))
+      else if (PageNavigation.class.isAssignableFrom(type))
       {
          return (Marshaller<T>) XmlMarshallers.navigation_marshaller;
       }
@@ -88,7 +88,7 @@ public class MopBindingProvider implements BindingProvider
    {
 
       //------------------------------------ Page Marshallers ------------------------------------//
-      private static Marshaller<PageDataContainer> pages_marshaller = new PageDataMarshaller();
+      private static Marshaller<PageDataContainer> pages_marshaller = new PageMarshaller();
 
       private static Marshaller<PageData> page_marshaller = new Marshaller<PageData>()
       {
@@ -113,8 +113,8 @@ public class MopBindingProvider implements BindingProvider
          }
       };
 
-      private static Marshaller<Navigation> navigation_marshaller = new XmlNavigationMarshaller();
+      private static Marshaller<PageNavigation> navigation_marshaller = new NavigationMarshaller();
 
-      private static Marshaller<PortalData> site_marshaller = new PortalDataMarshaller();
+      private static Marshaller<PortalData> site_marshaller = new SiteLayoutMarshaller();
    }
 }

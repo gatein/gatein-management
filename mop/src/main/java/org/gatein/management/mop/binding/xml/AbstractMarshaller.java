@@ -44,8 +44,6 @@ import org.gatein.management.api.binding.Marshaller;
 import org.staxnav.StaxNavigator;
 import org.staxnav.ValueType;
 
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +57,7 @@ import static org.gatein.common.xml.stax.writer.StaxWriterUtils.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
+public abstract class AbstractMarshaller<T> implements Marshaller<T>
 {
    protected void marshalComponentData(StaxWriter<Element> writer, ComponentData componentData) throws XMLStreamException
    {
@@ -631,12 +629,7 @@ public abstract class AbstractPomDataMarshaller<T> implements Marshaller<T>
 
    protected void writeGateinObjectsNamespace(StaxWriter<Element> writer) throws XMLStreamException
    {
-      String gatein_object_ns = Namespace.CURRENT.getUri();
-      String location = new StringBuilder().append(gatein_object_ns).append(" ").append(gatein_object_ns).toString();
-
-      writer.writeDefaultNamespace(gatein_object_ns);
-      writer.writeNamespace("xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI);
-      writer.writeAttribute(new QName(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation"), location);
+      Utils.writeGateinObjectsNamespace(writer);
    }
 
    @SuppressWarnings("unchecked")

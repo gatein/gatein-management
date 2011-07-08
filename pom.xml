@@ -105,6 +105,11 @@
             <version>${org.gatein.common.version}</version>
          </dependency>
          <dependency>
+            <groupId>org.gatein.common</groupId>
+            <artifactId>common-common</artifactId>
+            <version>${org.gatein.common.version}</version>
+         </dependency>
+         <dependency>
             <groupId>org.exoplatform.portal</groupId>
             <artifactId>exo.portal.component.portal</artifactId>
             <version>${org.gatein.portal.version}</version>

@@ -22,11 +22,13 @@
 
 package org.gatein.management.mop.operations.site;
 
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.mop.api.workspace.Navigation;
+import org.gatein.mop.api.workspace.Page;
 import org.gatein.mop.api.workspace.Site;
 
 import java.util.LinkedHashSet;
@@ -41,10 +43,28 @@ public class SiteReadResource extends AbstractSiteOperationHandler
    @Override
    protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException
    {
+      boolean pageOrNav = false;
       Set<String> children = new LinkedHashSet<String>(3);
-      children.add("pages");
-      children.add("navigation");
-      children.add("portal");
-      resultHandler.completed(new ReadResourceModel("Available artifacts for site type " + getSiteType(site.getObjectType()) + " and site name " + site.getName(), children));
+
+      Page pages = site.getRootPage().getChild("pages");
+      if (pages != null && !pages.getChildren().isEmpty())
+      {
+         children.add("pages");
+         pageOrNav = true;
+      }
+
+      Navigation defaultNav = site.getRootNavigation().getChild("default");
+      if (defaultNav != null && !defaultNav.getChildren().isEmpty())
+      {
+         children.add("navigation");
+         pageOrNav = true;
+      }
+
+      if (pageOrNav)
+      {
+         children.add("portal");
+      }
+
+      resultHandler.completed(new ReadResourceModel("Available artifacts for site " + getSiteKey(site), children));
    }
 }

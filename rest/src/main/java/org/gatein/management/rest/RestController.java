@@ -31,6 +31,7 @@ import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.operation.OperationNames;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -144,12 +145,11 @@ public class RestController
          return Response.notAcceptable(Variant.mediaTypes(ContentTypeUtils.mediaTypes()).build()).build();
       }
 
-      String operationName = "read-resource";
+      String operationName = OperationNames.READ_RESOURCE;
       if (contentType == ContentType.ZIP)
       {
-         operationName = "export-resource";
+         operationName = OperationNames.EXPORT_RESOURCE;
       }
-      MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
 
       final PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
       try
@@ -157,10 +157,10 @@ public class RestController
          ManagedResponse resp = controller.execute(ManagedRequest.Factory.create(operationName, address, contentType));
          if (resp == null)
          {
-            return failure("No response returned for operation " + operationName, Status.INTERNAL_SERVER_ERROR, mediaType);
+            return failure("No response returned for operation " + operationName, Status.INTERNAL_SERVER_ERROR, contentType);
          }
 
-         return success(resp, mediaType);
+         return success(resp, contentType);
       }
       catch (ResourceNotFoundException nfe)
       {
@@ -168,20 +168,20 @@ public class RestController
          {
             log.error("Resource not found for address " + address, nfe);
          }
-         return failure(nfe.getMessage(), Status.NOT_FOUND, mediaType);
+         return failure(nfe.getMessage(), Status.NOT_FOUND, contentType);
       }
       catch (OperationException e)
       {
          String message = e.getMessage() + " for operation " + e.getOperationName();
-         log.error("Operation exception for address " + address, e);
-         return failure(message, Status.INTERNAL_SERVER_ERROR, mediaType);
+         log.error("Operation exception for operation '" + operationName + "' and content-type: " + contentType, e);
+         return failure(message, Status.INTERNAL_SERVER_ERROR, contentType);
       }
       catch (Exception e)
       {
          String message = "Error processing operation: " + operationName + " for address " + address;
          log.error(message, e);
 
-         return failure(message, Status.INTERNAL_SERVER_ERROR, mediaType);
+         return failure(message, Status.INTERNAL_SERVER_ERROR, contentType);
       }
    }
 
@@ -254,13 +254,20 @@ public class RestController
       return trimmed.toArray(new String[trimmed.size()]);
    }
 
-   private Response failure(String failureDescription, Status status, MediaType mediaType)
+   private Response failure(String failureDescription, Status status, ContentType contentType)
    {
+      if (contentType == ContentType.ZIP)
+      {
+         contentType = ContentType.JSON;
+      }
+
+      MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
       return Response.status(status).entity(new FailureResult(failureDescription)).type(mediaType).build();
    }
 
-   private Response success(ManagedResponse response, MediaType mediaType)
+   private Response success(ManagedResponse response, ContentType contentType)
    {
+      MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
       return Response.ok(response.getResult()).type(mediaType).build();
    }
 }

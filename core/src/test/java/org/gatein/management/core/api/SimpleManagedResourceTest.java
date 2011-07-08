@@ -161,7 +161,7 @@ public class SimpleManagedResourceTest implements RuntimeContext.Factory
       ManagedResource.Registration sitetypes = mop.registerSubResource("{site-type}sites", description("site type description"));
       sitetypes.registerOperationHandler("read-resource", siteTypesOh, description("site types read resource description"));
 
-      ManagedResource.Registration sites = sitetypes.registerSubResource("{site-name: [\\w\\/]*}", description("site names description"));
+      ManagedResource.Registration sites = sitetypes.registerSubResource("{site-name: [-_\\w\\/]*}", description("site names description"));
 
       ManagedResource.Registration pages = sites.registerSubResource("pages", description("page description"));
       pages.registerOperationHandler("read-resource", pagesOh, description("page read resource description"));
@@ -190,6 +190,14 @@ public class SimpleManagedResourceTest implements RuntimeContext.Factory
       assertNotNull(root.getSubResource(address));
       assertEquals("group", address.resolvePathTemplate("site-type"));
       assertEquals("platform/administrators", address.resolvePathTemplate("site-name"));
+      assertEquals("site names description", root.getResourceDescription(address).getDescription());
+      assertNotNull(root.getOperationHandler(address, "read-resource"));
+      assertEquals(globalOh, root.getOperationHandler(address, "read-resource"));
+
+      address = PathAddress.pathAddress("mop/groupsites/organization/management/executive-board");
+      assertNotNull(root.getSubResource(address));
+      assertEquals("group", address.resolvePathTemplate("site-type"));
+      assertEquals("organization/management/executive-board", address.resolvePathTemplate("site-name"));
       assertEquals("site names description", root.getResourceDescription(address).getDescription());
       assertNotNull(root.getOperationHandler(address, "read-resource"));
       assertEquals(globalOh, root.getOperationHandler(address, "read-resource"));

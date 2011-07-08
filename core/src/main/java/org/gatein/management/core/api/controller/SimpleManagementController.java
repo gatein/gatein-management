@@ -34,8 +34,8 @@ import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationHandler;
-import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.core.api.ManagementServiceImpl;
+import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
 
 /**
@@ -71,18 +71,18 @@ public class SimpleManagementController implements ManagementController
       OperationHandler operationHandler = root.getOperationHandler(address, operationName);
       if (operationHandler != null)
       {
-         SimpleResultHandler resultHandler = new SimpleResultHandler();
+         BasicResultHandler resultHandler = new BasicResultHandler();
          String componentName = (address.size() >= 1) ? address.get(0) : null;
          BindingProvider bindingProvider = service.getBindingProvider(componentName);
          operationHandler.execute(new OperationContextImpl(request, root, service.getRuntimeContext(), bindingProvider), resultHandler);
 
-         if (resultHandler.failureDescription != null)
+         if (resultHandler.getFailureDescription() != null)
          {
-            return new FailureResponse(resultHandler.failureDescription);
+            return new FailureResponse(resultHandler.getFailureDescription());
          }
          else
          {
-            return new SuccessfulResponse<Object>(bindingProvider, resultHandler.result, request.getContentType());
+            return new SuccessfulResponse<Object>(bindingProvider, resultHandler.getResult(), request.getContentType());
          }
       }
       else
@@ -99,23 +99,5 @@ public class SimpleManagementController implements ManagementController
       }
 
       return rootResource;
-   }
-
-   private static class SimpleResultHandler implements ResultHandler
-   {
-      private Object result;
-      private String failureDescription;
-
-      @Override
-      public void completed(Object result)
-      {
-         this.result = result;
-      }
-
-      @Override
-      public void failed(String failureDescription)
-      {
-         this.failureDescription = failureDescription;
-      }
    }
 }

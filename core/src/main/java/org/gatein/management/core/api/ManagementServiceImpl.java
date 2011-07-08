@@ -34,8 +34,10 @@ import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.core.api.binding.GlobalBindingProvider;
-import org.gatein.management.core.api.operation.GlobalOperationHandlers;
+import org.gatein.management.core.api.operation.global.ExportResource;
+import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.core.spi.ExtensionContextImpl;
 import org.gatein.management.spi.ExtensionContext;
 import org.gatein.management.spi.ManagementExtension;
@@ -152,7 +154,8 @@ public class ManagementServiceImpl implements ManagementService, Startable
 
    private void initGlobalOperations(ManagedResource.Registration registration)
    {
-      registration.registerOperationHandler("read-resource", GlobalOperationHandlers.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, true);
+      registration.registerOperationHandler(OperationNames.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, true);
+      registration.registerOperationHandler(OperationNames.EXPORT_RESOURCE, GlobalOperationHandlers.EXPORT_RESOURCE, ExportResource.DESCRIPTION, true);
    }
 
    private static final RuntimeContext runtimeContext = new RuntimeContext()

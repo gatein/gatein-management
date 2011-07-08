@@ -49,11 +49,12 @@ public class PageNavigationUtils
    public static PageNavigation loadPageNavigation(NavigationKey key, NavigationService navigationService, DescriptionService descriptionService)
    {
       NodeContext<NodeContext<?>> node;
+      NavigationContext navigation = navigationService.loadNavigation(key.getSiteKey());
+      if (navigation == null) return null;
+      
       if (key.getNavUri() != null)
       {
          PathScope scope = new PathScope(key.getNavUri());
-         NavigationContext navigation = navigationService.loadNavigation(key.getSiteKey());
-
          node = navigationService.loadNode(NodeModel.SELF_MODEL, navigation, scope, null);
          if (scope.getFoundId() == null) return null;
 
@@ -62,7 +63,6 @@ public class PageNavigationUtils
       }
       else
       {
-         NavigationContext navigation = navigationService.loadNavigation(key.getSiteKey());
          node = navigationService.loadNode(NodeModel.SELF_MODEL, navigation, Scope.ALL, null);
          if (node == null) return null;
 

@@ -20,30 +20,37 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.operations.navigation;
+package org.gatein.management.mop.operations.site;
 
+import org.exoplatform.portal.mop.SiteKey;
+import org.exoplatform.portal.pom.config.POMSession;
+import org.exoplatform.portal.pom.config.POMSessionManager;
+import org.exoplatform.portal.pom.data.PortalData;
+import org.gatein.management.api.ContentType;
+import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
-import org.gatein.management.mop.operations.site.AbstractSiteOperationHandler;
-import org.gatein.mop.api.workspace.Navigation;
+import org.gatein.management.api.operation.model.ExportResourceModel;
+import org.gatein.management.mop.exportimport.SiteLayoutExportTask;
 import org.gatein.mop.api.workspace.Site;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractNavigationOperationHandler extends AbstractSiteOperationHandler
+public class SiteLayoutExportResource extends AbstractSiteOperationHandler
 {
    @Override
    protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException
    {
-      Navigation navigation = site.getRootNavigation().getChild("default");
-      if (navigation == null) throw new ResourceNotFoundException("Navigation does not exist for site " + getSiteKey(site));
-      
-      execute(operationContext, resultHandler, site.getRootNavigation().getChild("default"));
-   }
+      BindingProvider bindingProvider = operationContext.getBindingProvider();
+      POMSessionManager mgr = operationContext.getRuntimeContext().getRuntimeComponent(POMSessionManager.class);
+      POMSession session = mgr.getSession();
 
-   protected abstract void execute(OperationContext operationContext, ResultHandler resultHandler, Navigation defaultNavigation);
+      SiteKey siteKey = getSiteKey(site);
+
+      resultHandler.completed(new ExportResourceModel(new SiteLayoutExportTask(siteKey, session, bindingProvider.getMarshaller(PortalData.class, ContentType.XML))));
+   }
 }

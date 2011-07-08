@@ -22,6 +22,7 @@
 
 package org.gatein.management.mop.operations.site;
 
+import org.exoplatform.portal.mop.SiteKey;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
@@ -47,8 +48,10 @@ public abstract class AbstractSiteOperationHandler extends AbstractMopOperationH
       String siteName = address.resolvePathTemplate("site-name");
       if (siteName == null) throw new OperationException(operationName, "No site name specified.");
 
-      Site site = workspace.getSite(siteType, siteName);
-      if (site == null) throw new ResourceNotFoundException("No site found for site type " + getSiteType(siteType) + " and site name " + siteName);
+      SiteKey siteKey = getSiteKey(siteType, siteName);
+
+      Site site = workspace.getSite(siteType, siteKey.getName());
+      if (site == null) throw new ResourceNotFoundException("No site found for site " + siteKey);
 
       execute(operationContext, resultHandler, site);
    }

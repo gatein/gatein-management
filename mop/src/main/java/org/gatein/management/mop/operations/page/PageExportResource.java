@@ -22,6 +22,7 @@
 
 package org.gatein.management.mop.operations.page;
 
+import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.pom.config.POMSessionManager;
 import org.exoplatform.portal.pom.data.PageKey;
 import org.gatein.management.api.ContentType;
@@ -35,7 +36,6 @@ import org.gatein.management.api.operation.model.ExportTask;
 import org.gatein.management.mop.exportimport.PageExportTask;
 import org.gatein.management.mop.model.PageDataContainer;
 import org.gatein.mop.api.workspace.Page;
-import org.gatein.mop.api.workspace.Site;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,20 +48,19 @@ import java.util.List;
 public class PageExportResource extends AbstractPageOperationHandler
 {
    @Override
-   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException
+   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Page pages) throws ResourceNotFoundException, OperationException
    {
-      String siteType = getSiteType(site.getObjectType());
-      String siteName = site.getName();
+      SiteKey siteKey = getSiteKey(pages.getSite());
 
       POMSessionManager manager = operationContext.getRuntimeContext().getRuntimeComponent(POMSessionManager.class);
       BindingProvider bindingProvider = operationContext.getBindingProvider();
 
-      Collection<Page> pages = getPages(site);
-      List<ExportTask> tasks = new ArrayList<ExportTask>(pages.size());
-      PageExportTask pageExportTask = new PageExportTask(siteType, siteName, manager.getSession(), bindingProvider.getMarshaller(PageDataContainer.class, ContentType.XML));
+      Collection<Page> pagesList = pages.getChildren();
+      List<ExportTask> tasks = new ArrayList<ExportTask>(pagesList.size());
+      PageExportTask pageExportTask = new PageExportTask(siteKey, manager.getSession(), bindingProvider.getMarshaller(PageDataContainer.class, ContentType.XML));
 
       String pageName = operationContext.getAddress().resolvePathTemplate("page-name");
-      for (Page page : pages)
+      for (Page page : pagesList)
       {
          if (pageName == null)
          {
@@ -75,7 +74,7 @@ public class PageExportResource extends AbstractPageOperationHandler
 
       if (pageExportTask.getPageNames().isEmpty() && pageName != null)
       {
-         throw new ResourceNotFoundException("No page found for key " + new PageKey(siteType, siteName, pageName));
+         throw new ResourceNotFoundException("No page found for key " + new PageKey(siteKey.getTypeName(), siteKey.getName(), pageName));
       }
 
       tasks.add(pageExportTask);

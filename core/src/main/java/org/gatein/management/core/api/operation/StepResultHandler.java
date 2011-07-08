@@ -22,38 +22,45 @@
 
 package org.gatein.management.core.api.operation;
 
-import org.gatein.management.api.ManagedDescription;
-import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.operation.OperationContext;
-import org.gatein.management.api.operation.QueryOperationHandler;
-import org.gatein.management.api.operation.model.ReadResourceModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class GlobalOperationHandlers
+public abstract class StepResultHandler<T> extends TypedResultHandler<T>
 {
-   private GlobalOperationHandlers(){}
+   private List<T> results;
+   private PathAddress currentAddress;
 
-   public static final ReadResource READ_RESOURCE = new ReadResource();
-
-   public static final class ReadResource extends QueryOperationHandler<ReadResourceModel> implements ManagedDescription
+   protected StepResultHandler(PathAddress address)
    {
-      @Override
-      public ReadResourceModel execute(OperationContext operationContext)
-      {
-         ManagedResource resource = operationContext.getManagedResource();
-         PathAddress address = operationContext.getAddress();
+      results = new ArrayList<T>();
+      this.currentAddress = address;
+   }
 
-         return new ReadResourceModel("Lists available children for given managed resource.", resource.getChildNames(address));
-      }
+   @Override
+   protected final void doCompleted(T result)
+   {
+      results.add(result);
+   }
 
-      @Override
-      public String getDescription()
-      {
-         return "Reads a component's attribute values along with either basic or complete information about any child resources.";
-      }
+   public StepResultHandler<T> next(PathAddress address)
+   {
+      this.currentAddress = address;
+      return this;
+   }
+
+   public List<T> getResults()
+   {
+      return results;
+   }
+
+   public PathAddress getCurrentAddress()
+   {
+      return currentAddress;
    }
 }

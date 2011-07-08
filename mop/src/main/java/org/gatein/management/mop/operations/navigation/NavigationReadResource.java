@@ -29,28 +29,28 @@ import org.exoplatform.portal.mop.navigation.NavigationService;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
-import org.gatein.management.mop.operations.site.AbstractSiteOperationHandler;
+import org.gatein.mop.api.workspace.Navigation;
 import org.gatein.mop.api.workspace.Site;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class NavigationReadResource extends AbstractSiteOperationHandler
+public class NavigationReadResource extends AbstractNavigationOperationHandler
 {
    @Override
-   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site)
+   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Navigation navigation)
    {
       String navUri = operationContext.getAddress().resolvePathTemplate("nav-uri");
-      String siteType = getSiteType(site.getObjectType());
-      String siteName = site.getName();
-      SiteKey siteKey = new SiteKey(siteType, siteName);
+
+      Site site = navigation.getSite();
+      SiteKey siteKey = getSiteKey(site);
 
       DescriptionService descriptionService = operationContext.getRuntimeContext().getRuntimeComponent(DescriptionService.class);
       NavigationService navigationService = operationContext.getRuntimeContext().getRuntimeComponent(NavigationService.class);
 
-      PageNavigation navigation = PageNavigationUtils.loadPageNavigation(new NavigationKey(siteKey, navUri), navigationService, descriptionService);
-      if (navigation == null) throw new ResourceNotFoundException("Navigation node " + navUri + " not found.");
+      PageNavigation pageNavigation = PageNavigationUtils.loadPageNavigation(new NavigationKey(siteKey, navUri), navigationService, descriptionService);
+      if (pageNavigation == null) throw new ResourceNotFoundException("Navigation node " + navUri + " not found.");
 
       resultHandler.completed(navigation);
    }

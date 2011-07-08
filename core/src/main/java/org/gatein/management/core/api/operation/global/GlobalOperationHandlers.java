@@ -20,35 +20,42 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.operations.page;
+package org.gatein.management.core.api.operation.global;
 
-import org.gatein.management.api.exceptions.OperationException;
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.ManagedDescription;
+import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.operation.OperationContext;
-import org.gatein.management.api.operation.ResultHandler;
+import org.gatein.management.api.operation.QueryOperationHandler;
 import org.gatein.management.api.operation.model.ReadResourceModel;
-import org.gatein.mop.api.workspace.Page;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class PagesReadResource extends AbstractPageOperationHandler
+public class GlobalOperationHandlers
 {
-   @Override
-   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Page pages)  throws ResourceNotFoundException, OperationException
+   private GlobalOperationHandlers(){}
+
+   public static final ExportResource EXPORT_RESOURCE = new ExportResource();
+
+   public static final ReadResource READ_RESOURCE = new ReadResource();
+
+   public static final class ReadResource extends QueryOperationHandler<ReadResourceModel> implements ManagedDescription
    {
-      Collection<Page> pageList = pages.getChildren();
-      Set<String> children = new LinkedHashSet<String>(pageList.size());
-      for (Page page : pageList)
+      @Override
+      public ReadResourceModel execute(OperationContext operationContext)
       {
-         children.add(page.getName());
+         ManagedResource resource = operationContext.getManagedResource();
+         PathAddress address = operationContext.getAddress();
+
+         return new ReadResourceModel("Lists available children for given managed resource.", resource.getChildNames(address));
       }
 
-      resultHandler.completed(new ReadResourceModel("List of pages available for given site.", children));
+      @Override
+      public String getDescription()
+      {
+         return "Reads a component's attribute values along with either basic or complete information about any child resources.";
+      }
    }
 }

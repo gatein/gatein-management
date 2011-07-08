@@ -22,6 +22,7 @@
 
 package org.gatein.management.mop.exportimport;
 
+import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.pom.config.POMSession;
 
 /**
@@ -32,9 +33,9 @@ public abstract class POMSessionExportTask extends AbstractSiteExportTask
 {
    protected POMSession session;
 
-   public POMSessionExportTask(String siteType, String siteName, POMSession session)
+   public POMSessionExportTask(SiteKey siteKey, POMSession session)
    {
-      super(siteType, siteName);
+      super(siteKey);
       this.session = session;
    }
 }

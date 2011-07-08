@@ -22,11 +22,13 @@
 
 package org.gatein.management.mop.operations.page;
 
+import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.operation.OperationContext;
+import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.mop.operations.site.AbstractSiteOperationHandler;
 import org.gatein.mop.api.workspace.Page;
 import org.gatein.mop.api.workspace.Site;
-
-import java.util.Collection;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -34,8 +36,14 @@ import java.util.Collection;
  */
 public abstract class AbstractPageOperationHandler extends AbstractSiteOperationHandler
 {
-   protected Collection<Page> getPages(Site site)
+   @Override
+   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException
    {
-      return site.getRootPage().getChild("pages").getChildren();
+      Page pages = site.getRootPage().getChild("pages");
+      if (pages == null || pages.getChildren().isEmpty()) throw new ResourceNotFoundException("No pages found for site " + getSiteKey(site));
+
+      execute(operationContext, resultHandler, pages);
    }
+
+   protected abstract void execute(OperationContext operationContext, ResultHandler resultHandler, Page page) throws ResourceNotFoundException, OperationException;
 }

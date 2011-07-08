@@ -46,7 +46,7 @@ public class NavigationExportTask extends AbstractSiteExportTask
    public NavigationExportTask(NavigationKey navigationKey, NavigationService navigationService,
                                DescriptionService descriptionService, Marshaller<PageNavigation> marshaller)
    {
-      super(navigationKey.getSiteKey().getTypeName(), navigationKey.getSiteKey().getName());
+      super(navigationKey.getSiteKey());
       this.navigationKey = navigationKey;
       this.navigationService = navigationService;
       this.descriptionService = descriptionService;

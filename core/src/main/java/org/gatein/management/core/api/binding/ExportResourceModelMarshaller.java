@@ -22,12 +22,18 @@
 
 package org.gatein.management.core.api.binding;
 
+import org.gatein.common.io.IOTools;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.operation.model.ExportResourceModel;
 import org.gatein.management.api.operation.model.ExportTask;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,18 +53,16 @@ public class ExportResourceModelMarshaller implements Marshaller<ExportResourceM
    @Override
    public void marshal(ExportResourceModel model, OutputStream outputStream) throws BindingException
    {
+      File file;
       ZipOutputStream zos = null;
-      if (outputStream instanceof ZipOutputStream)
+      try
       {
-         zos = (ZipOutputStream) outputStream;
+         file = File.createTempFile("gatein-export", ".zip");
+         zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
       }
-      else if (outputStream instanceof BufferedOutputStream)
+      catch (IOException e)
       {
-         zos = new ZipOutputStream(outputStream);
-      }
-      else
-      {
-         zos = new ZipOutputStream(new BufferedOutputStream(outputStream));
+         throw new BindingException("Could not create temp file for export.", e);
       }
 
       try
@@ -74,15 +78,29 @@ public class ExportResourceModelMarshaller implements Marshaller<ExportResourceM
             zos.closeEntry();
          }
          zos.flush();
+         zos.finish();
       }
       catch (Throwable t)
       {
-         throw new BindingException("Exception exporting data.", t);
+         throw new BindingException("Exception writing data to zip.", t);
       }
       finally
       {
-         try
-         { zos.close(); } catch (IOException e){}
+         IOTools.safeClose(zos);
+      }
+
+      try
+      {
+         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+         IOTools.copy(inputStream, outputStream);
+      }
+      catch (FileNotFoundException e)
+      {
+         throw new BindingException("Could not read from temporary zip file " + file, e);
+      }
+      catch (IOException e)
+      {
+         throw new BindingException("IOException writing data to final output stream.", e);
       }
    }
 

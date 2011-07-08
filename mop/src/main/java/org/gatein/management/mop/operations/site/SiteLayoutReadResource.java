@@ -20,30 +20,33 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.operations.navigation;
+package org.gatein.management.mop.operations.site;
 
+import org.exoplatform.portal.mop.SiteKey;
+import org.exoplatform.portal.pom.config.POMSessionManager;
+import org.exoplatform.portal.pom.config.tasks.PortalConfigTask;
+import org.exoplatform.portal.pom.data.PortalData;
+import org.exoplatform.portal.pom.data.PortalKey;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
-import org.gatein.management.mop.operations.site.AbstractSiteOperationHandler;
-import org.gatein.mop.api.workspace.Navigation;
 import org.gatein.mop.api.workspace.Site;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractNavigationOperationHandler extends AbstractSiteOperationHandler
+public class SiteLayoutReadResource extends AbstractSiteOperationHandler
 {
    @Override
    protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site) throws ResourceNotFoundException, OperationException
    {
-      Navigation navigation = site.getRootNavigation().getChild("default");
-      if (navigation == null) throw new ResourceNotFoundException("Navigation does not exist for site " + getSiteKey(site));
-      
-      execute(operationContext, resultHandler, site.getRootNavigation().getChild("default"));
-   }
+      POMSessionManager mgr = operationContext.getRuntimeContext().getRuntimeComponent(POMSessionManager.class);
+      SiteKey siteKey = getSiteKey(site);
 
-   protected abstract void execute(OperationContext operationContext, ResultHandler resultHandler, Navigation defaultNavigation);
+      PortalData data = new PortalConfigTask.Load(new PortalKey(siteKey.getTypeName(), siteKey.getName())).run(mgr.getSession());
+
+      resultHandler.completed(data);
+   }
 }

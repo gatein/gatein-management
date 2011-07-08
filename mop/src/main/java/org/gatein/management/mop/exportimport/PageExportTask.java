@@ -22,6 +22,7 @@
 
 package org.gatein.management.mop.exportimport;
 
+import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.pom.config.POMSession;
 import org.exoplatform.portal.pom.config.tasks.PageTask;
 import org.exoplatform.portal.pom.data.PageData;
@@ -45,9 +46,9 @@ public class PageExportTask extends POMSessionExportTask implements ExportTask
    private List<String> pageNames;
    private Marshaller<PageDataContainer> marshaller;
 
-   public PageExportTask(String siteType, String siteName, POMSession session, Marshaller<PageDataContainer> marshaller)
+   public PageExportTask(SiteKey siteKey, POMSession session, Marshaller<PageDataContainer> marshaller)
    {
-      super(siteType, siteName, session);
+      super(siteKey, session);
       this.marshaller = marshaller;
       pageNames = new ArrayList<String>();
    }
@@ -58,7 +59,7 @@ public class PageExportTask extends POMSessionExportTask implements ExportTask
       List<PageData> pages = new ArrayList<PageData>(pageNames.size());
       for (String pageName : pageNames)
       {
-         pages.add(new PageTask.Load(new PageKey(siteType, siteName, pageName)).run(session));
+         pages.add(new PageTask.Load(new PageKey(siteKey.getTypeName(), siteKey.getName(), pageName)).run(session));
       }
 
       marshaller.marshal(new PageDataContainer(pages), outputStream);

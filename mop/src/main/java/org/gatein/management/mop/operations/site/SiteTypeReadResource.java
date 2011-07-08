@@ -51,6 +51,6 @@ public class SiteTypeReadResource extends AbstractMopOperationHandler
       {
          children.add(site.getName());
       }
-      resultHandler.completed(new ReadResourceModel("Available sites for site type '" + getSiteType(siteType) + "'", children));
+      resultHandler.completed(new ReadResourceModel("Available sites for site type '" + getSiteType(siteType).getName() + "'", children));
    }
 }

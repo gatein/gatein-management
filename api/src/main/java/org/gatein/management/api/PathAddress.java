@@ -34,7 +34,14 @@ import java.util.List;
  */
 public class PathAddress implements Iterable<String>
 {
+   //TODO: Make immutable or add protect capabilities
+
    public static final PathAddress EMPTY_ADDRESS = new PathAddress(Collections.<String>emptyList());
+
+   public static PathAddress empty()
+   {
+      return EMPTY_ADDRESS;
+   }
 
    public static PathAddress pathAddress(String... paths)
    {
@@ -60,20 +67,37 @@ public class PathAddress implements Iterable<String>
 
    PathAddress(final List<String> pathList)
    {
-      this.pathList = new ArrayList<String>(pathList);
-      this.resolvers = new ArrayList<PathTemplateResolver>();
+      this(pathList, new ArrayList<PathTemplateResolver>());
    }
 
+   PathAddress(final List<String> pathList, final List<PathTemplateResolver> resolvers)
+   {
+      this.pathList = pathList;
+      this.resolvers = resolvers;
+   }
+
+   /**
+    * Create a new PathAddress appending the path to the end of the path address
+    * @param path path to append
+    * @return new PathAddress with path appended
+    */
    public PathAddress append(String path)
    {
-      pathList.add(path);
-      return this;
+      return append(PathAddress.pathAddress(path));
    }
 
+   /**
+    * Create a new PathAddress appending the address to this PathAddress
+    * @param address the address to append
+    * @return new PathAddress with appended address
+    */
    public PathAddress append(PathAddress address)
    {
-      pathList.addAll(address.pathList);
-      return this;
+      List<String> list = new ArrayList<String>(pathList.size() + address.pathList.size());
+      list.addAll(pathList);
+      list.addAll(address.pathList);
+
+      return new PathAddress(list, new ArrayList<PathTemplateResolver>(resolvers));
    }
 
    /**
@@ -143,7 +167,7 @@ public class PathAddress implements Iterable<String>
 
    public PathAddress copy()
    {
-      return new PathAddress(new ArrayList<String>(pathList));
+      return new PathAddress(new ArrayList<String>(pathList), new ArrayList<PathTemplateResolver>(resolvers));
    }
 
    @Override

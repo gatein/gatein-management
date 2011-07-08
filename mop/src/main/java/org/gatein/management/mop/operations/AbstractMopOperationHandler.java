@@ -22,10 +22,12 @@
 
 package org.gatein.management.mop.operations;
 
+import org.exoplatform.portal.mop.SiteKey;
+import org.exoplatform.portal.mop.SiteType;
 import org.exoplatform.portal.pom.config.POMSessionManager;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.ResultHandler;
@@ -68,17 +70,17 @@ public abstract class AbstractMopOperationHandler implements OperationHandler
                                    Workspace workspace, ObjectType<Site> siteType) throws ResourceNotFoundException, OperationException;
 
 
-   protected ObjectType<Site> getObjectType(String siteType)
+   private ObjectType<Site> getObjectType(String siteType)
    {
-      if ("portal".equals(siteType))
+      if (SiteType.PORTAL.getName().equals(siteType))
       {
          return ObjectType.PORTAL_SITE;
       }
-      else if ("group".equals(siteType))
+      else if (SiteType.GROUP.getName().equals(siteType))
       {
          return ObjectType.GROUP_SITE;
       }
-      else if ("user".equals(siteType))
+      else if (SiteType.USER.getName().equals(siteType))
       {
          return ObjectType.USER_SITE;
       }
@@ -88,23 +90,50 @@ public abstract class AbstractMopOperationHandler implements OperationHandler
       }
    }
 
-   protected String getSiteType(ObjectType<? extends Site> siteType)
+   protected SiteType getSiteType(ObjectType<? extends Site> objectType)
    {
-      if (ObjectType.PORTAL_SITE == siteType)
+      if (ObjectType.PORTAL_SITE == objectType)
       {
-         return "portal";
+         return SiteType.PORTAL;
       }
-      else if (ObjectType.GROUP_SITE == siteType)
+      else if (ObjectType.GROUP_SITE == objectType)
       {
-         return "group";
+         return SiteType.GROUP;
       }
-      else if (siteType == ObjectType.USER_SITE)
+      else if (ObjectType.USER_SITE == objectType)
       {
-         return "user";
+         return SiteType.USER;
       }
       else
       {
          return null;
       }
+   }
+
+   protected SiteKey getSiteKey(ObjectType<? extends Site> objectType, String name)
+   {
+      if (ObjectType.PORTAL_SITE == objectType)
+      {
+         return SiteKey.portal(name);
+      }
+      else if (ObjectType.GROUP_SITE == objectType)
+      {
+         if (name.charAt(0) != '/') name = "/" + name;
+         
+         return SiteKey.group(name);
+      }
+      else if (ObjectType.USER_SITE == objectType)
+      {
+         return SiteKey.user(name);
+      }
+      else
+      {
+         return null;
+      }
+   }
+
+   protected SiteKey getSiteKey(Site site)
+   {
+      return getSiteKey(site.getObjectType(), site.getName());
    }
 }

@@ -49,9 +49,7 @@ public class NavigationExportResource extends AbstractNavigationOperationHandler
    {
       Site site = navigation.getSite();
       String navUri = operationContext.getAddress().resolvePathTemplate("nav-uri");
-      String siteType = getSiteType(site.getObjectType());
-      String siteName = site.getName();
-      SiteKey siteKey = new SiteKey(siteType, siteName);
+      SiteKey siteKey = getSiteKey(site);
 
       DescriptionService descriptionService = operationContext.getRuntimeContext().getRuntimeComponent(DescriptionService.class);
       NavigationService navigationService = operationContext.getRuntimeContext().getRuntimeComponent(NavigationService.class);

@@ -25,6 +25,7 @@ package org.gatein.management.rest.providers;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ContentType;
+import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.rest.ContentTypeUtils;
 
@@ -93,7 +94,15 @@ public class ManagedComponentProvider<T> implements MessageBodyReader<T>, Messag
    @Override
    public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException
    {
-      getMarshaller(type, mediaType).marshal(entity, entityStream);
+      try
+      {
+         getMarshaller(type, mediaType).marshal(entity, entityStream);
+      }
+      catch (BindingException e)
+      {
+         log.error("Exception marshalling entity " + entity.getClass() + " for media type " + mediaType, e);
+         throw new IOException("Exception marshalling data.");
+      }
    }
 
    private Marshaller<T> getMarshaller(Type genericType, MediaType mediaType)

@@ -20,35 +20,17 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.exportimport;
-
-import org.exoplatform.portal.mop.SiteKey;
-import org.gatein.management.api.operation.model.ExportTask;
+package org.gatein.management.api.operation;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractSiteExportTask implements ExportTask
+public class OperationNames
 {
-   protected SiteKey siteKey;
+   private OperationNames(){}
 
-   protected AbstractSiteExportTask(SiteKey siteKey)
-   {
-      this.siteKey = siteKey;
-   }
-
-   @Override
-   public String getEntry()
-   {
-      String siteType = siteKey.getTypeName();
-
-      String siteName = siteKey.getName();
-      if (siteName.charAt(0) == '/') siteName = siteName.substring(1, siteName.length());
-
-      return new StringBuilder().
-         append(siteType).append("/").append(siteName).append("/").append(getXmlFileName()).toString();
-   }
-
-   protected abstract String getXmlFileName();
+   public static final String READ_RESOURCE = "read-resource";
+   public static final String READ_CONFIG_AS_XML = "read-config-as-xml";
+   public static final String EXPORT_RESOURCE = "export-resource";
 }

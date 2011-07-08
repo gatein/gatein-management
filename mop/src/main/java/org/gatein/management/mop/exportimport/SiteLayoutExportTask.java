@@ -22,6 +22,7 @@
 
 package org.gatein.management.mop.exportimport;
 
+import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.pom.config.POMSession;
 import org.exoplatform.portal.pom.config.tasks.PortalConfigTask;
 import org.exoplatform.portal.pom.data.PortalData;
@@ -39,9 +40,9 @@ public class SiteLayoutExportTask extends POMSessionExportTask
 {
    private Marshaller<PortalData> marshaller;
 
-   public SiteLayoutExportTask(String siteType, String siteName, POMSession session, Marshaller<PortalData> marshaller)
+   public SiteLayoutExportTask(SiteKey siteKey, POMSession session, Marshaller<PortalData> marshaller)
    {
-      super(siteType, siteName, session);
+      super(siteKey, session);
       this.marshaller = marshaller;
    }
 
@@ -54,7 +55,7 @@ public class SiteLayoutExportTask extends POMSessionExportTask
    @Override
    public void export(OutputStream outputStream) throws IOException
    {
-      PortalData data = new PortalConfigTask.Load(new PortalKey(siteType, siteName)).run(session);
+      PortalData data = new PortalConfigTask.Load(new PortalKey(siteKey.getTypeName(), siteKey.getName())).run(session);
 
       marshaller.marshal(data, outputStream);
    }

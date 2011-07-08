@@ -22,14 +22,15 @@
 
 package org.gatein.management.mop.operations.page;
 
+import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
 import org.exoplatform.portal.pom.data.PageData;
 import org.exoplatform.portal.pom.data.PageKey;
-import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.ResultHandler;
-import org.gatein.mop.api.workspace.Site;
+import org.gatein.mop.api.workspace.Page;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -38,7 +39,7 @@ import org.gatein.mop.api.workspace.Site;
 public class PageReadResource extends AbstractPageOperationHandler
 {
    @Override
-   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Site site)  throws ResourceNotFoundException, OperationException
+   protected void execute(OperationContext operationContext, ResultHandler resultHandler, Page pages)  throws ResourceNotFoundException, OperationException
    {
       String pageName = operationContext.getAddress().resolvePathTemplate("page-name");
 
@@ -47,10 +48,9 @@ public class PageReadResource extends AbstractPageOperationHandler
 
       ModelDataStorage dataStorage = operationContext.getRuntimeContext().getRuntimeComponent(ModelDataStorage.class);
 
-      String siteType = getSiteType(site.getObjectType());
-      String siteName = site.getName();
+      SiteKey siteKey = getSiteKey(pages.getSite());
 
-      PageKey key = new PageKey(siteType, siteName, pageName);
+      PageKey key = new PageKey(siteKey.getTypeName(), siteKey.getName(), pageName);
       try
       {
          PageData page = dataStorage.getPage(key);

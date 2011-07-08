@@ -52,6 +52,6 @@ public class NavigationReadResource extends AbstractNavigationOperationHandler
       PageNavigation pageNavigation = PageNavigationUtils.loadPageNavigation(new NavigationKey(siteKey, navUri), navigationService, descriptionService);
       if (pageNavigation == null) throw new ResourceNotFoundException("Navigation node " + navUri + " not found.");
 
-      resultHandler.completed(navigation);
+      resultHandler.completed(pageNavigation);
    }
 }

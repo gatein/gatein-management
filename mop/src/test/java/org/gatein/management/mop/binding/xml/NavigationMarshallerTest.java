@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.Assert.*;
@@ -88,6 +89,54 @@ public class NavigationMarshallerTest
       assertEquals(3, data.getPriority());
       assertNotNull(data.getNodes());
       assertTrue(data.getNodes().isEmpty());
+   }
+
+   @Test
+   public void testLocaleNavigationUnmarshalling()
+   {
+      NavigationMarshaller marshaller = new NavigationMarshaller();
+      PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/locale-navigation.xml"));
+      assertNotNull(data);
+      assertNotNull(data.getNodes());
+
+      PageNode node = data.getNode("hello-node");
+      assertNotNull(node);
+      assertNotNull(node.getLabels());
+      assertEquals(8, node.getLabels().size());
+
+      Locale locale = Locale.getDefault();
+
+      String cn = "Dobrý den";
+      String fr = "Bonjour";
+      String en = "Hello";
+      String es = "Hola";
+      String ja = "こんにちは";
+      String it = "Ciào";
+      String zh = "你好";
+      String zh_tw = "Li-ho";
+
+      assertEquals(cn, node.getLocalizedLabel(locale).get(new Locale("cn")));
+      assertEquals(fr, node.getLocalizedLabel(locale).get(new Locale("fr")));
+      assertEquals(en, node.getLocalizedLabel(locale).get(new Locale("en")));
+      assertEquals(es, node.getLocalizedLabel(locale).get(new Locale("es")));
+      assertEquals(ja, node.getLocalizedLabel(locale).get(new Locale("ja")));
+      assertEquals(it, node.getLocalizedLabel(locale).get(new Locale("it")));
+      assertEquals(zh, node.getLocalizedLabel(locale).get(new Locale("zh")));
+      assertEquals(zh_tw, node.getLocalizedLabel(locale).get(Locale.TAIWAN));
+
+      node = data.getNode("hello-node2");
+      assertNotNull(node);
+      assertNotNull(node.getLabels());
+      assertEquals(8, node.getLabels().size());
+
+      assertEquals(cn, node.getLocalizedLabel(locale).get(new Locale("cn")));
+      assertEquals(fr, node.getLocalizedLabel(locale).get(new Locale("fr")));
+      assertEquals(en, node.getLocalizedLabel(locale).get(new Locale("en")));
+      assertEquals(es, node.getLocalizedLabel(locale).get(new Locale("es")));
+      assertEquals(ja, node.getLocalizedLabel(locale).get(new Locale("ja")));
+      assertEquals(it, node.getLocalizedLabel(locale).get(new Locale("it")));
+      assertEquals(zh, node.getLocalizedLabel(locale).get(new Locale("zh")));
+      assertEquals(zh_tw, node.getLocalizedLabel(locale).get(Locale.TAIWAN));
    }
 
    @Test

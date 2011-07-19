@@ -20,22 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.exportimport;
-
-import org.exoplatform.portal.mop.SiteKey;
-import org.exoplatform.portal.pom.config.POMSession;
+package org.gatein.management.api.operation.model;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class POMSessionExportTask extends AbstractExportTask
+public class NoResultModel
 {
-   protected POMSession session;
+   public static final NoResultModel INSTANCE = new NoResultModel();
 
-   public POMSessionExportTask(SiteKey siteKey, POMSession session)
-   {
-      super(siteKey);
-      this.session = session;
-   }
+   private NoResultModel(){}
 }

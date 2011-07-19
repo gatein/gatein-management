@@ -65,7 +65,7 @@ public class SimpleManagementController implements ManagementController
       ManagedResource root = getRootResource();
       if (root.getSubResource(address) == null)
       {
-         throw new ResourceNotFoundException("Could not locate managed resource for address " + address);
+         throw new ResourceNotFoundException("Could not locate managed resource for address '" + address + "'");
       }
 
       OperationHandler operationHandler = root.getOperationHandler(address, operationName);
@@ -87,7 +87,7 @@ public class SimpleManagementController implements ManagementController
       }
       else
       {
-         throw new OperationException(operationName, "Operation not found for address " + address);
+         throw new OperationException(operationName, "Operation not found for address '" + address + "'");
       }
    }
 

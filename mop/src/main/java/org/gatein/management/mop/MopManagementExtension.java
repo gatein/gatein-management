@@ -27,6 +27,7 @@ import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.mop.binding.MopBindingProvider;
+import org.gatein.management.mop.operations.MopImportResource;
 import org.gatein.management.mop.operations.MopReadResource;
 import org.gatein.management.mop.operations.navigation.NavigationExportResource;
 import org.gatein.management.mop.operations.navigation.NavigationReadResource;
@@ -53,6 +54,7 @@ public class MopManagementExtension implements ManagementExtension
       registration.registerBindingProvider(MopBindingProvider.INSTANCE);
 
       ManagedResource.Registration mop = registration.registerManagedResource(description("MOP (Model Object for Portal) Managed Resource"));
+      mop.registerOperationHandler("import-resource", new MopImportResource(), description("Imports mop data from an exported zip file."), true);
 
       mop.registerOperationHandler(OperationNames.READ_RESOURCE, new MopReadResource(), description("Lists the available site types for a portal."));
 

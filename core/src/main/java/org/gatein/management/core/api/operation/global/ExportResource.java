@@ -22,24 +22,21 @@
 
 package org.gatein.management.core.api.operation.global;
 
-import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.RuntimeContext;
-import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
-import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationContext;
+import org.gatein.management.api.operation.OperationContextDelegate;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.QueryOperationHandler;
+import org.gatein.management.api.operation.StepResultHandler;
 import org.gatein.management.api.operation.model.ExportResourceModel;
 import org.gatein.management.api.operation.model.ExportTask;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.core.api.operation.BasicResultHandler;
-import org.gatein.management.core.api.operation.StepResultHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,15 +106,15 @@ public class ExportResource extends QueryOperationHandler<ExportResourceModel>
             throw new OperationException(operationName, "Could not locate resource at address " + address);
          }
          
-         OperationHandler opHandler = resource.getOperationHandler(address, OperationNames.READ_RESOURCE);
-         BasicResultHandler resultHandler = new BasicResultHandler();
-         opHandler.execute(operationContext, resultHandler);
-         if (resultHandler.getFailureDescription() != null)
+         OperationHandler readResource = resource.getOperationHandler(address, OperationNames.READ_RESOURCE);
+         BasicResultHandler readResourceResult = new BasicResultHandler();
+         readResource.execute(operationContext, readResourceResult);
+         if (readResourceResult.getFailureDescription() != null)
          {
-            throw new OperationException(operationName, "Failure '" + resultHandler.getFailureDescription() + "' encountered executing " + OperationNames.READ_RESOURCE);
+            throw new OperationException(operationName, "Failure '" + readResourceResult.getFailureDescription() + "' encountered executing " + OperationNames.READ_RESOURCE);
          }
 
-         Object model = resultHandler.getResult();
+         Object model = readResourceResult.getResult();
          if (! (model instanceof ReadResourceModel) )
          {
             throw new RuntimeException("Was expecting " + ReadResourceModel.class + " to be returned for operation " + OperationNames.READ_RESOURCE + " at address " + address);
@@ -126,7 +123,15 @@ public class ExportResource extends QueryOperationHandler<ExportResourceModel>
          for (String child : ((ReadResourceModel) model).getChildren())
          {
             final PathAddress childAddress = address.append(child);
-            OperationContext childContext = new ChildOperationContext(childAddress, operationContext);
+            OperationContext childContext = new OperationContextDelegate(operationContext)
+            {
+               @Override
+               public PathAddress getAddress()
+               {
+                  return childAddress;
+               }
+            };
+
             executeHandlers(resource, childContext, childAddress, operationName, stepResultHandler.next(childAddress));
          }
       }
@@ -153,64 +158,4 @@ public class ExportResource extends QueryOperationHandler<ExportResourceModel>
          return "Exports any resources with an export operation handler registered.  This operation is recursive until an operation handler is found.";
       }
    };
-
-   private static class ChildOperationContext implements OperationContext
-   {
-      private final PathAddress childAddress;
-      private final OperationContext operationContext;
-
-      public ChildOperationContext(PathAddress childAddress, OperationContext operationContext)
-      {
-         this.childAddress = childAddress;
-         this.operationContext = operationContext;
-      }
-
-      @Override
-      public PathAddress getAddress()
-      {
-         return childAddress;
-      }
-
-      @Override
-      public String getOperationName()
-      {
-         return operationContext.getOperationName();
-      }
-
-      @Override
-      public ManagedResource getManagedResource()
-      {
-         return operationContext.getManagedResource();
-      }
-
-      @Override
-      public RuntimeContext getRuntimeContext()
-      {
-         return operationContext.getRuntimeContext();
-      }
-
-      @Override
-      public OperationAttachment getAttachment(int index)
-      {
-         return operationContext.getAttachment(index);
-      }
-
-      @Override
-      public int getAttachmentsCount()
-      {
-         return operationContext.getAttachmentsCount();
-      }
-
-      @Override
-      public BindingProvider getBindingProvider()
-      {
-         return operationContext.getBindingProvider();
-      }
-
-      @Override
-      public ContentType getContentType()
-      {
-         return operationContext.getContentType();
-      }
-   }
 }

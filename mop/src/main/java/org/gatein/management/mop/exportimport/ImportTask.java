@@ -22,33 +22,19 @@
 
 package org.gatein.management.mop.exportimport;
 
-import org.exoplatform.portal.mop.SiteKey;
-import org.gatein.management.api.operation.model.ExportTask;
-
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class AbstractSiteExportTask implements ExportTask
+public abstract class ImportTask<T>
 {
-   protected SiteKey siteKey;
-
-   protected AbstractSiteExportTask(SiteKey siteKey)
+   protected final T data;
+   protected ImportTask(T data)
    {
-      this.siteKey = siteKey;
+      this.data = data;
    }
 
-   @Override
-   public String getEntry()
-   {
-      String siteType = siteKey.getTypeName();
+   public abstract void importData(ImportStrategy importStrategy) throws Exception;
 
-      String siteName = siteKey.getName();
-      if (siteName.charAt(0) == '/') siteName = siteName.substring(1, siteName.length());
-
-      return new StringBuilder().
-         append(siteType).append("/").append(siteName).append("/").append(getXmlFileName()).toString();
-   }
-
-   protected abstract String getXmlFileName();
+   public abstract void rollback() throws Exception;
 }

@@ -42,7 +42,7 @@ public abstract class AbstractNavigationOperationHandler extends AbstractSiteOpe
       Navigation navigation = site.getRootNavigation().getChild("default");
       if (navigation == null) throw new ResourceNotFoundException("Navigation does not exist for site " + getSiteKey(site));
       
-      execute(operationContext, resultHandler, site.getRootNavigation().getChild("default"));
+      execute(operationContext, resultHandler, navigation);
    }
 
    protected abstract void execute(OperationContext operationContext, ResultHandler resultHandler, Navigation defaultNavigation);

@@ -24,6 +24,7 @@ package org.gatein.management.mop.operations;
 
 import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.mop.SiteType;
+import org.exoplatform.portal.pom.config.POMSession;
 import org.exoplatform.portal.pom.config.POMSessionManager;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.exceptions.OperationException;
@@ -50,18 +51,18 @@ public abstract class AbstractMopOperationHandler implements OperationHandler
       String siteType = address.resolvePathTemplate("site-type");
       if (siteType == null) throw new OperationException(operationName, "Site type was not specified.");
 
-      ObjectType<Site> objectType = getObjectType(siteType);
+      ObjectType<Site> objectType = Utils.getObjectType(Utils.getSiteType(siteType));
       if (objectType == null)
       {
          throw new ResourceNotFoundException("No site type found for " + siteType);
       }
 
       POMSessionManager mgr = operationContext.getRuntimeContext().getRuntimeComponent(POMSessionManager.class);
-      if (mgr == null) throw new OperationException(operationName, "Could not obtain necessary mop component from the container.");
+      POMSession session = mgr.getSession();
+      if (session == null) throw new OperationException(operationName, "MOP session was null");
 
-      Workspace workspace = mgr.getSession().getWorkspace();
-
-      if (workspace == null) throw new OperationException(operationName, "Could not obtain the MOP workspace.");
+      Workspace workspace = session.getWorkspace();
+      if (workspace == null) throw new OperationException(operationName, "MOP workspace was null");
 
       execute(operationContext, resultHandler, workspace, objectType);
    }
@@ -70,66 +71,14 @@ public abstract class AbstractMopOperationHandler implements OperationHandler
                                    Workspace workspace, ObjectType<Site> siteType) throws ResourceNotFoundException, OperationException;
 
 
-   private ObjectType<Site> getObjectType(String siteType)
-   {
-      if (SiteType.PORTAL.getName().equals(siteType))
-      {
-         return ObjectType.PORTAL_SITE;
-      }
-      else if (SiteType.GROUP.getName().equals(siteType))
-      {
-         return ObjectType.GROUP_SITE;
-      }
-      else if (SiteType.USER.getName().equals(siteType))
-      {
-         return ObjectType.USER_SITE;
-      }
-      else
-      {
-         return null;
-      }
-   }
-
    protected SiteType getSiteType(ObjectType<? extends Site> objectType)
    {
-      if (ObjectType.PORTAL_SITE == objectType)
-      {
-         return SiteType.PORTAL;
-      }
-      else if (ObjectType.GROUP_SITE == objectType)
-      {
-         return SiteType.GROUP;
-      }
-      else if (ObjectType.USER_SITE == objectType)
-      {
-         return SiteType.USER;
-      }
-      else
-      {
-         return null;
-      }
+      return Utils.getSiteType(objectType);
    }
 
    protected SiteKey getSiteKey(ObjectType<? extends Site> objectType, String name)
    {
-      if (ObjectType.PORTAL_SITE == objectType)
-      {
-         return SiteKey.portal(name);
-      }
-      else if (ObjectType.GROUP_SITE == objectType)
-      {
-         if (name.charAt(0) != '/') name = "/" + name;
-         
-         return SiteKey.group(name);
-      }
-      else if (ObjectType.USER_SITE == objectType)
-      {
-         return SiteKey.user(name);
-      }
-      else
-      {
-         return null;
-      }
+      return Utils.siteKey(Utils.getSiteType(objectType), name);
    }
 
    protected SiteKey getSiteKey(Site site)

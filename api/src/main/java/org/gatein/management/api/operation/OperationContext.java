@@ -44,9 +44,7 @@ public interface OperationContext
 
    RuntimeContext getRuntimeContext();
 
-   OperationAttachment getAttachment(int index);
-
-   int getAttachmentsCount();
+   OperationAttachment getAttachment(boolean remove);
 
    BindingProvider getBindingProvider();
 

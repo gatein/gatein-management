@@ -39,30 +39,30 @@ public class RestApplication extends Application
 {
    public static final String API_ENTRY_POINT = "/managed-components";
 
-   private final ManagementController controller;
-   private final ManagementService service;
+   private Set<Object> singletons;
+   private Set<Class<?>> classes;
 
    public RestApplication(ManagementService service, ManagementController controller)
    {
-      this.controller = controller;
-      this.service = service;
+      // Singletons
+      singletons = new HashSet<Object>(2);
+      singletons.add(new BindingProviderResolver(service));
+      singletons.add(new RestController(controller));
+
+      // Classes
+      classes = new HashSet<Class<?>>(1);
+      classes.add(ManagedComponentProvider.class);
    }
 
    @Override
    public Set<Object> getSingletons()
    {
-      Set<Object> singletons = new HashSet<Object>(2);
-      singletons.add(new BindingProviderResolver(service));
-      singletons.add(new RestController(controller));
-
       return singletons;
    }
 
    @Override
    public Set<Class<?>> getClasses()
    {
-      Set<Class<?>> classes = new HashSet<Class<?>>(1);
-      classes.add(ManagedComponentProvider.class);
       return classes;
    }
 }

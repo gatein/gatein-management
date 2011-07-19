@@ -32,8 +32,8 @@ import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationContext;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -45,14 +45,14 @@ public class OperationContextImpl implements OperationContext
    private final ManagedResource resource;
    private final RuntimeContext runtimeContext;
    private final BindingProvider bindingProvider;
-   private final List<OperationAttachment> attachments;
+   private final Deque<OperationAttachment> attachments;
 
 
    public OperationContextImpl(final ManagedRequest request, final ManagedResource resource, final RuntimeContext runtimeContext, final BindingProvider bindingProvider)
    {
-      List<OperationAttachment> list = new ArrayList<OperationAttachment>(1);
+      Deque<OperationAttachment> list = new ArrayDeque<OperationAttachment>();
 
-      list.add(new OperationAttachment()
+      list.push(new OperationAttachment()
       {
          @Override
          public InputStream getStream()
@@ -93,15 +93,16 @@ public class OperationContextImpl implements OperationContext
    }
 
    @Override
-   public OperationAttachment getAttachment(int index)
+   public OperationAttachment getAttachment(boolean remove)
    {
-      return attachments.get(index);
-   }
-
-   @Override
-   public int getAttachmentsCount()
-   {
-      return attachments.size();
+      if (remove)
+      {
+         return attachments.pop();
+      }
+      else
+      {
+         return attachments.peek();
+      }
    }
 
    @Override

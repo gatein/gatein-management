@@ -20,47 +20,59 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.core.api.operation;
+package org.gatein.management.mop.exportimport;
 
-import org.gatein.management.api.PathAddress;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public abstract class StepResultHandler<T> extends TypedResultHandler<T>
+public enum ImportStrategy
 {
-   private List<T> results;
-   private PathAddress currentAddress;
+   /**
+    * Import when data does not exist.  Otherwise do nothing.
+    */
+   CONSERVE("conserve"),
 
-   protected StepResultHandler(PathAddress address)
+   /**
+    * Import when data does not exist.  Otherwise perform a merge
+    */
+   MERGE("merge"),
+
+   /**
+    * Delete existing data, import new data.
+    */
+   OVERWRITE("overwrite");
+
+   private String name;
+
+   ImportStrategy(String name)
    {
-      results = new ArrayList<T>();
-      this.currentAddress = address;
+      this.name = name;
    }
 
-   @Override
-   protected final void doCompleted(T result)
+   private static final Map<String, ImportStrategy> MAP;
+
+   static
    {
-      results.add(result);
+      Map<String, ImportStrategy> tmp = new HashMap<String, ImportStrategy>(3);
+      for (ImportStrategy strategy : ImportStrategy.values())
+      {
+         tmp.put(strategy.name, strategy);
+      }
+
+      MAP = tmp;
    }
 
-   public StepResultHandler<T> next(PathAddress address)
+   public String getName()
    {
-      this.currentAddress = address;
-      return this;
+      return name;
    }
 
-   public List<T> getResults()
+   public ImportStrategy forName(String name)
    {
-      return results;
-   }
-
-   public PathAddress getCurrentAddress()
-   {
-      return currentAddress;
+      return MAP.get(name);
    }
 }

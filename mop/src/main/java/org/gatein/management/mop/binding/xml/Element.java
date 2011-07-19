@@ -39,6 +39,7 @@ public enum Element implements EnumElement<Element>
    NODE("node"),
    @Deprecated
    URI("uri"),
+   PARENT_URI("parent-uri"),
    LABEL("label"),
    START_PUBLICATION_DATE("start-publication-date"),
    END_PUBLICATION_DATE("end-publication-date"),

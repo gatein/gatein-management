@@ -46,6 +46,8 @@ public class NavigationReadResource extends AbstractNavigationOperationHandler
       Site site = navigation.getSite();
       SiteKey siteKey = getSiteKey(site);
 
+      //TODO: If there's any benefit in creating our own node model to use with navigation service, lets do it
+
       DescriptionService descriptionService = operationContext.getRuntimeContext().getRuntimeComponent(DescriptionService.class);
       NavigationService navigationService = operationContext.getRuntimeContext().getRuntimeComponent(NavigationService.class);
 

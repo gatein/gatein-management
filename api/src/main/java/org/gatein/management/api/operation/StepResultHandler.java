@@ -20,48 +20,48 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.rest.providers;
+package org.gatein.management.api.operation;
 
-import org.gatein.management.api.ContentType;
-import org.gatein.management.api.ManagementService;
-import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.PathAddress;
 
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Provider
-public class BindingProviderResolver implements ContextResolver<BindingProviderResolver>
+public abstract class StepResultHandler<T> extends TypedResultHandler<T>
 {
-   private ManagementService service;
+   private List<T> results;
+   private PathAddress currentAddress;
 
-   public BindingProviderResolver(ManagementService service)
+   protected StepResultHandler(PathAddress address)
    {
-      this.service = service;
+      this.currentAddress = address;
+      results = new ArrayList<T>();
    }
 
    @Override
-   public BindingProviderResolver getContext(Class<?> type)
+   protected void doCompleted(T result)
    {
+      if (result == null) throw new IllegalArgumentException("result is null");
+      results.add(result);
+   }
+
+   public StepResultHandler<T> next(PathAddress address)
+   {
+      this.currentAddress = address;
       return this;
    }
 
-   public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, UriInfo uriInfo)
+   public List<T> getResults()
    {
-      String componentName = null;
-      if (uriInfo.getPathSegments().size() > 1)
-      {
-         componentName = uriInfo.getPathSegments().get(1).getPath();
-      }
+      return results;
+   }
 
-      BindingProvider bp = service.getBindingProvider(componentName);
-      if (bp == null) return null;
-
-      return bp.getMarshaller(type, contentType);
+   public PathAddress getCurrentAddress()
+   {
+      return currentAddress;
    }
 }

@@ -38,6 +38,8 @@ import java.io.OutputStream;
  */
 public class SiteLayoutExportTask extends POMSessionExportTask
 {
+   public static final String FILE = "portal.xml";
+
    private Marshaller<PortalData> marshaller;
 
    public SiteLayoutExportTask(SiteKey siteKey, POMSession session, Marshaller<PortalData> marshaller)
@@ -49,7 +51,7 @@ public class SiteLayoutExportTask extends POMSessionExportTask
    @Override
    protected String getXmlFileName()
    {
-      return "portal.xml";
+      return FILE;
    }
 
    @Override

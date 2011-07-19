@@ -36,8 +36,10 @@ import java.io.OutputStream;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class NavigationExportTask extends AbstractSiteExportTask
+public class NavigationExportTask extends AbstractExportTask
 {
+   public static final String FILE = "navigation.xml";
+
    private NavigationKey navigationKey;
    private Marshaller<PageNavigation> marshaller;
    private NavigationService navigationService;
@@ -56,7 +58,7 @@ public class NavigationExportTask extends AbstractSiteExportTask
    @Override
    protected String getXmlFileName()
    {
-      return "navigation.xml";
+      return FILE;
    }
 
    @Override

@@ -20,48 +20,66 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.rest.providers;
+package org.gatein.management.api.operation;
 
 import org.gatein.management.api.ContentType;
-import org.gatein.management.api.ManagementService;
+import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.Marshaller;
-
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Provider
-public class BindingProviderResolver implements ContextResolver<BindingProviderResolver>
+public class OperationContextDelegate implements OperationContext
 {
-   private ManagementService service;
+   private OperationContext delegate;
 
-   public BindingProviderResolver(ManagementService service)
+   public OperationContextDelegate(OperationContext delegate)
    {
-      this.service = service;
+      this.delegate = delegate;
    }
 
    @Override
-   public BindingProviderResolver getContext(Class<?> type)
+   public PathAddress getAddress()
    {
-      return this;
+      return delegate.getAddress();
    }
 
-   public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, UriInfo uriInfo)
+   @Override
+   public String getOperationName()
    {
-      String componentName = null;
-      if (uriInfo.getPathSegments().size() > 1)
-      {
-         componentName = uriInfo.getPathSegments().get(1).getPath();
-      }
+      return delegate.getOperationName();
+   }
 
-      BindingProvider bp = service.getBindingProvider(componentName);
-      if (bp == null) return null;
+   @Override
+   public ManagedResource getManagedResource()
+   {
+      return delegate.getManagedResource();
+   }
 
-      return bp.getMarshaller(type, contentType);
+   @Override
+   public RuntimeContext getRuntimeContext()
+   {
+      return delegate.getRuntimeContext();
+   }
+
+   @Override
+   public OperationAttachment getAttachment(boolean remove)
+   {
+      return delegate.getAttachment(remove);
+   }
+
+   @Override
+   public BindingProvider getBindingProvider()
+   {
+      return delegate.getBindingProvider();
+   }
+
+   @Override
+   public ContentType getContentType()
+   {
+      return delegate.getContentType();
    }
 }

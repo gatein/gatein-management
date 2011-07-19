@@ -32,12 +32,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class FailureResult
 {
    private String failure;
+   private String operationName;
 
-   public FailureResult(){}
-
-   public FailureResult(String failure)
+   public FailureResult(String failure, String operationName)
    {
       this.failure = failure;
+      this.operationName = operationName;
    }
 
    public String getFailure()
@@ -48,5 +48,15 @@ public class FailureResult
    public void setFailure(String failure)
    {
       this.failure = failure;
+   }
+
+   public String getOperationName()
+   {
+      return operationName;
+   }
+
+   public void setOperationName(String operationName)
+   {
+      this.operationName = operationName;
    }
 }

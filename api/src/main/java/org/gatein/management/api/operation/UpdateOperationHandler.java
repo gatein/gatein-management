@@ -39,10 +39,16 @@ public abstract class UpdateOperationHandler<T> implements OperationHandler
    @Override
    public void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
    {
-      OperationAttachment attachment = operationContext.getAttachment(0);
-      Marshaller<T> marshaller = operationContext.getBindingProvider().getMarshaller(getParameterizedType(), operationContext.getContentType());
+      OperationAttachment attachment = operationContext.getAttachment(true);
+      Class<T> type = getParameterizedType();
+      Marshaller<T> marshaller = operationContext.getBindingProvider().getMarshaller(type, operationContext.getContentType());
 
-      if (marshaller == null) throw new OperationException(operationContext.getOperationName(), "No marshaller found for address " + operationContext.getAddress());
+      if (marshaller == null)
+      {
+         throw new OperationException(operationContext.getOperationName(),
+            "No marshaller found for type " + type + " and content type " + operationContext.getContentType() +
+               " at address " + operationContext.getAddress());
+      }
 
       try
       {
@@ -50,7 +56,9 @@ public abstract class UpdateOperationHandler<T> implements OperationHandler
       }
       catch (BindingException e)
       {
-         throw new OperationException(operationContext.getOperationName(), "Exception unmarshalling data for address " + operationContext.getAddress(), e);
+         throw new OperationException(operationContext.getOperationName(),
+            "Exception unmarshalling data for type " + type + " and content type " + operationContext.getContentType() +
+               " at address " + operationContext.getAddress(), e);
       }
    }
 

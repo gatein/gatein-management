@@ -20,48 +20,26 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.rest.providers;
+package org.gatein.management.mop.exportimport;
 
-import org.gatein.management.api.ContentType;
-import org.gatein.management.api.ManagementService;
-import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.Marshaller;
-
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import org.exoplatform.portal.mop.SiteKey;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Provider
-public class BindingProviderResolver implements ContextResolver<BindingProviderResolver>
+public abstract class AbstractImportTask<T> extends ImportTask<T>
 {
-   private ManagementService service;
+   protected final SiteKey siteKey;
 
-   public BindingProviderResolver(ManagementService service)
+   public AbstractImportTask(T data, SiteKey siteKey)
    {
-      this.service = service;
+      super(data);
+      this.siteKey = siteKey;
    }
 
-   @Override
-   public BindingProviderResolver getContext(Class<?> type)
+   public SiteKey getSiteKey()
    {
-      return this;
-   }
-
-   public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, UriInfo uriInfo)
-   {
-      String componentName = null;
-      if (uriInfo.getPathSegments().size() > 1)
-      {
-         componentName = uriInfo.getPathSegments().get(1).getPath();
-      }
-
-      BindingProvider bp = service.getBindingProvider(componentName);
-      if (bp == null) return null;
-
-      return bp.getMarshaller(type, contentType);
+      return siteKey;
    }
 }

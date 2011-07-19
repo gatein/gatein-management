@@ -43,6 +43,8 @@ import java.util.List;
  */
 public class PageExportTask extends POMSessionExportTask implements ExportTask
 {
+   public static final String FILE = "pages.xml";
+
    private List<String> pageNames;
    private Marshaller<PageDataContainer> marshaller;
 
@@ -68,7 +70,7 @@ public class PageExportTask extends POMSessionExportTask implements ExportTask
    @Override
    protected String getXmlFileName()
    {
-      return "pages.xml";
+      return FILE;
    }
 
    public void addPageName(String pageName)

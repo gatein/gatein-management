@@ -62,6 +62,7 @@ public class MopBindingProvider implements BindingProvider
       }
    }
 
+   @SuppressWarnings("unchecked")
    private <T> Marshaller<T> getXmlMarshaller(Class<T> type)
    {
       if (PageData.class.isAssignableFrom(type))

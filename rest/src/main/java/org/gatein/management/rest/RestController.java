@@ -33,12 +33,12 @@ import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationNames;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -120,7 +120,7 @@ public class RestController
       return getRequest(ContentType.JSON, path);
    }
 
-   //----------------------------------------- JSON Handlers -----------------------------------------//
+   //----------------------------------------- ZIP Handlers -----------------------------------------//
    @GET
    @Produces("application/zip")
    public Response zipGetRequest()
@@ -136,7 +136,44 @@ public class RestController
       return getRequest(ContentType.ZIP, path);
    }
 
-   //----------------------------------------- Private Impl -----------------------------------------//
+   @PUT
+   @Path("/{path:.*}")
+   @Consumes("application/zip")
+   public Response customPutRequest(@PathParam("path") String path, InputStream data)
+   {
+      ContentType contentType = ContentType.ZIP;
+      String operationName = "import-resource";
+      PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
+      try
+      {
+         controller.execute(ManagedRequest.Factory.create(operationName, address, data, contentType));
+
+         return Response.ok().build();
+      }
+      //TODO: Wrap controller execution in a callback and reuse exception handling for all http methods
+      catch (ResourceNotFoundException nfe)
+      {
+         if (log.isDebugEnabled()) // Don't want to log exceptions for wrong url's all the time.
+         {
+            log.error("Resource not found for address " + address, nfe);
+         }
+         return failure(nfe.getMessage(), operationName, Status.NOT_FOUND, contentType);
+      }
+      catch (OperationException e)
+      {
+         log.error("Operation exception for operation: " + operationName + ", address: " + address + ", content-type: " + contentType, e);
+         return failure(e.getMessage(), operationName, Status.INTERNAL_SERVER_ERROR, contentType);
+      }
+      catch (Exception e)
+      {
+         String message = "Error processing operation: " + operationName + ", address: " + address + ", content-type: " + contentType;
+         log.error(message, e);
+
+         return failure(message, operationName, Status.INTERNAL_SERVER_ERROR, contentType);
+      }
+   }
+
+   //----------------------------------------- Private Get Impl -----------------------------------------//
 
    private Response getRequest(ContentType contentType, String path)
    {
@@ -157,82 +194,32 @@ public class RestController
          ManagedResponse resp = controller.execute(ManagedRequest.Factory.create(operationName, address, contentType));
          if (resp == null)
          {
-            return failure("No response returned for operation " + operationName, Status.INTERNAL_SERVER_ERROR, contentType);
+            return failure("No response returned.", operationName, Status.INTERNAL_SERVER_ERROR, contentType);
          }
 
          return success(resp, contentType);
       }
+      //TODO: Wrap controller execution in a callback and reuse exception handling for all http methods
       catch (ResourceNotFoundException nfe)
       {
          if (log.isDebugEnabled()) // Don't want to log exceptions for wrong url's all the time.
          {
             log.error("Resource not found for address " + address, nfe);
          }
-         return failure(nfe.getMessage(), Status.NOT_FOUND, contentType);
+         return failure(nfe.getMessage(), operationName, Status.NOT_FOUND, contentType);
       }
       catch (OperationException e)
       {
-         String message = e.getMessage() + " for operation " + e.getOperationName();
-         log.error("Operation exception for operation '" + operationName + "' and content-type: " + contentType, e);
-         return failure(message, Status.INTERNAL_SERVER_ERROR, contentType);
+         log.error("Operation exception for operation: " + operationName + ", address: " + address + ", content-type: " + contentType, e);
+         return failure(e.getMessage(), operationName, Status.INTERNAL_SERVER_ERROR, contentType);
       }
       catch (Exception e)
       {
-         String message = "Error processing operation: " + operationName + " for address " + address;
+         String message = "Error processing operation: " + operationName + ", address: " + address + ", content-type: " + contentType;
          log.error(message, e);
 
-         return failure(message, Status.INTERNAL_SERVER_ERROR, contentType);
+         return failure(message, operationName, Status.INTERNAL_SERVER_ERROR, contentType);
       }
-   }
-
-   @POST
-   @Path("/{path:.*}")
-   public Response postRequest(@Context HttpHeaders headers, @PathParam("path") String path, @QueryParam("format") String format, InputStream data)
-   {
-      if (path == null) path = "";
-      String operationName = "add-resource";
-
-      //TODO: Clean this up
-      MediaType tmpMediaType = null;
-      if (path.endsWith(".xml"))
-      {
-         path = path.substring(0, path.lastIndexOf("."));
-         tmpMediaType = MediaType.APPLICATION_XML_TYPE;
-         operationName = "read-config-as-xml";
-      }
-      else if (path.endsWith(".json"))
-      {
-         path = path.substring(0, path.lastIndexOf("."));
-         tmpMediaType = MediaType.APPLICATION_JSON_TYPE;
-      }
-      else if ("xml".equals(format))
-      {
-         tmpMediaType = MediaType.APPLICATION_XML_TYPE;
-      }
-      else if ("json".equals(format))
-      {
-         tmpMediaType = MediaType.APPLICATION_JSON_TYPE;
-      }
-
-      final MediaType mediaType;
-      if (tmpMediaType != null)
-      {
-         if (headerSpecifiesMediaType(headers))
-         {
-            log.warn("Detected 'Accept' header in request (which dictates content negotiation) along with custom content negotiation (either as url extension or parameter).");
-         }
-         mediaType = tmpMediaType;
-      }
-      else
-      {
-         mediaType = null;
-      }
-
-      PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
-
-      System.out.println("Post address " + address);
-
-      return Response.ok().build();
    }
 
    private boolean headerSpecifiesMediaType(HttpHeaders headers)
@@ -254,7 +241,7 @@ public class RestController
       return trimmed.toArray(new String[trimmed.size()]);
    }
 
-   private Response failure(String failureDescription, Status status, ContentType contentType)
+   private Response failure(String failureDescription, String operationName, Status status, ContentType contentType)
    {
       if (contentType == ContentType.ZIP)
       {
@@ -262,7 +249,7 @@ public class RestController
       }
 
       MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
-      return Response.status(status).entity(new FailureResult(failureDescription)).type(mediaType).build();
+      return Response.status(status).entity(new FailureResult(failureDescription, operationName)).type(mediaType).build();
    }
 
    private Response success(ManagedResponse response, ContentType contentType)

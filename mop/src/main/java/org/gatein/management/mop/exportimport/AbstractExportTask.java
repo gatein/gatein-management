@@ -20,48 +20,35 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.rest.providers;
+package org.gatein.management.mop.exportimport;
 
-import org.gatein.management.api.ContentType;
-import org.gatein.management.api.ManagementService;
-import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.Marshaller;
-
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import org.exoplatform.portal.mop.SiteKey;
+import org.gatein.management.api.operation.model.ExportTask;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Provider
-public class BindingProviderResolver implements ContextResolver<BindingProviderResolver>
+public abstract class AbstractExportTask implements ExportTask
 {
-   private ManagementService service;
+   protected SiteKey siteKey;
 
-   public BindingProviderResolver(ManagementService service)
+   protected AbstractExportTask(SiteKey siteKey)
    {
-      this.service = service;
+      this.siteKey = siteKey;
    }
 
    @Override
-   public BindingProviderResolver getContext(Class<?> type)
+   public String getEntry()
    {
-      return this;
+      String siteType = siteKey.getTypeName();
+
+      String siteName = siteKey.getName();
+      if (siteName.charAt(0) == '/') siteName = siteName.substring(1, siteName.length());
+
+      return new StringBuilder().
+         append(siteType).append("/").append(siteName).append("/").append(getXmlFileName()).toString();
    }
 
-   public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, UriInfo uriInfo)
-   {
-      String componentName = null;
-      if (uriInfo.getPathSegments().size() > 1)
-      {
-         componentName = uriInfo.getPathSegments().get(1).getPath();
-      }
-
-      BindingProvider bp = service.getBindingProvider(componentName);
-      if (bp == null) return null;
-
-      return bp.getMarshaller(type, contentType);
-   }
+   protected abstract String getXmlFileName();
 }

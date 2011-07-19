@@ -20,9 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.core.api.operation;
-
-import org.gatein.management.api.operation.ResultHandler;
+package org.gatein.management.api.operation;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

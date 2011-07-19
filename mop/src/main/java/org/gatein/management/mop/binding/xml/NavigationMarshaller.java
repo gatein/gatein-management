@@ -138,7 +138,9 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
             writer.writeStartElement(Element.LABEL);
             if (label.getLang() != null)
             {
-               writer.writeAttribute(new QName(XMLConstants.XML_NS_URI, "lang", "xml"), label.getLang().toString());
+               String language = label.getLang().getLanguage();
+               
+               writer.writeAttribute(new QName(XMLConstants.XML_NS_URI, "lang", XMLConstants.XML_NS_PREFIX), label.getLang().toString());
             }
             writer.writeContent(label.getValue()).writeEndElement();
          }
@@ -180,32 +182,33 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
          Integer priority = parseRequiredContent(navigator, ValueType.INTEGER);
          navigation.setPriority(priority);
 
-         ArrayList<NavigationFragment> fragments = new ArrayList<NavigationFragment>();
          next = navigator.sibling();
          if (next == Element.PAGE_NODES)
          {
-            for (StaxNavigator<Element> pageNodesFork : navigator.fork(Element.PAGE_NODES))
+            for (StaxNavigator<Element> fork: navigator.fork(Element.PAGE_NODES))
             {
                NavigationFragment fragment = new NavigationFragment();
                navigation.addFragment(fragment);
-               
-               next = navigator.child();
+
+               next = fork.child();
                if (next == Element.PARENT_URI)
                {
-                  fragment.setParentURI(navigator.getContent());
+                  fragment.setParentURI(fork.getContent());
+                  next = fork.sibling();
                }
-               else if (next == Element.NODE)
+
+               if (next == Element.NODE)
                {
                   ArrayList<PageNode> nodes = new ArrayList<PageNode>();
-                  for (StaxNavigator<Element> fork : pageNodesFork.fork(Element.NODE))
+                  for (StaxNavigator<Element> nodeFork : fork.fork(Element.NODE))
                   {
-                     nodes.add(unmarshalNode(fork));
+                     nodes.add(unmarshalNode(nodeFork));
                   }
                   fragment.setNodes(nodes);
                }
                else if (next != null)
                {
-                  throw unknownElement(navigator);
+                  throw unknownElement(fork);
                }
             }
          }

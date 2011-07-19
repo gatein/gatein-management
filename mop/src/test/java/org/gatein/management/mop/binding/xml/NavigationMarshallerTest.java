@@ -93,6 +93,36 @@ public class NavigationMarshallerTest
    }
 
    @Test
+   public void testFragmentedNavigationUnmarshalling()
+   {
+      NavigationMarshaller marshaller = new NavigationMarshaller();
+      PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/fragment-navigation.xml"));
+      assertNotNull(data);
+      assertNotNull(data.getFragments());
+      assertEquals(2, data.getFragments().size());
+
+      NavigationFragment fragment = data.getFragments().get(0);
+      assertNotNull(fragment);
+      assertEquals("home", fragment.getParentURI());
+      assertNotNull(fragment.getNodes());
+      assertEquals(1, fragment.getNodes().size());
+      PageNode node = fragment.getNode("home-1");
+      assertNotNull(node);
+      assertNotNull(node.getNodes());
+      assertEquals(2, node.getNodes().size());
+      assertNotNull(node.getNode("home-1-1"));
+      assertNotNull(node.getNode("home-1-2"));
+
+      fragment = data.getFragments().get(1);
+      assertNotNull(fragment);
+      assertEquals("foo-bar", fragment.getParentURI());
+      assertNotNull(fragment.getNodes());
+      assertEquals(2, fragment.getNodes().size());
+      assertNotNull(fragment.getNode("foo"));
+      assertNotNull(fragment.getNode("bar"));
+   }
+
+   @Test
    public void testLocaleNavigationUnmarshalling()
    {
       NavigationMarshaller marshaller = new NavigationMarshaller();

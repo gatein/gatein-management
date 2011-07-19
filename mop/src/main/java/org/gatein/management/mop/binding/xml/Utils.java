@@ -22,7 +22,7 @@
 
 package org.gatein.management.mop.binding.xml;
 
-import org.exoplatform.portal.config.model.LocalizedValue;
+import org.exoplatform.portal.config.model.LocalizedString;
 import org.gatein.common.xml.stax.navigator.StaxNavUtils;
 import org.gatein.common.xml.stax.writer.StaxWriter;
 import org.staxnav.StaxNavException;
@@ -54,7 +54,7 @@ class Utils
       writer.writeAttribute(new QName(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "schemaLocation"), location);
    }
 
-   public static <N> LocalizedValue parseLocalizedString(StaxNavigator<N> navigator) throws StaxNavException
+   public static <N> LocalizedString parseLocalizedString(StaxNavigator<N> navigator) throws StaxNavException
    {
       String attribute = navigator.getAttribute(new QName(XMLConstants.XML_NS_URI, "lang", XMLConstants.XML_NS_PREFIX));
       if (attribute == null)
@@ -91,6 +91,6 @@ class Utils
 
       String value = StaxNavUtils.getRequiredContent(navigator, false);
 
-      return new LocalizedValue(value, lang);
+      return new LocalizedString(value, lang);
    }
 }

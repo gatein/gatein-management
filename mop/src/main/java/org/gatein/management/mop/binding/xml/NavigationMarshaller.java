@@ -22,7 +22,9 @@
 
 package org.gatein.management.mop.binding.xml;
 
-import org.exoplatform.portal.config.model.LocalizedValue;
+import org.exoplatform.portal.config.model.I18NString;
+import org.exoplatform.portal.config.model.LocalizedString;
+import org.exoplatform.portal.config.model.NavigationFragment;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.mop.Visibility;
@@ -98,14 +100,29 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
 
       // Page nodes
       writer.writeStartElement(Element.PAGE_NODES);
-      Collection<PageNode> nodes = navigation.getNodes();
-      if (nodes != null && !nodes.isEmpty())
+      ArrayList<NavigationFragment> fragments = navigation.getFragments();
+      for (NavigationFragment fragment : fragments)
       {
-         for (PageNode node : nodes)
+         if (fragment.getParentURI() != null)
          {
-            marshallNode(writer, node);
+            String parentUri = fragment.getParentURI().trim();
+            if (parentUri.charAt(0) == '/') parentUri = parentUri.substring(1);
+            if (parentUri.length() > 1)
+            {
+               writer.writeElement(Element.PARENT_URI, parentUri);
+            }
+         }
+
+         Collection<PageNode> nodes = fragment.getNodes();
+         if (nodes != null && !nodes.isEmpty())
+         {
+            for (PageNode node : nodes)
+            {
+               marshallNode(writer, node);
+            }
          }
       }
+
       writer.writeEndElement().writeEndElement(); // End page-nodes and node-navigation
    }
 
@@ -116,7 +133,7 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
 
       if (node.getLabels() != null)
       {
-         for (LocalizedValue label : node.getLabels())
+         for (LocalizedString label : node.getLabels())
          {
             writer.writeStartElement(Element.LABEL);
             if (label.getLang() != null)
@@ -163,22 +180,33 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
          Integer priority = parseRequiredContent(navigator, ValueType.INTEGER);
          navigation.setPriority(priority);
 
-         ArrayList<PageNode> nodes = new ArrayList<PageNode>();
-
+         ArrayList<NavigationFragment> fragments = new ArrayList<NavigationFragment>();
          next = navigator.sibling();
          if (next == Element.PAGE_NODES)
          {
-            next = navigator.child();
-            if (next == Element.NODE)
+            for (StaxNavigator<Element> pageNodesFork : navigator.fork(Element.PAGE_NODES))
             {
-               for (StaxNavigator<Element> fork : navigator.fork(Element.NODE))
+               NavigationFragment fragment = new NavigationFragment();
+               navigation.addFragment(fragment);
+               
+               next = navigator.child();
+               if (next == Element.PARENT_URI)
                {
-                  nodes.add(unmarshalNode(fork));
+                  fragment.setParentURI(navigator.getContent());
                }
-            }
-            else if (next != null)
-            {
-               throw unknownElement(navigator);
+               else if (next == Element.NODE)
+               {
+                  ArrayList<PageNode> nodes = new ArrayList<PageNode>();
+                  for (StaxNavigator<Element> fork : pageNodesFork.fork(Element.NODE))
+                  {
+                     nodes.add(unmarshalNode(fork));
+                  }
+                  fragment.setNodes(nodes);
+               }
+               else if (next != null)
+               {
+                  throw unknownElement(navigator);
+               }
             }
          }
          else if (next != null)
@@ -186,7 +214,6 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
             throw expectedElement(navigator, Element.PAGE_NODES);
          }
 
-         navigation.setNodes(nodes);
          return navigation;
       }
       else
@@ -198,7 +225,7 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
    private PageNode unmarshalNode(StaxNavigator<Element> navigator) throws StaxNavException
    {
       PageNode node = new PageNode();
-      ArrayList<LocalizedValue> labels = new ArrayList<LocalizedValue>();
+      I18NString labels = new I18NString();
       ArrayList<PageNode> children = new ArrayList<PageNode>();
 
       Element current = navigator.child();

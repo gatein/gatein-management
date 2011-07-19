@@ -22,7 +22,9 @@
 
 package org.gatein.management.mop.operations.navigation;
 
-import org.exoplatform.portal.config.model.LocalizedValue;
+import org.exoplatform.portal.config.model.I18NString;
+import org.exoplatform.portal.config.model.LocalizedString;
+import org.exoplatform.portal.config.model.NavigationFragment;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.mop.Described;
@@ -85,7 +87,9 @@ public class PageNavigationUtils
          children.add(createPageNode(service, childNode));
       }
 
-      pageNavigation.setNodes(children);
+      NavigationFragment fragment = new NavigationFragment();
+      fragment.setNodes(children);
+      pageNavigation.addFragment(fragment);
 
       return pageNavigation;
    }
@@ -100,9 +104,24 @@ public class PageNavigationUtils
       ArrayList<PageNode> children = new ArrayList<PageNode>(1);
       children.add(createPageNode(service, node));
 
-      pageNavigation.setNodes(children);
+      NavigationFragment fragment = new NavigationFragment();
+      StringBuilder parentUri = new StringBuilder();
+      getPath(node, parentUri);
+      fragment.setParentURI(parentUri.toString());
+      fragment.setNodes(children);
+
+      pageNavigation.addFragment(fragment);
 
       return pageNavigation;
+   }
+
+   private static void getPath(NodeContext<NodeContext<?>> node, StringBuilder parentUri)
+   {
+      parentUri.append(node.getName());
+      if (node.getParent() != null)
+      {
+         getPath(node.getParent(), parentUri.append("/"));
+      }
    }
 
    private static PageNode createPageNode(DescriptionService service, NodeContext<NodeContext<?>> node)
@@ -115,10 +134,10 @@ public class PageNavigationUtils
          Map<Locale, Described.State> descriptions = service.getDescriptions(node.getId());
          if (descriptions != null && !descriptions.isEmpty())
          {
-            ArrayList<LocalizedValue> labels = new ArrayList<LocalizedValue>(descriptions.size());
+            I18NString labels = new I18NString();
             for (Map.Entry<Locale, Described.State> entry : descriptions.entrySet())
             {
-               labels.add(new LocalizedValue(entry.getValue().getName(), entry.getKey()));
+               labels.add(new LocalizedString(entry.getValue().getName(), entry.getKey()));
             }
 
             pageNode.setLabels(labels);

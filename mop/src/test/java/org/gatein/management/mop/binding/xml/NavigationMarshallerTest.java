@@ -22,6 +22,7 @@
 
 package org.gatein.management.mop.binding.xml;
 
+import org.exoplatform.portal.config.model.NavigationFragment;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
 import org.exoplatform.portal.mop.Visibility;
@@ -51,9 +52,9 @@ public class NavigationMarshallerTest
       PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/navigation.xml"));
       assertNotNull(data);
       assertEquals(111, data.getPriority());
-      assertNotNull(data.getNodes());
-      assertEquals(7, data.getNodes().size());
-      PageNode node = data.getNodes().get(0);
+      assertNotNull(data.getFragment());
+      assertEquals(7, data.getFragment().getNodes().size());
+      PageNode node = data.getFragment().getNodes().get(0);
       verifyNode(node, "home", "#{portal.classic.home}", "home", Visibility.DISPLAYED, "portal::classic::homepage", null, null, null, 1);
       node = node.getNodes().get(0);
       Date start = createDate(2011, 1, 10, 12, 13, 55);
@@ -62,10 +63,10 @@ public class NavigationMarshallerTest
       node = node.getNodes().get(0);
       verifyNode(node, "empty", "Empty", "home/home-1/empty", Visibility.HIDDEN, "portal::classic::empty-page", null, null, null, 0);
 
-      node = data.getNodes().get(5);
+      node = data.getFragment().getNodes().get(5);
       verifyNode(node, "notfound", "NotFound", "notfound", Visibility.SYSTEM, null, null, null, null, 0);
 
-      node = data.getNodes().get(6);
+      node = data.getFragment().getNodes().get(6);
       verifyNode(node, "n0", "n0", "n0", Visibility.DISPLAYED, "portal::classic::n0", null, null, null, 1);
       node = node.getNodes().get(0);
       verifyNode(node, "n0", "n0", "n0/n0", Visibility.DISPLAYED, "portal::classic::n0_n0", null, null, null, 10);
@@ -87,8 +88,8 @@ public class NavigationMarshallerTest
       PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/empty-navigation.xml"));
       assertNotNull(data);
       assertEquals(3, data.getPriority());
-      assertNotNull(data.getNodes());
-      assertTrue(data.getNodes().isEmpty());
+      assertNotNull(data.getFragment().getNodes());
+      assertTrue(data.getFragment().getNodes().isEmpty());
    }
 
    @Test
@@ -97,9 +98,9 @@ public class NavigationMarshallerTest
       NavigationMarshaller marshaller = new NavigationMarshaller();
       PageNavigation data = marshaller.unmarshal(getClass().getResourceAsStream("/locale-navigation.xml"));
       assertNotNull(data);
-      assertNotNull(data.getNodes());
+      assertNotNull(data.getFragment().getNodes());
 
-      PageNode node = data.getNode("hello-node");
+      PageNode node = data.getFragment().getNode("hello-node");
       assertNotNull(node);
       assertNotNull(node.getLabels());
       assertEquals(8, node.getLabels().size());
@@ -115,28 +116,28 @@ public class NavigationMarshallerTest
       String zh = "你好";
       String zh_tw = "Li-ho";
 
-      assertEquals(cn, node.getLocalizedLabel(locale).get(new Locale("cn")));
-      assertEquals(fr, node.getLocalizedLabel(locale).get(new Locale("fr")));
-      assertEquals(en, node.getLocalizedLabel(locale).get(new Locale("en")));
-      assertEquals(es, node.getLocalizedLabel(locale).get(new Locale("es")));
-      assertEquals(ja, node.getLocalizedLabel(locale).get(new Locale("ja")));
-      assertEquals(it, node.getLocalizedLabel(locale).get(new Locale("it")));
-      assertEquals(zh, node.getLocalizedLabel(locale).get(new Locale("zh")));
-      assertEquals(zh_tw, node.getLocalizedLabel(locale).get(Locale.TAIWAN));
+      assertEquals(cn, node.getLabels().getExtended(locale).get(new Locale("cn")));
+      assertEquals(fr, node.getLabels().getExtended(locale).get(new Locale("fr")));
+      assertEquals(en, node.getLabels().getExtended(locale).get(new Locale("en")));
+      assertEquals(es, node.getLabels().getExtended(locale).get(new Locale("es")));
+      assertEquals(ja, node.getLabels().getExtended(locale).get(new Locale("ja")));
+      assertEquals(it, node.getLabels().getExtended(locale).get(new Locale("it")));
+      assertEquals(zh, node.getLabels().getExtended(locale).get(new Locale("zh")));
+      assertEquals(zh_tw, node.getLabels().getExtended(locale).get(Locale.TAIWAN));
 
-      node = data.getNode("hello-node2");
+      node = data.getFragment().getNode("hello-node2");
       assertNotNull(node);
       assertNotNull(node.getLabels());
       assertEquals(8, node.getLabels().size());
 
-      assertEquals(cn, node.getLocalizedLabel(locale).get(new Locale("cn")));
-      assertEquals(fr, node.getLocalizedLabel(locale).get(new Locale("fr")));
-      assertEquals(en, node.getLocalizedLabel(locale).get(new Locale("en")));
-      assertEquals(es, node.getLocalizedLabel(locale).get(new Locale("es")));
-      assertEquals(ja, node.getLocalizedLabel(locale).get(new Locale("ja")));
-      assertEquals(it, node.getLocalizedLabel(locale).get(new Locale("it")));
-      assertEquals(zh, node.getLocalizedLabel(locale).get(new Locale("zh")));
-      assertEquals(zh_tw, node.getLocalizedLabel(locale).get(Locale.TAIWAN));
+      assertEquals(cn, node.getLabels().getExtended(locale).get(new Locale("cn")));
+      assertEquals(fr, node.getLabels().getExtended(locale).get(new Locale("fr")));
+      assertEquals(en, node.getLabels().getExtended(locale).get(new Locale("en")));
+      assertEquals(es, node.getLabels().getExtended(locale).get(new Locale("es")));
+      assertEquals(ja, node.getLabels().getExtended(locale).get(new Locale("ja")));
+      assertEquals(it, node.getLabels().getExtended(locale).get(new Locale("it")));
+      assertEquals(zh, node.getLabels().getExtended(locale).get(new Locale("zh")));
+      assertEquals(zh_tw, node.getLabels().getExtended(locale).get(Locale.TAIWAN));
    }
 
    @Test
@@ -165,10 +166,10 @@ public class NavigationMarshallerTest
       assertNull(actual.getOwnerType());
       assertNull(actual.getOwnerId());
       assertEquals(expected.getPriority(), actual.getPriority());
-      assertNotNull(expected.getNodes());
-      assertEquals(expected.getNodes().size(), actual.getNodes().size());
+      assertNotNull(expected.getFragment().getNodes());
+      assertEquals(expected.getFragment().getNodes().size(), actual.getFragment().getNodes().size());
 
-      PageNode actualNode = actual.getNodes().get(0);
+      PageNode actualNode = actual.getFragment().getNodes().get(0);
       compareNode(expectedNode, actualNode);
 
       assertNotNull(actualNode.getNodes());
@@ -182,7 +183,9 @@ public class NavigationMarshallerTest
       pageNavigation.setOwnerType(ownerType);
       pageNavigation.setOwnerId(ownerId);
       pageNavigation.setPriority(priority);
-      pageNavigation.setNodes(children);
+      NavigationFragment fragment = new NavigationFragment();
+      fragment.setNodes(children);
+      pageNavigation.addFragment(fragment);
 
       return pageNavigation;
    }

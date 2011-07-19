@@ -22,11 +22,11 @@
 
 package org.gatein.management.mop.exportimport;
 
-import org.exoplatform.portal.config.importer.ImportMode;
-import org.exoplatform.portal.config.importer.NavigationImporter;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.mop.description.DescriptionService;
+import org.exoplatform.portal.mop.importer.ImportMode;
+import org.exoplatform.portal.mop.importer.NavigationImporter;
 import org.exoplatform.portal.mop.navigation.NavigationContext;
 import org.exoplatform.portal.mop.navigation.NavigationService;
 import org.exoplatform.portal.pom.data.ModelDataStorage;
@@ -72,7 +72,7 @@ public class NavigationImportTask extends AbstractImportTask<PageNavigation>
             mode = ImportMode.MERGE;
             break;
          case OVERWRITE:
-            mode = ImportMode.REIMPORT;
+            mode = ImportMode.OVERWRITE;
             break;
          default:
             throw new Exception("Could not map import strategy " + importStrategy.getName() + " to import mode.");
@@ -108,7 +108,7 @@ public class NavigationImportTask extends AbstractImportTask<PageNavigation>
          };
       }
 
-      NavigationImporter importer = new NavigationImporter(locale, mode, true, data, navigationService, descriptionService);
+      NavigationImporter importer = new NavigationImporter(locale, mode, data, navigationService, descriptionService);
       importer.perform();
    }
 

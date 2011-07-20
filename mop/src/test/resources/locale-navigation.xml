@@ -34,7 +34,7 @@
          <label lang="ja">こんにちは</label>
          <label lang="it">Ciào</label>
          <label lang="zh">你好</label>
-         <label lang="zh_TW">Li-ho</label>
+         <label lang="zh-TW">Li-ho</label>
       </node>
       <node>
          <name>hello-node2</name>

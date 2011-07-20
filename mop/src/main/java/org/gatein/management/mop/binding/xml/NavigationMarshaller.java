@@ -138,9 +138,18 @@ public class NavigationMarshaller implements Marshaller<PageNavigation>
             writer.writeStartElement(Element.LABEL);
             if (label.getLang() != null)
             {
-               String language = label.getLang().getLanguage();
-               
-               writer.writeAttribute(new QName(XMLConstants.XML_NS_URI, "lang", XMLConstants.XML_NS_PREFIX), label.getLang().toString());
+               String localeString = label.getLang().getLanguage();
+               if (localeString == null)
+               {
+                  throw new XMLStreamException("Language was null for locale " + label.getLang());
+               }
+               String country = label.getLang().getCountry();
+               if (country != null && country.length() > 0)
+               {
+                  localeString += "-" + country.toLowerCase();
+               }
+
+               writer.writeAttribute(new QName(XMLConstants.XML_NS_URI, "lang", XMLConstants.XML_NS_PREFIX), localeString);
             }
             writer.writeContent(label.getValue()).writeEndElement();
          }

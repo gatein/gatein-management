@@ -22,6 +22,8 @@
 
 package org.gatein.management.mop.binding.xml;
 
+import org.exoplatform.portal.config.model.I18NString;
+import org.exoplatform.portal.config.model.LocalizedString;
 import org.exoplatform.portal.config.model.NavigationFragment;
 import org.exoplatform.portal.config.model.PageNavigation;
 import org.exoplatform.portal.config.model.PageNode;
@@ -180,10 +182,22 @@ public class NavigationMarshallerTest
       endCal.set(Calendar.MILLISECOND, 0);
       Date end = endCal.getTime();
 
-      PageNode expectedChild = newPageNode("Node 1-1", "Icon-1", "node-1",
+      PageNode expectedChild1 = newPageNode("node-1", "Icon-1", "Node 1",
          null, null, Visibility.DISPLAYED, null, new ArrayList<PageNode>());
-      ArrayList<PageNode> children = new ArrayList<PageNode>(Collections.singletonList(expectedChild));
-      PageNode expectedNode = newPageNode("Node", "Icon", "node", start, end, Visibility.HIDDEN, "page-ref", children);
+
+      I18NString labels = new I18NString(
+         new LocalizedString("Node 2", Locale.ENGLISH),
+         new LocalizedString("Node 2", Locale.FRENCH),
+         new LocalizedString("Node 2", Locale.TAIWAN));
+
+      PageNode expectedChild2 = newPageNode("node-2", "Icon-2", labels,
+         createDate(2011, 7, 22, 10, 10, 10), createDate(2011, 7, 30, 12, 0, 0), Visibility.SYSTEM, "some:page:ref", new ArrayList<PageNode>());
+
+      ArrayList<PageNode> children = new ArrayList<PageNode>(2);
+      children.add(expectedChild1);
+      children.add(expectedChild2);
+
+      PageNode expectedNode = newPageNode("node", "Icon", "Node", start, end, Visibility.HIDDEN, "page-ref", children);
 
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       NavigationMarshaller marshaller = new NavigationMarshaller();
@@ -204,7 +218,8 @@ public class NavigationMarshallerTest
 
       assertNotNull(actualNode.getNodes());
       assertEquals(expectedNode.getNodes().size(), actualNode.getNodes().size());
-      compareNode(expectedChild, actualNode.getNodes().get(0));
+      compareNode(expectedChild1, actualNode.getNodes().get(0));
+      compareNode(expectedChild2, actualNode.getNodes().get(1));
    }
 
    private PageNavigation newPageNavigation(String ownerType, String ownerId, int priority, ArrayList<PageNode> children)
@@ -237,7 +252,29 @@ public class NavigationMarshallerTest
 
    private void compareNode(PageNode expected, PageNode actual)
    {
-      assertEquals(expected.getLabel(), actual.getLabel());
+      if (expected.getLabel() != null)
+      {
+         assertEquals(expected.getLabel(), actual.getLabel());
+      }
+      else if (expected.getLabels() != null)
+      {
+         assertNotNull(actual.getLabels());
+         assertEquals(actual.getLabels().size(), expected.getLabels().size());
+
+         for (int i=0; i<actual.getLabels().size(); i++)
+         {
+            LocalizedString actualLocalizedString = expected.getLabels().get(i);
+            LocalizedString expectedLocalizedString = expected.getLabels().get(i);
+            assertEquals(actualLocalizedString.getValue(), expectedLocalizedString.getValue());
+            assertEquals(actualLocalizedString.getLang(), expectedLocalizedString.getLang());
+         }
+      }
+      else
+      {
+         assertNull(actual.getLabel());
+         assertNull(actual.getLabels());
+      }
+
       assertEquals(expected.getIcon(), actual.getIcon());
       assertEquals(expected.getName(), actual.getName());
       assertEquals(expected.getStartPublicationDate(), actual.getStartPublicationDate());
@@ -267,6 +304,21 @@ public class NavigationMarshallerTest
       pageNode.setName(name);
       pageNode.setIcon(icon);
       pageNode.setLabel(label);
+      pageNode.setStartPublicationDate(start);
+      pageNode.setEndPublicationDate(end);
+      pageNode.setVisibility(visibility);
+      pageNode.setPageReference(pageref);
+      pageNode.setChildren(pageNodes);
+
+      return pageNode;
+   }
+
+   private PageNode newPageNode(String name, String icon, I18NString labels, Date start, Date end, Visibility visibility, String pageref, ArrayList<PageNode> pageNodes)
+   {
+      PageNode pageNode = new PageNode();
+      pageNode.setName(name);
+      pageNode.setIcon(icon);
+      pageNode.setLabels(labels);
       pageNode.setStartPublicationDate(start);
       pageNode.setEndPublicationDate(end);
       pageNode.setVisibility(visibility);

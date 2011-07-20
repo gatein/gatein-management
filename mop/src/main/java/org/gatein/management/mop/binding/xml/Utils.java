@@ -41,8 +41,7 @@ import java.util.regex.Pattern;
  */
 class Utils
 {
-   private static final Pattern RFC1766_PATTERN = Pattern.compile("^([a-zA-Z]{2})(?:-([a-zA-Z]{2}))?$");
-   private static final Pattern JAVA_LOCALE_PATTERN = Pattern.compile("^([a-zA-Z]{2})(?:_([a-zA-Z]{2}))?$");
+   private static final Pattern XMLLANG_PATTERN = Pattern.compile("^([a-zA-Z]{2})(?:-([a-zA-Z]{2}))?$");
 
    public static <N> void writeGateinObjectsNamespace(StaxWriter<N> writer) throws XMLStreamException
    {
@@ -65,11 +64,7 @@ class Utils
       Locale lang = null;
       if (attribute != null)
       {
-         Matcher matcher = JAVA_LOCALE_PATTERN.matcher(attribute);
-         if (!matcher.matches())
-         {
-            matcher = RFC1766_PATTERN.matcher(attribute);
-         }
+         Matcher matcher = XMLLANG_PATTERN.matcher(attribute);
          if (matcher.matches())
          {
             String langISO = matcher.group(1);
@@ -85,7 +80,7 @@ class Utils
          }
          else
          {
-            throw new StaxNavException(navigator.getLocation(), "The attribute xml:lang='" + attribute + "' does not represent a valid language pattern (ie: en, en-us, en_us).");
+            throw new StaxNavException(navigator.getLocation(), "The attribute xml:lang='" + attribute + "' does not represent a valid language pattern (ie: en, en-us).");
          }
       }
 

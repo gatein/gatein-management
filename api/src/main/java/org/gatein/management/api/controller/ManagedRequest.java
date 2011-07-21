@@ -26,6 +26,9 @@ import org.gatein.management.api.ContentType;
 import org.gatein.management.api.PathAddress;
 
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -37,18 +40,32 @@ public interface ManagedRequest
 
    PathAddress getAddress();
 
+   Map<String, List<String>> getAttributes();
+
    InputStream getDataStream();
 
    ContentType getContentType();
+
+   //TODO: Add request builder instead of continually adding methods to factory
 
    public static class Factory
    {
       public static ManagedRequest create(final String operationName, final PathAddress address, final ContentType contentType)
       {
-         return create(operationName, address, null, contentType);
+         return create(operationName, address, Collections.<String, List<String>>emptyMap(), contentType);
       }
 
-      public static ManagedRequest create(final String operationName, final PathAddress address, final InputStream dataStream, final ContentType contentType)
+      public static ManagedRequest create(final String operationName, final PathAddress address, final Map<String, List<String>> attributes, final ContentType contentType)
+      {
+         return create(operationName, address, attributes, null, contentType);
+      }
+
+      public static ManagedRequest create(String operationName, PathAddress address, InputStream data, ContentType contentType)
+      {
+         return create(operationName, address, Collections.<String, List<String>>emptyMap(), data, contentType);
+      }
+
+      public static ManagedRequest create(final String operationName, final PathAddress address, final Map<String, List<String>> attributes, final InputStream dataStream, final ContentType contentType)
       {
          return new ManagedRequest()
          {
@@ -62,6 +79,12 @@ public interface ManagedRequest
             public PathAddress getAddress()
             {
                return address;
+            }
+
+            @Override
+            public Map<String, List<String>> getAttributes()
+            {
+               return attributes;
             }
 
             @Override

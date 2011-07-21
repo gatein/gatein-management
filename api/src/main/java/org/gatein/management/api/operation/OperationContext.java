@@ -34,8 +34,6 @@ import org.gatein.management.api.binding.BindingProvider;
  */
 public interface OperationContext
 {
-   //TODO: Add attributes or some object model to handle attributes for operations
-
    PathAddress getAddress();
 
    String getOperationName();
@@ -45,6 +43,8 @@ public interface OperationContext
    RuntimeContext getRuntimeContext();
 
    OperationAttachment getAttachment(boolean remove);
+
+   OperationAttributes getAttributes();
 
    BindingProvider getBindingProvider();
 

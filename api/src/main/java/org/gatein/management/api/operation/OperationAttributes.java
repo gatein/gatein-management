@@ -20,59 +20,17 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.exportimport;
+package org.gatein.management.api.operation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum ImportStrategy
+public interface OperationAttributes
 {
-   /**
-    * Import when data does not exist.  Otherwise do nothing.
-    */
-   CONSERVE("conserve"),
+   String getValue(String name);
 
-   /**
-    * Import when data does not exist.  Otherwise perform a merge
-    */
-   MERGE("merge"),
-
-   /**
-    * Delete existing data, import new data.
-    */
-   OVERWRITE("overwrite");
-
-   private String name;
-
-   ImportStrategy(String name)
-   {
-      this.name = name;
-   }
-
-   private static final Map<String, ImportStrategy> MAP;
-
-   static
-   {
-      Map<String, ImportStrategy> tmp = new HashMap<String, ImportStrategy>(3);
-      for (ImportStrategy strategy : ImportStrategy.values())
-      {
-         tmp.put(strategy.name, strategy);
-      }
-
-      MAP = tmp;
-   }
-
-   public String getName()
-   {
-      return name;
-   }
-
-   public static ImportStrategy forName(String name)
-   {
-      return MAP.get(name);
-   }
+   List<String> getValues(String name);
 }

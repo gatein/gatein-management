@@ -42,12 +42,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Variant;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static javax.ws.rs.core.Response.*;
 
@@ -84,69 +86,69 @@ public class RestController
          path = path.substring(0, path.lastIndexOf(extension)-1);
       }
 
-      return getRequest(ContentTypeUtils.getContentType(uriInfo), path);
+      return getRequest(uriInfo, ContentTypeUtils.getContentType(uriInfo), path);
    }
 
 
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlGetRequest()
+   public Response xmlGetRequest(@Context UriInfo uriInfo)
    {
-      return xmlGetRequest("");
+      return xmlGetRequest(uriInfo, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlGetRequest(@PathParam("path") String path)
+   public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      return getRequest(ContentType.XML, path);
+      return getRequest(uriInfo, ContentType.XML, path);
    }
 
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonGetRequest()
+   public Response jsonGetRequest(@Context UriInfo uriInfo)
    {
-      return jsonGetRequest("");
+      return jsonGetRequest(uriInfo, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonGetRequest(@PathParam("path") String path)
+   public Response jsonGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      return getRequest(ContentType.JSON, path);
+      return getRequest(uriInfo, ContentType.JSON, path);
    }
 
    //----------------------------------------- ZIP Handlers -----------------------------------------//
    @GET
    @Produces("application/zip")
-   public Response zipGetRequest()
+   public Response zipGetRequest(@Context UriInfo uriInfo)
    {
-      return jsonGetRequest("");
+      return jsonGetRequest(uriInfo, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
-   public Response zipGetRequest(@PathParam("path") String path)
+   public Response zipGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      return getRequest(ContentType.ZIP, path);
+      return getRequest(uriInfo, ContentType.ZIP, path);
    }
 
    @PUT
    @Path("/{path:.*}")
    @Consumes("application/zip")
-   public Response customPutRequest(@PathParam("path") String path, InputStream data)
+   public Response customPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
    {
       ContentType contentType = ContentType.ZIP;
       String operationName = "import-resource";
       PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
       try
       {
-         controller.execute(ManagedRequest.Factory.create(operationName, address, data, contentType));
+         controller.execute(ManagedRequest.Factory.create(operationName, address, uriInfo.getQueryParameters(), data, contentType));
 
          return Response.ok().build();
       }
@@ -175,7 +177,7 @@ public class RestController
 
    //----------------------------------------- Private Get Impl -----------------------------------------//
 
-   private Response getRequest(ContentType contentType, String path)
+   private Response getRequest(@Context UriInfo uriInfo, ContentType contentType, String path)
    {
       if (contentType == null)
       {
@@ -188,10 +190,12 @@ public class RestController
          operationName = OperationNames.EXPORT_RESOURCE;
       }
 
+      MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+
       final PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
       try
       {
-         ManagedResponse resp = controller.execute(ManagedRequest.Factory.create(operationName, address, contentType));
+         ManagedResponse resp = controller.execute(ManagedRequest.Factory.create(operationName, address, parameters, contentType));
          if (resp == null)
          {
             return failure("No response returned.", operationName, Status.INTERNAL_SERVER_ERROR, contentType);
@@ -220,11 +224,6 @@ public class RestController
 
          return failure(message, operationName, Status.INTERNAL_SERVER_ERROR, contentType);
       }
-   }
-
-   private boolean headerSpecifiesMediaType(HttpHeaders headers)
-   {
-      return headers.getRequestHeaders().containsKey(HttpHeaders.ACCEPT);
    }
 
    private static String[] trim(String[] array)

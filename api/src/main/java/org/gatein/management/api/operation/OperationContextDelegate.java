@@ -66,6 +66,12 @@ public class OperationContextDelegate implements OperationContext
    }
 
    @Override
+   public OperationAttributes getAttributes()
+   {
+      return delegate.getAttributes();
+   }
+
+   @Override
    public OperationAttachment getAttachment(boolean remove)
    {
       return delegate.getAttachment(remove);

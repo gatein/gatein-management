@@ -20,59 +20,41 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.mop.exportimport;
+package org.gatein.management.core.api.operation;
 
+import org.gatein.management.api.operation.OperationAttributes;
+
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public enum ImportStrategy
+public class OperationAttributesImpl implements OperationAttributes
 {
-   /**
-    * Import when data does not exist.  Otherwise do nothing.
-    */
-   CONSERVE("conserve"),
+   private Map<String, List<String>> attributes = Collections.emptyMap();
 
-   /**
-    * Import when data does not exist.  Otherwise perform a merge
-    */
-   MERGE("merge"),
-
-   /**
-    * Delete existing data, import new data.
-    */
-   OVERWRITE("overwrite");
-
-   private String name;
-
-   ImportStrategy(String name)
+   public OperationAttributesImpl(Map<String, List<String>> attributes)
    {
-      this.name = name;
-   }
-
-   private static final Map<String, ImportStrategy> MAP;
-
-   static
-   {
-      Map<String, ImportStrategy> tmp = new HashMap<String, ImportStrategy>(3);
-      for (ImportStrategy strategy : ImportStrategy.values())
+      if (attributes != null && !attributes.isEmpty())
       {
-         tmp.put(strategy.name, strategy);
+         this.attributes = new HashMap<String, List<String>>(attributes);
       }
-
-      MAP = tmp;
    }
 
-   public String getName()
+   @Override
+   public String getValue(String name)
    {
-      return name;
+      List<String> list = attributes.get(name);
+      return (list != null && list.size() > 0) ? list.get(0) : null;
    }
 
-   public static ImportStrategy forName(String name)
+   @Override
+   public List<String> getValues(String name)
    {
-      return MAP.get(name);
+      return Collections.unmodifiableList(attributes.get(name));
    }
 }

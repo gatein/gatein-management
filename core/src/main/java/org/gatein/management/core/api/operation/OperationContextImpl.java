@@ -29,6 +29,7 @@ import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.operation.OperationAttachment;
+import org.gatein.management.api.operation.OperationAttributes;
 import org.gatein.management.api.operation.OperationContext;
 
 import java.io.InputStream;
@@ -46,6 +47,7 @@ public class OperationContextImpl implements OperationContext
    private final RuntimeContext runtimeContext;
    private final BindingProvider bindingProvider;
    private final Deque<OperationAttachment> attachments;
+   private final OperationAttributes attributes;
 
 
    public OperationContextImpl(final ManagedRequest request, final ManagedResource resource, final RuntimeContext runtimeContext, final BindingProvider bindingProvider)
@@ -66,6 +68,7 @@ public class OperationContextImpl implements OperationContext
       this.runtimeContext = runtimeContext;
       this.bindingProvider = bindingProvider;
       this.attachments = list;
+      this.attributes = new OperationAttributesImpl(request.getAttributes());
    }
 
    @Override
@@ -90,6 +93,12 @@ public class OperationContextImpl implements OperationContext
    public RuntimeContext getRuntimeContext()
    {
       return runtimeContext;
+   }
+
+   @Override
+   public OperationAttributes getAttributes()
+   {
+      return attributes;
    }
 
    @Override

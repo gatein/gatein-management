@@ -69,6 +69,8 @@ public class MopImportResource implements OperationHandler
    //TODO: Would like to see the step operations be handled by core.
 
    //TODO: Clean this up when we have time
+   //TODO: See if using RequestLifeCycle begin() and end() around atomic operations solves portal cache issues
+
    @Override
    public void execute(final OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
    {
@@ -96,7 +98,13 @@ public class MopImportResource implements OperationHandler
       DescriptionService descriptionService = operationContext.getRuntimeContext().getRuntimeComponent(DescriptionService.class);
       if (descriptionService == null) throw new OperationException(operationName, "Description service was null");
 
-      ImportStrategy strategy = ImportStrategy.MERGE; //TODO: Support strategy by when operation context supports attributes
+      String strategyAttribute = operationContext.getAttributes().getValue("import-strategy");
+      ImportStrategy strategy = ImportStrategy.MERGE;
+      if (strategyAttribute != null)
+      {
+         strategy = ImportStrategy.forName(strategyAttribute);
+         if (strategy == null) throw new OperationException(operationName, "Unknown import strategy " + strategyAttribute);
+      }
 
       Map<SiteKey, MopImport> importMap = new HashMap<SiteKey, MopImport>();
       final NonCloseableZipInputStream zis = new NonCloseableZipInputStream(inputStream);
@@ -119,15 +127,6 @@ public class MopImportResource implements OperationHandler
             {
                mopImport =  new MopImport();
                importMap.put(siteKey, mopImport);
-//               // This relies on the fact that the zip entries are ordered, hence we have all the data we need
-//               // to import data for a specific site.
-//               if (prevSiteKey != null)
-//               {
-//                  MopImport completed = new MopImport();
-//                  completedImportMap.put(prevSiteKey, completed);
-//                  performMopImport(importMap.get(prevSiteKey), completed, strategy);
-//               }
-//               prevSiteKey = siteKey;
             }
 
             if (file.equals(SiteLayoutExportTask.FILE))
@@ -185,7 +184,7 @@ public class MopImportResource implements OperationHandler
       Map<SiteKey, MopImport> completedImportMap = new HashMap<SiteKey, MopImport>();
       try
       {
-         log.info("Performing import.");
+         log.info("Performing import using strategy '" + strategy.getName() + "'");
          for (Map.Entry<SiteKey, MopImport> mopImportEntry : importMap.entrySet())
          {
             SiteKey siteKey = mopImportEntry.getKey();

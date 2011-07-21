@@ -66,7 +66,7 @@ public class NavigationImportTask extends AbstractImportTask<PageNavigation>
       switch (importStrategy)
       {
          case CONSERVE:
-            mode = ImportMode.INSERT;
+            mode = ImportMode.CONSERVE;
             break;
          case MERGE:
             mode = ImportMode.MERGE;

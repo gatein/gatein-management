@@ -29,9 +29,4 @@ package org.gatein.management.api;
 public interface RuntimeContext
 {
    <T> T getRuntimeComponent(Class<T> componentClass);
-
-   public static interface Factory
-   {
-      RuntimeContext createRuntimeContext();
-   }
 }

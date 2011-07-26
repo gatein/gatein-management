@@ -27,6 +27,7 @@ import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
@@ -47,13 +48,14 @@ public class SimpleManagementController implements ManagementController
 {
    private static final Logger log = LoggerFactory.getLogger(SimpleManagementController.class);
 
-   private final ManagementServiceImpl service;
+   private ManagementService managementService;
+   private RuntimeContext runtimeContext;
    private ManagedResource rootResource;
 
-   public SimpleManagementController(ManagementService service)
+   public SimpleManagementController(ManagementService managementService, RuntimeContext runtimeContext)
    {
-      //TODO: This is a hack to get at the runtime context, let's come up with a better way or just depend on implementation
-      this.service = (ManagementServiceImpl) service;
+      this.managementService = managementService;
+      this.runtimeContext = runtimeContext;
    }
 
    @Override
@@ -73,8 +75,8 @@ public class SimpleManagementController implements ManagementController
       {
          BasicResultHandler resultHandler = new BasicResultHandler();
          String componentName = (address.size() >= 1) ? address.get(0) : null;
-         BindingProvider bindingProvider = service.getBindingProvider(componentName);
-         operationHandler.execute(new OperationContextImpl(request, root, service.getRuntimeContext(), bindingProvider), resultHandler);
+         BindingProvider bindingProvider = managementService.getBindingProvider(componentName);
+         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
          {
@@ -95,7 +97,7 @@ public class SimpleManagementController implements ManagementController
    {
       if (rootResource == null)
       {
-         rootResource = service.getManagedResource(PathAddress.EMPTY_ADDRESS);
+         rootResource = managementService.getManagedResource(PathAddress.EMPTY_ADDRESS);
       }
 
       return rootResource;

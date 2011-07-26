@@ -26,18 +26,18 @@
    <modelVersion>4.0.0</modelVersion>
    <parent>
       <groupId>org.gatein.management</groupId>
-      <artifactId>management-parent</artifactId>
+      <artifactId>gatein-management-parent</artifactId>
       <version>1.0.0-Alpha02-SNAPSHOT</version>
    </parent>
 
-   <artifactId>management-rest</artifactId>
+   <artifactId>gatein-management-rest</artifactId>
 
    <name>GateIn Management - REST</name>
    
    <dependencies>
       <dependency>
          <groupId>org.gatein.management</groupId>
-         <artifactId>management-api</artifactId>
+         <artifactId>gatein-management-api</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.common</groupId>

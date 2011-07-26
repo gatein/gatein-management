@@ -51,13 +51,11 @@ public class SimpleManagedResource extends AbstractManagedResource
    private volatile ConcurrentMap<String, OperationEntry> operations = new ConcurrentHashMap<String, OperationEntry>();
 
    protected final ManagedDescription description;
-   protected final RuntimeContext.Factory runtimeContextFactory;
 
-   public SimpleManagedResource(PathElement pathElement, AbstractManagedResource parent, ManagedDescription description, RuntimeContext.Factory runtimeContextFactory)
+   public SimpleManagedResource(PathElement pathElement, AbstractManagedResource parent, ManagedDescription description)
    {
       super(pathElement, parent);
       this.description = description;
-      this.runtimeContextFactory = runtimeContextFactory;
    }
 
    //------------------------------- Registration Methods -------------------------------//
@@ -80,7 +78,7 @@ public class SimpleManagedResource extends AbstractManagedResource
          throw new ManagementException("Could not parse path template " + name, e);
       }
 
-      SimpleManagedResource resource = new SimpleManagedResource(element, this, description, runtimeContextFactory);
+      SimpleManagedResource resource = new SimpleManagedResource(element, this, description);
       if (children.putIfAbsent(element.getValue(), resource) != null)
       {
          throw new IllegalArgumentException("Resource " + name + " already exists for path " + getPath());

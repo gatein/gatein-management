@@ -26,34 +26,35 @@
    <modelVersion>4.0.0</modelVersion>
    <parent>
       <groupId>org.gatein.management</groupId>
-      <artifactId>management-parent</artifactId>
+      <artifactId>gatein-management-parent</artifactId>
       <version>1.0.0-Alpha02-SNAPSHOT</version>
    </parent>
 
-   <artifactId>management-core</artifactId>
+   <artifactId>gatein-management-core</artifactId>
 
    <name>GateIn Management - Core</name>
    
    <dependencies>
       <dependency>
          <groupId>org.gatein.management</groupId>
-         <artifactId>management-api</artifactId>
+         <artifactId>gatein-management-api</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.management</groupId>
-         <artifactId>management-spi</artifactId>
+         <artifactId>gatein-management-spi</artifactId>
       </dependency>
       <dependency>
          <groupId>org.gatein.common</groupId>
          <artifactId>common-common</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.portal</groupId>
-         <artifactId>exo.portal.component.portal</artifactId>
+         <groupId>javax.ws.rs</groupId>
+         <artifactId>jsr311-api</artifactId>
       </dependency>
       <dependency>
          <groupId>org.mockito</groupId>
          <artifactId>mockito-core</artifactId>
+         <scope>test</scope>
       </dependency>
    </dependencies>
 

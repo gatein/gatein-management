@@ -41,16 +41,8 @@ import static org.mockito.Mockito.*;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class SimpleManagedResourceTest implements RuntimeContext.Factory
+public class SimpleManagedResourceTest
 {
-   private RuntimeContext runtimeContext;
-
-   @Before
-   public void init()
-   {
-      runtimeContext = mock(RuntimeContext.class);
-   }
-
    @Test
    public void rootRegistration()
    {
@@ -401,12 +393,6 @@ public class SimpleManagedResourceTest implements RuntimeContext.Factory
       assertEquals("/a/a-1/a-1-1", a_1_1.getPath());
    }
 
-   @Override
-   public RuntimeContext createRuntimeContext()
-   {
-      return runtimeContext;
-   }
-
    private ManagedDescription description(final String description)
    {
       return new ManagedDescription()
@@ -421,7 +407,7 @@ public class SimpleManagedResourceTest implements RuntimeContext.Factory
 
    private SimpleManagedResource createRootResource()
    {
-      return new SimpleManagedResource(null, null, ROOT_DESC, this);
+      return new SimpleManagedResource(null, null, ROOT_DESC);
    }
 
    private void assertChildNames(ManagedResource root, Set<String> expected, String...path)

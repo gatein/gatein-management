@@ -27,12 +27,12 @@
    
    <parent>
       <groupId>org.gatein.management</groupId>
-      <artifactId>management-parent</artifactId>
+      <artifactId>gatein-management-parent</artifactId>
       <version>1.0.0-Alpha02-SNAPSHOT</version>
    </parent>
 
    <groupId>org.gatein.management</groupId>
-   <artifactId>management-spi</artifactId>
+   <artifactId>gatein-management-spi</artifactId>
    <version>1.0.0-Alpha02-SNAPSHOT</version>
 
    <name>GateIn Management - SPI</name>
@@ -40,7 +40,7 @@
    <dependencies>
       <dependency>
          <groupId>org.gatein.management</groupId>
-         <artifactId>management-api</artifactId>
+         <artifactId>gatein-management-api</artifactId>
       </dependency>
    </dependencies>
 </project>

@@ -28,7 +28,7 @@ import org.gatein.management.api.binding.BindingProvider;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public interface ManagementService
+public interface ManagementService extends Module
 {
    ManagedResource getManagedResource(PathAddress address);
 

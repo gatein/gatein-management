@@ -27,11 +27,11 @@
 
    <parent>
       <groupId>org.gatein.management</groupId>
-      <artifactId>management-parent</artifactId>
+      <artifactId>gatein-management-parent</artifactId>
       <version>1.0.0-Alpha02-SNAPSHOT</version>
    </parent>
 
-   <artifactId>management-api</artifactId>
+   <artifactId>gatein-management-api</artifactId>
 
    <name>GateIn Management - API</name>
 

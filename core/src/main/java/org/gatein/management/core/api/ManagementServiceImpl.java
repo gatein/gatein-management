@@ -22,7 +22,6 @@
 
 package org.gatein.management.core.api;
 
-import org.exoplatform.container.PortalContainer;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ContentType;
@@ -30,7 +29,6 @@ import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
@@ -41,7 +39,6 @@ import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.core.spi.ExtensionContextImpl;
 import org.gatein.management.spi.ExtensionContext;
 import org.gatein.management.spi.ManagementExtension;
-import org.picocontainer.Startable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,7 +50,7 @@ import java.util.ServiceLoader;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-public class ManagementServiceImpl implements ManagementService, Startable
+public class ManagementServiceImpl implements ManagementService
 {
    private static final Logger log = LoggerFactory.getLogger(ManagementService.class);
 
@@ -95,12 +92,12 @@ public class ManagementServiceImpl implements ManagementService, Startable
    @Override
    public void reloadExtensions()
    {
-      stop();
-      start();
+      unload();
+      load();
    }
 
    @Override
-   public void start()
+   public void load()
    {
       extensions = new ArrayList<ManagementExtension>();
 
@@ -111,7 +108,7 @@ public class ManagementServiceImpl implements ManagementService, Startable
          {
             return "Root management resource.";
          }
-      }, runtimeContextFactory);
+      });
 
       Map<String, BindingProvider> map = new HashMap<String, BindingProvider>();
       ExtensionContext context = new ExtensionContextImpl(resource, map);
@@ -133,7 +130,7 @@ public class ManagementServiceImpl implements ManagementService, Startable
    }
 
    @Override
-   public void stop()
+   public void unload()
    {
       if (extensions != null)
       {
@@ -147,32 +144,9 @@ public class ManagementServiceImpl implements ManagementService, Startable
       rootResource = null;
    }
 
-   public RuntimeContext getRuntimeContext()
-   {
-      return runtimeContext;
-   }
-
    private void initGlobalOperations(ManagedResource.Registration registration)
    {
       registration.registerOperationHandler(OperationNames.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, true);
       registration.registerOperationHandler(OperationNames.EXPORT_RESOURCE, GlobalOperationHandlers.EXPORT_RESOURCE, ExportResource.DESCRIPTION, true);
    }
-
-   private static final RuntimeContext runtimeContext = new RuntimeContext()
-   {
-      @Override
-      public <T> T getRuntimeComponent(Class<T> componentClass)
-      {
-         return componentClass.cast(PortalContainer.getInstance().getComponentInstanceOfType(componentClass));
-      }
-   };
-
-   private static final RuntimeContext.Factory runtimeContextFactory = new RuntimeContext.Factory()
-   {
-      @Override
-      public RuntimeContext createRuntimeContext()
-      {
-         return runtimeContext;
-      }
-   };
 }

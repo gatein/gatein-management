@@ -28,7 +28,7 @@
    <parent>
       <groupId>org.gatein</groupId>
       <artifactId>gatein-parent</artifactId>
-      <version>1.0.1-GA</version>
+      <version>1.1.0-Beta02</version>
    </parent>
 
    <!-- ****************** -->
@@ -36,65 +36,58 @@
    <!-- ****************** -->
 
    <groupId>org.gatein.management</groupId>
-   <artifactId>management-parent</artifactId>
+   <artifactId>gatein-management-parent</artifactId>
    <version>1.0.0-Alpha02-SNAPSHOT</version>
    <packaging>pom</packaging>
 
    <name>GateIn Management - Parent Project</name>
    <description>GateIn Portal Management Parent Project</description>
 
+   <scm>
+      <connection>scm:git:https://www.github.com/nscavell/gatein-management.git</connection>
+      <developerConnection>scm:git:git@github.com:nscavell/gatein-management.git</developerConnection>
+   </scm>
+
    <properties>
       <org.gatein.common.version>2.0.4-Beta03</org.gatein.common.version>
-      <org.gatein.portal.version>3.2.0-PLF-SNAPSHOT</org.gatein.portal.version>
-      <org.exoplatform.kernel.version>2.3.0-CR3</org.exoplatform.kernel.version>
-      <org.exoplatform.ws.version>2.2.0-CR3</org.exoplatform.ws.version>
-      <org.slf4j.version>1.5.8</org.slf4j.version>
-      <com.google.gwt.version>2.1.0</com.google.gwt.version>
-      <com.googlecode.gwtupload.version>0.6.3-compat</com.googlecode.gwtupload.version>
-      <com.smartgwt.version>2.1</com.smartgwt.version>
-      <org.staxnav.version>0.9.3</org.staxnav.version>
+      <org.staxnav.version>0.9.2</org.staxnav.version>
    </properties>
 
    <dependencyManagement>
       <dependencies>
+         <!-- Import dependency management configuration -->
+         <dependency>
+            <groupId>org.gatein</groupId>
+            <artifactId>gatein-dep</artifactId>
+            <version>1.1.0-Beta04</version>
+            <type>pom</type>
+            <scope>import</scope>
+         </dependency>
+
          <!-- GateIn Management -->
          <dependency>
             <groupId>org.gatein.management</groupId>
-            <artifactId>management-api</artifactId>
+            <artifactId>gatein-management-api</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
-            <artifactId>management-spi</artifactId>
+            <artifactId>gatein-management-spi</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
-            <artifactId>management-common</artifactId>
+            <artifactId>gatein-management-common</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
-            <artifactId>management-core</artifactId>
+            <artifactId>gatein-management-core</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
-            <artifactId>management-rest</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-
-         <!-- MOP Managemnet Extension -->
-         <dependency>
-            <groupId>org.gatein.management</groupId>
-            <artifactId>management-mop</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-
-         <!-- GateIn Management Web Modules -->
-         <dependency>
-            <groupId>org.gatein.management</groupId>
-            <artifactId>management-web</artifactId>
+            <artifactId>gatein-management-rest</artifactId>
             <version>${project.version}</version>
          </dependency>
 
@@ -109,24 +102,12 @@
             <artifactId>common-common</artifactId>
             <version>${org.gatein.common.version}</version>
          </dependency>
-         <dependency>
-            <groupId>org.exoplatform.portal</groupId>
-            <artifactId>exo.portal.component.portal</artifactId>
-            <version>${org.gatein.portal.version}</version>
-         </dependency>
 
          <!-- staxnav -->
          <dependency>
             <groupId>org.staxnav</groupId>
             <artifactId>staxnav.core</artifactId>
-            <version>0.9.0</version>
-         </dependency>
-
-         <!-- picocontainer -->
-         <dependency>
-            <groupId>picocontainer</groupId>
-            <artifactId>picocontainer</artifactId>
-            <version>1.1</version>
+            <version>${org.staxnav.version}</version>
          </dependency>
 
          <!-- jax-rs -->
@@ -135,50 +116,6 @@
             <artifactId>jsr311-api</artifactId>
             <version>1.0</version>
          </dependency>
-
-         <!-- resteasy -->
-         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
-            <version>2.1.0.GA</version>
-         </dependency>
-
-         <!-- logging -->
-         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j.version}</version>
-         </dependency>
-
-         <!-- GWT -->
-         <dependency>
-            <groupId>com.google.gwt</groupId>
-            <artifactId>gwt-servlet</artifactId>
-            <version>${com.google.gwt.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>com.google.gwt</groupId>
-            <artifactId>gwt-user</artifactId>
-            <version>${com.google.gwt.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>com.googlecode.gwtupload</groupId>
-            <artifactId>gwtupload</artifactId>
-            <version>${com.googlecode.gwtupload.version}</version>
-         </dependency>
-
-
-         <!-- Smart GWT -->
-         <!-- dependency>
-            <groupId>com.smartgwt</groupId>
-            <artifactId>smartgwt</artifactId>
-            <version>${com.smartgwt.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>com.smartgwt</groupId>
-            <artifactId>smartgwt-skins</artifactId>
-            <version>${com.smartgwt.version}</version>
-         </dependency -->
 
          <!-- Testing -->
          <dependency>
@@ -199,32 +136,20 @@
    <modules>
       <module>api</module>
       <module>spi</module>
-      <module>mop</module>
-      <module>rest</module>
       <module>common</module>
-      <!--<module>binding</module>-->
       <module>core</module>
-      <!--<module>portalobjects</module>-->
-      <module>web</module>
-      <!--<module>gadget</module>-->
-      <module>packaging</module>
+      <module>rest</module>
    </modules>
 
    <dependencies>
       <dependency>
          <groupId>org.slf4j</groupId>
          <artifactId>slf4j-log4j12</artifactId>
-         <version>${org.slf4j.version}</version>
          <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>junit</groupId>
          <artifactId>junit</artifactId>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.mockito</groupId>
-         <artifactId>mockito-core</artifactId>
          <scope>test</scope>
       </dependency>
    </dependencies>

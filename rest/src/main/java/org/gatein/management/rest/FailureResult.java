@@ -34,6 +34,8 @@ public class FailureResult
    private String failure;
    private String operationName;
 
+   public FailureResult(){}
+
    public FailureResult(String failure, String operationName)
    {
       this.failure = failure;

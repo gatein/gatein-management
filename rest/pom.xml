@@ -33,7 +33,7 @@
    <artifactId>gatein-management-rest</artifactId>
 
    <name>GateIn Management - REST</name>
-   
+
    <dependencies>
       <dependency>
          <groupId>org.gatein.management</groupId>
@@ -46,6 +46,10 @@
       <dependency>
          <groupId>javax.ws.rs</groupId>
          <artifactId>jsr311-api</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>javax.annotation</groupId>
+         <artifactId>jsr250-api</artifactId>
       </dependency>
    </dependencies>
 

@@ -33,6 +33,7 @@ import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationNames;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -71,6 +72,7 @@ public class RestController
 
    //------------------------------------- Custom Content Handlers -------------------------------------//
    @GET
+   @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo)
    {
       return customGetRequest(uriInfo, "");
@@ -78,6 +80,7 @@ public class RestController
 
    @GET
    @Path("/{path:.*}")
+   @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
       String extension = ContentTypeUtils.getExtension(path);
@@ -93,6 +96,7 @@ public class RestController
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo)
    {
       return xmlGetRequest(uriInfo, "");
@@ -101,6 +105,7 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
       return getRequest(uriInfo, ContentType.XML, path);
@@ -109,6 +114,7 @@ public class RestController
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
+   @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo)
    {
       return jsonGetRequest(uriInfo, "");
@@ -117,6 +123,7 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
+   @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
       return getRequest(uriInfo, ContentType.JSON, path);
@@ -125,6 +132,7 @@ public class RestController
    //----------------------------------------- ZIP Handlers -----------------------------------------//
    @GET
    @Produces("application/zip")
+   @RolesAllowed("administrators")
    public Response zipGetRequest(@Context UriInfo uriInfo)
    {
       return jsonGetRequest(uriInfo, "");
@@ -133,6 +141,7 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
+   @RolesAllowed("administrators")
    public Response zipGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
       return getRequest(uriInfo, ContentType.ZIP, path);
@@ -141,6 +150,7 @@ public class RestController
    @PUT
    @Path("/{path:.*}")
    @Consumes("application/zip")
+   @RolesAllowed("administrators")
    public Response customPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
    {
       ContentType contentType = ContentType.ZIP;

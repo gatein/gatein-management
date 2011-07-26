@@ -44,8 +44,9 @@
    <description>GateIn Portal Management Parent Project</description>
 
    <scm>
-      <connection>scm:git:https://www.github.com/nscavell/gatein-management.git</connection>
-      <developerConnection>scm:git:git@github.com:nscavell/gatein-management.git</developerConnection>
+      <connection>scm:git:git://github.com/gatein/gatein-management.git</connection>
+      <developerConnection>scm:git:ssh://git@github.com/gatein/gatein-management.git</developerConnection>
+      <url>https://github.com/gatein/gatein-management.git</url>
    </scm>
 
    <properties>

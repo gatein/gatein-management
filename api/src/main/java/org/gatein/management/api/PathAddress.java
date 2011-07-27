@@ -34,8 +34,6 @@ import java.util.List;
  */
 public class PathAddress implements Iterable<String>
 {
-   //TODO: Make immutable or add protect capabilities
-
    public static final PathAddress EMPTY_ADDRESS = new PathAddress(Collections.<String>emptyList());
 
    public static PathAddress empty()

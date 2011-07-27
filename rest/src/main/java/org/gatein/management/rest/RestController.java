@@ -41,7 +41,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -50,7 +49,6 @@ import javax.ws.rs.core.Variant;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static javax.ws.rs.core.Response.*;
 
@@ -72,6 +70,8 @@ public class RestController
 
    //------------------------------------- Custom Content Handlers -------------------------------------//
    @GET
+   @Consumes({MediaType.TEXT_HTML, MediaType.APPLICATION_XHTML_XML})
+   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo)
    {
@@ -80,18 +80,40 @@ public class RestController
 
    @GET
    @Path("/{path:.*}")
+   @Consumes({MediaType.TEXT_HTML, MediaType.APPLICATION_XHTML_XML})
+   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      String extension = ContentTypeUtils.getExtension(path);
-      if (extension != null)
+      String format = uriInfo.getQueryParameters().getFirst("format");
+      ContentType contentType = ContentType.forName(format);
+
+      if (contentType != null)
       {
-         path = path.substring(0, path.lastIndexOf(extension)-1);
+         switch (contentType)
+         {
+            case XML:
+               return xmlGetRequest(uriInfo, path);
+            case JSON:
+               return jsonGetRequest(uriInfo, path);
+            default:
+               return failure("Invalid query parameter: 'format=" + format +"'", OperationNames.READ_RESOURCE, Status.BAD_REQUEST, contentType);
+         }
       }
 
-      return getRequest(uriInfo, ContentTypeUtils.getContentType(uriInfo), path);
+      if (path.endsWith(".xml"))
+      {
+         return xmlGetRequest(uriInfo, path);
+      }
+      else if (path.endsWith(".zip"))
+      {
+         return zipGetRequest(uriInfo, path);
+      }
+      else
+      {
+         return getRequest(uriInfo, ContentType.JSON, path, OperationNames.READ_RESOURCE);
+      }
    }
-
 
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
@@ -108,7 +130,14 @@ public class RestController
    @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      return getRequest(uriInfo, ContentType.XML, path);
+      String operationName = OperationNames.READ_RESOURCE;
+      if (path.endsWith(".xml"))
+      {
+         path = path.substring(0, path.lastIndexOf(".xml"));
+         operationName = OperationNames.READ_CONFIG_AS_XML;
+      }
+
+      return getRequest(uriInfo, ContentType.XML, path, operationName);
    }
 
    //----------------------------------------- JSON Handlers -----------------------------------------//
@@ -126,25 +155,22 @@ public class RestController
    @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      return getRequest(uriInfo, ContentType.JSON, path);
+      String operationName = OperationNames.READ_RESOURCE;
+      return getRequest(uriInfo, ContentType.JSON, path, operationName);
    }
 
    //----------------------------------------- ZIP Handlers -----------------------------------------//
-   @GET
-   @Produces("application/zip")
-   @RolesAllowed("administrators")
-   public Response zipGetRequest(@Context UriInfo uriInfo)
-   {
-      return jsonGetRequest(uriInfo, "");
-   }
-
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
    @RolesAllowed("administrators")
    public Response zipGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
-      return getRequest(uriInfo, ContentType.ZIP, path);
+      if (path.endsWith(".zip"))
+      {
+         path = path.substring(0, path.lastIndexOf(".zip"));
+      }
+      return getRequest(uriInfo, ContentType.ZIP, path, OperationNames.EXPORT_RESOURCE);
    }
 
    @PUT
@@ -154,7 +180,8 @@ public class RestController
    public Response customPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
    {
       ContentType contentType = ContentType.ZIP;
-      String operationName = "import-resource";
+      String operationName = OperationNames.IMPORT_RESOURCE;
+
       PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
       try
       {
@@ -186,21 +213,19 @@ public class RestController
    }
 
    //----------------------------------------- Private Get Impl -----------------------------------------//
-
-   private Response getRequest(@Context UriInfo uriInfo, ContentType contentType, String path)
+   private Response getRequest(UriInfo uriInfo, ContentType contentType, String path, String operationName)
    {
       if (contentType == null)
       {
          return Response.notAcceptable(Variant.mediaTypes(ContentTypeUtils.mediaTypes()).build()).build();
       }
 
-      String operationName = OperationNames.READ_RESOURCE;
-      if (contentType == ContentType.ZIP)
-      {
-         operationName = OperationNames.EXPORT_RESOURCE;
-      }
-
       MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+      String op = parameters.getFirst("op");
+      if (op != null)
+      {
+         operationName = op;
+      }
 
       final PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
       try
@@ -252,7 +277,11 @@ public class RestController
 
    private Response failure(String failureDescription, String operationName, Status status, ContentType contentType)
    {
-      if (contentType == ContentType.ZIP)
+      if (contentType == null)
+      {
+         contentType = ContentType.JSON;
+      }
+      else if (contentType == ContentType.ZIP)
       {
          contentType = ContentType.JSON;
       }

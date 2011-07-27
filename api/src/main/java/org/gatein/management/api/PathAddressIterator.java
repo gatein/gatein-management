@@ -30,6 +30,8 @@ import java.util.Iterator;
  */
 public class PathAddressIterator implements Iterator<String>
 {
+   public static final PathAddressIterator EMPTY = new PathAddressIterator(PathAddress.EMPTY_ADDRESS);
+
    private PathAddress originalAddress;
    private PathAddress currentAddress;
    private Iterator<String> iterator;

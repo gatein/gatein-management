@@ -55,8 +55,8 @@ import java.lang.reflect.TypeVariable;
  * @version $Revision$
  */
 @Provider
-@Consumes
-@Produces
+@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/zip"})
+@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/zip"})
 public class ManagedComponentProvider<T> implements MessageBodyReader<T>, MessageBodyWriter<T>, XMLStreamConstants
 {
    private static final Logger log = LoggerFactory.getLogger(ManagedComponentProvider.class);
@@ -109,13 +109,9 @@ public class ManagedComponentProvider<T> implements MessageBodyReader<T>, Messag
    {
       Class<T> type = getType(genericType);
 
-      ContentType ct = ContentTypeUtils.getContentType(uriInfo);
-      if (ct == null)
-      {
-         ct = ContentTypeUtils.getContentType(mediaType);
-      }
+      ContentType contentType = ContentTypeUtils.getContentType(mediaType);
 
-      if (ct == null)
+      if (contentType == null)
       {
          log.warn("No content type found for media type " + mediaType);
          return null;
@@ -124,7 +120,13 @@ public class ManagedComponentProvider<T> implements MessageBodyReader<T>, Messag
       ContextResolver<BindingProviderResolver> resolver = providers.getContextResolver(BindingProviderResolver.class, mediaType);
       if (resolver == null) throw new RuntimeException("Could not find marshaller resolver for media type " + mediaType);
 
-      return resolver.getContext(type).getMarshaller(type, ct, uriInfo);
+      String componentName = null;
+      if (uriInfo.getPathSegments().size() > 1)
+      {
+         componentName = uriInfo.getPathSegments().get(1).getPath();
+      }
+
+      return resolver.getContext(type).getMarshaller(type, contentType, componentName);
    }
 
    @SuppressWarnings("unchecked")

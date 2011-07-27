@@ -22,6 +22,9 @@
 
 package org.gatein.management.api;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
@@ -30,7 +33,37 @@ public enum ContentType
 {
    // Supported content types for management operations
 
-   JSON,
-   XML,
-   ZIP
+   JSON("json"),
+   XML("xml"),
+   ZIP("zip");
+
+   private String name;
+
+   ContentType(String name)
+   {
+      this.name = name;
+   }
+
+   private static final Map<String, ContentType> MAP;
+
+   static
+   {
+      Map<String, ContentType> tmp = new HashMap<String, ContentType>(3);
+      for (ContentType strategy : ContentType.values())
+      {
+         tmp.put(strategy.name, strategy);
+      }
+
+      MAP = tmp;
+   }
+
+   public String getName()
+   {
+      return name;
+   }
+
+   public static ContentType forName(String name)
+   {
+      return MAP.get(name);
+   }
 }

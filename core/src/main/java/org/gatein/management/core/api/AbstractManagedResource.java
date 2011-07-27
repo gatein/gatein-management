@@ -54,7 +54,7 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
    @Override
    public final OperationHandler getOperationHandler(PathAddress address, String operationName)
    {
-      OperationEntry entry = getOperationEntry(address.iterator(), null, operationName);
+      OperationEntry entry = getOperationEntry(address.iterator(), operationName);
 
       return (entry == null) ? null : entry.getOperationHandler();
    }
@@ -62,7 +62,7 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
    @Override
    public final ManagedDescription getOperationDescription(PathAddress address, String operationName)
    {
-      OperationEntry entry = getOperationEntry(address.iterator(), null, operationName);
+      OperationEntry entry = getOperationEntry(address.iterator(), operationName);
 
       return (entry == null) ? null : entry.getDescription();
    }
@@ -87,7 +87,7 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
 
    protected abstract ManagedDescription getResourceDescription(PathAddressIterator iterator);
 
-   protected abstract OperationEntry getOperationEntry(PathAddressIterator iterator, OperationEntry inherited, String operationName);
+   protected abstract OperationEntry getOperationEntry(PathAddressIterator iterator, String operationName);
 
    protected abstract AbstractManagedResource getSubResource(PathAddressIterator iterator);
 

@@ -30,6 +30,7 @@ import org.gatein.management.api.operation.OperationHandler;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.ws.rs.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -159,7 +160,7 @@ public class SimpleManagedResourceTest
       pages.registerOperationHandler("read-resource", pagesOh, description("page read resource description"));
 
       ManagedResource.Registration navigation = sites.registerSubResource("navigation", description("nav description"));
-      navigation.registerOperationHandler("read-resource", navOh, description("nav read resource description"));
+      navigation.registerOperationHandler("read-resource", navOh, description("nav read resource description"), true);
 
       navigation.registerSubResource("{nav-uri: .*}", description("nav uri description"));
 
@@ -205,16 +206,22 @@ public class SimpleManagedResourceTest
       address = PathAddress.pathAddress("mop/portalsites/classic/navigation");
       assertNotNull(root.getSubResource(address));
       assertEquals("nav description", root.getResourceDescription(address).getDescription());
+      assertNotNull(root.getOperationHandler(address, "read-resource"));
+      assertEquals(navOh, root.getOperationHandler(address, "read-resource"));
 
       address = PathAddress.pathAddress("mop/portalsites/classic/navigation/foo");
       assertNotNull(root.getSubResource(address));
       assertEquals("nav uri description", root.getResourceDescription(address).getDescription());
       assertEquals("foo", address.resolvePathTemplate("nav-uri"));
+      assertNotNull(root.getOperationHandler(address, "read-resource"));
+      assertEquals(navOh, root.getOperationHandler(address, "read-resource"));
 
       address = PathAddress.pathAddress("mop/portalsites/classic/navigation/foo-bar/blah");
       assertNotNull(root.getSubResource(address));
       assertEquals("nav uri description", root.getResourceDescription(address).getDescription());
       assertEquals("foo-bar/blah", address.resolvePathTemplate("nav-uri"));
+      assertNotNull(root.getOperationHandler(address, "read-resource"));
+      assertEquals(navOh, root.getOperationHandler(address, "read-resource"));
    }
 
    @Test
@@ -377,6 +384,24 @@ public class SimpleManagedResourceTest
       verify(aHandler, times(2)).execute(null, null);
       verify(a1Handler).execute(null, null);
       verify(a2Handler).execute(null, null);
+   }
+
+   @Test
+   public void testOverwriteInheritedOperationHandler2()
+   {
+      OperationHandler globalOh = mock(OperationHandler.class);
+      OperationHandler component1Oh = mock(OperationHandler.class);
+
+      SimpleManagedResource root = createRootResource();
+
+      root.registerOperationHandler("read-resource", globalOh, description("global read-resource"), true);
+
+      ManagedResource.Registration component1 = root.registerSubResource("component1", description("component 1 managed resource"));
+      component1.registerOperationHandler("read-resource", component1Oh, description("component 1 "), true);
+
+      component1.registerSubResource("{path: .*}", description("variable path resource"));
+
+      assertNotNull(root.getOperationHandler(PathAddress.pathAddress("component1", "foo", "bar"), "read-resource"));
    }
 
    @Test

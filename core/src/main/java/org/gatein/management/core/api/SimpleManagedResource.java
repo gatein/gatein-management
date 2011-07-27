@@ -29,7 +29,6 @@ import org.gatein.management.api.exceptions.ManagementException;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.PathAddressIterator;
 import org.gatein.management.api.PathTemplateResolver;
-import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.operation.OperationHandler;
 
 import java.util.Collections;
@@ -110,7 +109,7 @@ public class SimpleManagedResource extends AbstractManagedResource
       if (iterator.hasNext())
       {
          String name = iterator.next();
-         AbstractManagedResource resource = getChildResource(iterator, name, new StringBuilder());
+         AbstractManagedResource resource = findDescendant(iterator, name, new StringBuilder());
 
          return (resource != null) ? resource.getResourceDescription(iterator) : null;
       }
@@ -123,24 +122,34 @@ public class SimpleManagedResource extends AbstractManagedResource
    //------------------------------- Operation information -------------------------------//
 
    @Override
-   protected OperationEntry getOperationEntry(PathAddressIterator iterator, OperationEntry inherited, String operationName)
+   protected OperationEntry getOperationEntry(PathAddressIterator iterator, String operationName)
    {
       OperationEntry entry = operations.get(operationName);
-      if (entry != null && entry.isInherited())
-      {
-         inherited = entry;
-      }
-
       if (iterator.hasNext())
       {
          String name = iterator.next();
-         AbstractManagedResource resource = getChildResource(iterator, name, new StringBuilder());
+         AbstractManagedResource resource = findDescendant(iterator, name, new StringBuilder());
 
-         return (resource != null) ? resource.getOperationEntry(iterator, inherited, operationName) : null;
+         return (resource != null) ? resource.getOperationEntry(iterator, operationName) : null;
       }
       else
       {
-         return (entry == null) ? inherited : entry;
+         if (entry == null)
+         {
+            AbstractManagedResource parent = this.parent;
+            while (parent != null)
+            {
+               OperationEntry parentEntry = parent.getOperationEntry(PathAddressIterator.EMPTY, operationName);
+               if (parentEntry != null && parentEntry.isInherited())
+               {
+                  entry = parentEntry;
+                  break;
+               }
+               parent = parent.parent;
+            }
+         }
+
+         return entry;
       }
    }
 
@@ -174,7 +183,7 @@ public class SimpleManagedResource extends AbstractManagedResource
       if (iterator.hasNext())
       {
          String name = iterator.next();
-         AbstractManagedResource resource = getChildResource(iterator, name, new StringBuilder());
+         AbstractManagedResource resource = findDescendant(iterator, name, new StringBuilder());
 
          return (resource != null) ? resource.getSubResource(iterator) : null;
       }
@@ -190,7 +199,7 @@ public class SimpleManagedResource extends AbstractManagedResource
       if (iterator.hasNext())
       {
          String name = iterator.next();
-         AbstractManagedResource resource = getChildResource(iterator, name, new StringBuilder());
+         AbstractManagedResource resource = findDescendant(iterator, name, new StringBuilder());
 
          return (resource == null) ? Collections.<String>emptySet() : resource.getChildNames(iterator);
       }
@@ -202,7 +211,7 @@ public class SimpleManagedResource extends AbstractManagedResource
 
    //------------------------------- Private stuff -------------------------------//
 
-   private AbstractManagedResource getChildResource(PathAddressIterator iterator, String childName, StringBuilder path)
+   private AbstractManagedResource findDescendant(PathAddressIterator iterator, String childName, StringBuilder path)
    {
       AbstractManagedResource child = children.get(childName);
 
@@ -212,7 +221,7 @@ public class SimpleManagedResource extends AbstractManagedResource
          child = findMatch(iterator, path);
          if (iterator.hasNext())
          {
-            child = getChildResource(iterator, iterator.next(), path);
+            child = findDescendant(iterator, iterator.next(), path);
          }
          else
          {

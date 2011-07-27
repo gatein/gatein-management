@@ -31,6 +31,8 @@ public class OperationNames
    private OperationNames(){}
 
    public static final String READ_RESOURCE = "read-resource";
+   public static final String READ_CHILDREN = "read-children";
    public static final String READ_CONFIG_AS_XML = "read-config-as-xml";
    public static final String EXPORT_RESOURCE = "export-resource";
+   public static final String IMPORT_RESOURCE = "import-resource";
 }

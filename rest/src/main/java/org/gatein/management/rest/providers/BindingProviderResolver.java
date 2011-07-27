@@ -51,14 +51,8 @@ public class BindingProviderResolver implements ContextResolver<BindingProviderR
       return this;
    }
 
-   public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, UriInfo uriInfo)
+   public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType, String componentName)
    {
-      String componentName = null;
-      if (uriInfo.getPathSegments().size() > 1)
-      {
-         componentName = uriInfo.getPathSegments().get(1).getPath();
-      }
-
       BindingProvider bp = service.getBindingProvider(componentName);
       if (bp == null) return null;
 

@@ -22,7 +22,9 @@
 
 package org.gatein.management.api.operation.model;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -32,15 +34,17 @@ import java.util.Set;
 @XmlRootElement(name = "result")
 public class ReadResourceModel
 {
+   @XmlElement
    private String description;
-   private Set<String> children;
+   @XmlElement
+   private ChildrenContainer children;
 
-   public ReadResourceModel() {}
+   private ReadResourceModel() {}
 
    public ReadResourceModel(String description, Set<String> children)
    {
       this.description = description;
-      this.children = children;
+      this.children = new ChildrenContainer(children);
    }
 
    public String getDescription()
@@ -48,18 +52,23 @@ public class ReadResourceModel
       return description;
    }
 
-   public void setDescription(String description)
-   {
-      this.description = description;
-   }
-
    public Set<String> getChildren()
    {
-      return children;
+      return Collections.unmodifiableSet(children.children);
    }
 
-   public void setChildren(Set<String> children)
+   private static class ChildrenContainer
    {
-      this.children = children;
+      @XmlElement(name = "child")
+      private Set<String> children;
+
+      private ChildrenContainer()
+      {
+      }
+
+      private ChildrenContainer(Set<String> children)
+      {
+         this.children = children;
+      }
    }
 }

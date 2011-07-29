@@ -1,1 +1,0 @@
-TODO: Move this package out of this module into some common gatein module.

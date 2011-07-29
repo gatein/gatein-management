@@ -50,7 +50,6 @@
 
    <properties>
       <org.gatein.common.version>2.0.4-Beta03</org.gatein.common.version>
-      <org.staxnav.version>0.9.3</org.staxnav.version>
    </properties>
 
    <dependencyManagement>
@@ -77,11 +76,6 @@
          </dependency>
          <dependency>
             <groupId>org.gatein.management</groupId>
-            <artifactId>gatein-management-common</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.gatein.management</groupId>
             <artifactId>gatein-management-core</artifactId>
             <version>${project.version}</version>
          </dependency>
@@ -101,13 +95,6 @@
             <groupId>org.gatein.common</groupId>
             <artifactId>common-common</artifactId>
             <version>${org.gatein.common.version}</version>
-         </dependency>
-
-         <!-- staxnav -->
-         <dependency>
-            <groupId>org.staxnav</groupId>
-            <artifactId>staxnav.core</artifactId>
-            <version>${org.staxnav.version}</version>
          </dependency>
 
          <!-- jax-rs -->
@@ -143,7 +130,6 @@
    <modules>
       <module>api</module>
       <module>spi</module>
-      <module>common</module>
       <module>core</module>
       <module>rest</module>
    </modules>

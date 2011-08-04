@@ -132,6 +132,7 @@
       <module>spi</module>
       <module>core</module>
       <module>rest</module>
+      <module>cli</module>
    </modules>
 
    <dependencies>

@@ -43,10 +43,12 @@
       <dependency>
          <groupId>org.gatein.management</groupId>
          <artifactId>gatein-management-api</artifactId>
+         <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.gatein.common</groupId>
          <artifactId>common-logging</artifactId>
+         <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.codehaus.groovy</groupId>

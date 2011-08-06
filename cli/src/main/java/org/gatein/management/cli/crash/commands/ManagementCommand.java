@@ -1,6 +1,7 @@
 package org.gatein.management.cli.crash.commands;
 
 import groovy.lang.Closure;
+import org.crsh.cmdline.IntrospectionException;
 import org.crsh.cmdline.ParameterDescriptor;
 import org.crsh.cmdline.spi.Completer;
 import org.crsh.command.ScriptException;
@@ -24,11 +25,12 @@ import java.util.Set;
  */
 public class ManagementCommand extends GateInCommand implements Completer
 {
-   protected ManagementCommand()
+   protected ManagementCommand() throws IntrospectionException
    {
       super();
    }
 
+   //TODO: Support children with / in the name
    @Override
    public Map<String, Boolean> complete(ParameterDescriptor<?> parameter, String prefix) throws Exception
    {
@@ -153,7 +155,7 @@ public class ManagementCommand extends GateInCommand implements Completer
       return Collections.emptySet();
    }
 
-   private static String[] trim(String[] array)
+   protected String[] trim(String[] array)
    {
       List<String> trimmed = new ArrayList<String>(array.length);
       for (String s : array)

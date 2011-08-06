@@ -20,6 +20,8 @@ The cd command changes the current resource address the content of a managed res
 
     execute(OperationNames.READ_RESOURCE, pathAddress, null, { ReadResourceModel result ->
       if (result == null) return "$path: no such path"
+
+      return "";
     });
   }
 }

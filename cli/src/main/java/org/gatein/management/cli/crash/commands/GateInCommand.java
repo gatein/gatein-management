@@ -1,6 +1,6 @@
 package org.gatein.management.cli.crash.commands;
 
-import org.codehaus.groovy.tools.shell.Shell;
+import org.crsh.cmdline.IntrospectionException;
 import org.crsh.command.CRaSHCommand;
 import org.crsh.command.ScriptException;
 import org.gatein.common.logging.Logger;
@@ -9,7 +9,6 @@ import org.gatein.common.logging.LoggerFactory;
 import javax.jcr.Repository;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -20,7 +19,7 @@ public class GateInCommand extends CRaSHCommand
 {
    private static final Logger log = LoggerFactory.getLogger(GateInCommand.class);
 
-   protected GateInCommand()
+   protected GateInCommand() throws IntrospectionException
    {
    }
 
@@ -44,7 +43,6 @@ public class GateInCommand extends CRaSHCommand
       Object container = getContainer(containerName);
 
       // TODO: Find better way to "authenticate"
-      Session session = null;
       try
       {
          Method getComponentInstanceOfTypeMethod = container.getClass().getMethod("getComponentInstanceOfType", Class.class);
@@ -52,24 +50,26 @@ public class GateInCommand extends CRaSHCommand
          Object repositoryService = getComponentInstanceOfTypeMethod.invoke(container, repositoryServiceClass);
          if (repositoryService != null)
          {
-            Method getDefaultRepositoryMethod = repositoryService.getClass().getMethod("getDefaultRepository");
+            Method getDefaultRepositoryMethod = repositoryService.getClass().getMethod("getCurrentRepository");
             Repository repository = (Repository) getDefaultRepositoryMethod.invoke(repositoryService);
             SimpleCredentials credentials = new SimpleCredentials(userName, password.toCharArray());
-            session = repository.login(credentials, "portal-system");
+            Session session = repository.login(credentials, "portal-system");
+            if (session == null)
+            {
+               throw new Exception("JCR Session was null.");
+            }
+
+            return session;
+         }
+         else
+         {
+            throw new Exception("Repository service was null.");
          }
       }
       catch (Exception e)
       {
-         log.error("Could not log into jcr repository.", e);
-         throw new ScriptException("Could not authenticate for user '" + userName + "'");
+         throw new ScriptException("Could not authenticate for user '" + userName + "'", e);
       }
-
-      if (session == null)
-      {
-         throw new ScriptException("Could not authenticate for user '" + userName + "'");
-      }
-
-      return session;
    }
 
    protected void start(String containerName)
@@ -84,8 +84,7 @@ public class GateInCommand extends CRaSHCommand
       }
       catch (Exception e)
       {
-         log.error("Could not start request lifecyle.", e);
-         throw new ScriptException("Could not start request.");
+         throw new ScriptException("Could not start gatein request lifecycle.", e);
       }
    }
 
@@ -100,8 +99,7 @@ public class GateInCommand extends CRaSHCommand
       }
       catch (Exception e)
       {
-         log.error("Could not end request lifecyle.", e);
-         throw new ScriptException("Could not end request.");
+         throw new ScriptException("Could not end gatein request lifecycle.", e);
       }
    }
 
@@ -123,8 +121,7 @@ public class GateInCommand extends CRaSHCommand
       }
       catch (Exception e)
       {
-         log.error("Exception obtaining kernel container.", e);
-         throw new ScriptException("Could not connect, see server logs for more details.");
+         throw new ScriptException("Could not obtain portal container for container name " + containerName, e);
       }
 
       if (container == null) throw new ScriptException("Could not obtain portal container for container name " + containerName);

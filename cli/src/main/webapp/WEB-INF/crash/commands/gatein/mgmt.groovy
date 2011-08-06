@@ -45,8 +45,11 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
       end();
     }
 
+    //TODO: Is this worthwhile ?
+    host = InetAddress.getLocalHost();
+
     execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, null, { ReadResourceModel result ->
-      return "Successfully connected !"
+      return "Successfully connected to gatein management system: [user=$userName, container='$containerName', host='$host']"
     });
   }
 
@@ -61,6 +64,7 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
     controller = null;
     address = null;
     container = null;
-    return "Disconnected from management system";
+    host = null;
+    return "Disconnected from management system.";
   }
 }

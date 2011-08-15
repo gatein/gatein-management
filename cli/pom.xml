@@ -1,0 +1,136 @@
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2011, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>org.gatein.management</groupId>
+      <artifactId>gatein-management-parent</artifactId>
+      <version>1.0.0-Beta02-SNAPSHOT</version>
+   </parent>
+
+   <artifactId>gatein-management-cli</artifactId>
+   <packaging>war</packaging>
+
+   <name>GateIn Management - CLI</name>
+
+   <properties>
+      <org.crsh.version>1.0.0-beta22-SNAPSHOT</org.crsh.version>
+   </properties>
+
+   <dependencies>
+      <dependency>
+         <groupId>org.gatein.management</groupId>
+         <artifactId>gatein-management-api</artifactId>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.gatein.common</groupId>
+         <artifactId>common-logging</artifactId>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.codehaus.groovy</groupId>
+         <artifactId>groovy-all</artifactId>
+         <version>1.8.1</version>
+      </dependency>
+      <dependency>
+         <groupId>org.crsh</groupId>
+         <artifactId>crsh.shell.ssh</artifactId>
+         <version>${org.crsh.version}</version>
+         <exclusions>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-api</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>commons-logging</groupId>
+               <artifactId>commons-logging</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.gatein.common</groupId>
+               <artifactId>common-logging</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.codehaus.groovy</groupId>
+               <artifactId>groovy-all</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>net.sf.jpam</groupId>
+               <artifactId>jpam</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>log4j</groupId>
+               <artifactId>log4j</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.crsh</groupId>
+         <artifactId>crsh.shell.telnet</artifactId>
+         <version>${org.crsh.version}</version>
+         <exclusions>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-api</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>commons-logging</groupId>
+               <artifactId>commons-logging</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.gatein.common</groupId>
+               <artifactId>common-logging</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.codehaus.groovy</groupId>
+               <artifactId>groovy-all</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>net.sf.jpam</groupId>
+               <artifactId>jpam</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>log4j</groupId>
+               <artifactId>log4j</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency><!-- TODO: Remove when we have better authentication -->
+         <groupId>javax.jcr</groupId>
+         <artifactId>jcr</artifactId>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>javax.servlet</groupId>
+         <artifactId>servlet-api</artifactId>
+         <scope>provided</scope>
+      </dependency>
+   </dependencies>
+
+   <build>
+      <finalName>gatein-management-cli</finalName>
+   </build>
+
+</project>

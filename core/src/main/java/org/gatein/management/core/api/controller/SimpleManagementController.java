@@ -24,6 +24,7 @@ package org.gatein.management.core.api.controller;
 
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
@@ -35,9 +36,16 @@ import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationHandler;
+import org.gatein.management.api.operation.model.OperationInfo;
+import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.core.api.ManagementServiceImpl;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -63,6 +71,12 @@ public class SimpleManagementController implements ManagementController
    {
       PathAddress address = request.getAddress();
       String operationName = request.getOperationName();
+
+      boolean debug = log.isDebugEnabled();
+      if (debug)
+      {
+         log.debug("Executing request for operation " + operationName + " at address " + address);
+      }
       
       ManagedResource root = getRootResource();
       if (root.getSubResource(address) == null)
@@ -73,9 +87,12 @@ public class SimpleManagementController implements ManagementController
       OperationHandler operationHandler = root.getOperationHandler(address, operationName);
       if (operationHandler != null)
       {
-         BasicResultHandler resultHandler = new BasicResultHandler();
+         // Obtain binding provider given managed component.
          String componentName = (address.size() >= 1) ? address.get(0) : null;
          BindingProvider bindingProvider = managementService.getBindingProvider(componentName);
+
+         // Execute operation for given registered operation handler
+         BasicResultHandler resultHandler = new BasicResultHandler();
          operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
@@ -84,7 +101,24 @@ public class SimpleManagementController implements ManagementController
          }
          else
          {
-            return new SuccessfulResponse<Object>(bindingProvider, resultHandler.getResult(), request.getContentType());
+            Object result = resultHandler.getResult();
+            if (result instanceof ReadResourceModel)
+            {
+               ReadResourceModel readResource = (ReadResourceModel) result;
+               if (readResource.getOperations() == null || readResource.getOperations().isEmpty())
+               {
+                  Map<String, ManagedDescription> descriptions = root.getOperationDescriptions(address);
+                  List<OperationInfo> operations = new ArrayList<OperationInfo>(descriptions.size());
+                  for (Map.Entry<String, ManagedDescription> desc : descriptions.entrySet())
+                  {
+                     operations.add(new OperationInfo(desc.getKey(), desc.getValue().getDescription()));
+                  }
+
+                  result = new ReadResourceModel(readResource.getDescription(), readResource.getChildren(), operations);
+               }
+            }
+
+            return new SuccessfulResponse<Object>(bindingProvider, result, request.getContentType());
          }
       }
       else

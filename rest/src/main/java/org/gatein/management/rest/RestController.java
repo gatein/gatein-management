@@ -225,6 +225,14 @@ public class RestController
       if (op != null)
       {
          operationName = op;
+         if (operationName.equals(OperationNames.READ_CONFIG_AS_XML))
+         {
+            contentType = ContentType.XML;
+         }
+         else if (operationName.equals(OperationNames.EXPORT_RESOURCE))
+         {
+            contentType = ContentType.ZIP;
+         }
       }
 
       final PathAddress address = PathAddress.pathAddress(trim(path.split("/")));

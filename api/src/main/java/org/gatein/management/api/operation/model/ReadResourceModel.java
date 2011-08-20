@@ -25,6 +25,7 @@ package org.gatein.management.api.operation.model;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,13 +39,21 @@ public class ReadResourceModel
    private String description;
    @XmlElement
    private ChildrenContainer children;
+   @XmlElement
+   private OperationsContainer operations;
 
    private ReadResourceModel() {}
 
    public ReadResourceModel(String description, Set<String> children)
    {
+      this(description, children, Collections.<OperationInfo>emptyList());
+   }
+
+   public ReadResourceModel(String description, Set<String> children, List<OperationInfo> operations)
+   {
       this.description = description;
       this.children = new ChildrenContainer(children);
+      this.operations = new OperationsContainer(operations);
    }
 
    public String getDescription()
@@ -55,6 +64,11 @@ public class ReadResourceModel
    public Set<String> getChildren()
    {
       return Collections.unmodifiableSet(children.children);
+   }
+
+   public List<OperationInfo> getOperations()
+   {
+      return Collections.unmodifiableList(operations.operations);
    }
 
    private static class ChildrenContainer
@@ -69,6 +83,19 @@ public class ReadResourceModel
       private ChildrenContainer(Set<String> children)
       {
          this.children = children;
+      }
+   }
+
+   private static class OperationsContainer
+   {
+      @XmlElement(name = "operation")
+      private List<OperationInfo> operations;
+
+      private OperationsContainer(){}
+
+      private OperationsContainer(List<OperationInfo> operations)
+      {
+         this.operations = operations;
       }
    }
 }

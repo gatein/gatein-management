@@ -28,6 +28,8 @@ import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.PathAddressIterator;
 import org.gatein.management.api.operation.OperationHandler;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -67,11 +69,20 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
       return (entry == null) ? null : entry.getDescription();
    }
 
-//   @Override
-//   public Map<String, ManagedDescription> getOperationDescriptions(PathAddress address)
-//   {
-//      return getOperationDescriptions(address.iterator());
-//   }
+   @Override
+   public Map<String, ManagedDescription> getOperationDescriptions(PathAddress address)
+   {
+      Map<String, OperationEntry> entries = new HashMap<String, OperationEntry>();
+      getOperationEntries(address.iterator(), entries);
+
+      Map<String, ManagedDescription> map = new HashMap<String, ManagedDescription>(entries.size());
+      for (Map.Entry<String, OperationEntry> entry : entries.entrySet())
+      {
+         map.put(entry.getKey(), entry.getValue().description);
+      }
+
+      return map;
+   }
 
    @Override
    public final ManagedResource getSubResource(PathAddress address)
@@ -88,6 +99,8 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
    protected abstract ManagedDescription getResourceDescription(PathAddressIterator iterator);
 
    protected abstract OperationEntry getOperationEntry(PathAddressIterator iterator, String operationName);
+
+   protected abstract void getOperationEntries(PathAddressIterator iterator, Map<String, OperationEntry> entries);
 
    protected abstract AbstractManagedResource getSubResource(PathAddressIterator iterator);
 

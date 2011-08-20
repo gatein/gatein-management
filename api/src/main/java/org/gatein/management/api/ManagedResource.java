@@ -24,6 +24,7 @@ package org.gatein.management.api;
 
 import org.gatein.management.api.operation.OperationHandler;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,6 +38,8 @@ public interface ManagedResource
    OperationHandler getOperationHandler(PathAddress address, String operationName);
 
    ManagedDescription getOperationDescription(PathAddress address, String operationName);
+
+   Map<String, ManagedDescription> getOperationDescriptions(PathAddress address);
 
    ManagedResource getSubResource(PathAddress address);
 

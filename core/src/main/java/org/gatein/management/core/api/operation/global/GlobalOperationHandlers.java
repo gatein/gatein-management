@@ -27,7 +27,12 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.QueryOperationHandler;
+import org.gatein.management.api.operation.model.OperationInfo;
 import org.gatein.management.api.operation.model.ReadResourceModel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -49,13 +54,20 @@ public class GlobalOperationHandlers
          ManagedResource resource = operationContext.getManagedResource();
          PathAddress address = operationContext.getAddress();
 
-         return new ReadResourceModel("Lists available children for given managed resource.", resource.getChildNames(address));
+         Map<String, ManagedDescription> descriptions = resource.getOperationDescriptions(address);
+         List<OperationInfo> operations = new ArrayList<OperationInfo>(descriptions.size());
+         for (Map.Entry<String, ManagedDescription> desc : descriptions.entrySet())
+         {
+            operations.add(new OperationInfo(desc.getKey(), desc.getValue().getDescription()));
+         }
+
+         return new ReadResourceModel("Lists available children for given managed resource.", resource.getChildNames(address), operations);
       }
 
       @Override
       public String getDescription()
       {
-         return "Reads a component's attribute values along with either basic or complete information about any child resources.";
+         return "Reads a component's resources along with any child resources.";
       }
    }
 }

@@ -33,6 +33,8 @@ import org.gatein.management.api.operation.OperationHandler;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -153,7 +155,36 @@ public class SimpleManagedResource extends AbstractManagedResource
       }
    }
 
-//   @Override
+   @Override
+   protected void getOperationEntries(PathAddressIterator iterator, Map<String, OperationEntry> entries)
+   {
+      for (Map.Entry<String, OperationEntry> entry : operations.entrySet())
+      {
+         if (entry.getValue().isInherited())
+         {
+            entries.put(entry.getKey(), entry.getValue());
+         }
+      }
+      if (iterator.hasNext())
+      {
+         String name = iterator.next();
+         AbstractManagedResource resource = findDescendant(iterator, name, new StringBuilder());
+
+         if (resource != null)
+         {
+            resource.getOperationEntries(iterator, entries);
+         }
+      }
+      else
+      {
+         for (Map.Entry<String, OperationEntry> entry : operations.entrySet())
+         {
+            entries.put(entry.getKey(), entry.getValue());
+         }
+      }
+   }
+
+   //   @Override
 //   protected Map<String, ManagedDescription> getOperationDescriptions(PathAddressIterator iterator)
 //   {
 //      if (iterator.hasNext())

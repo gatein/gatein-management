@@ -25,6 +25,7 @@ package org.gatein.management.rest;
 import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.rest.providers.BindingProviderResolver;
+import org.gatein.management.rest.providers.JsonResourceProvider;
 import org.gatein.management.rest.providers.ManagedComponentProvider;
 
 import javax.ws.rs.core.Application;
@@ -45,9 +46,10 @@ public class RestApplication extends Application
    public RestApplication(ManagementService service, ManagementController controller)
    {
       // Singletons
-      singletons = new HashSet<Object>(2);
+      singletons = new HashSet<Object>(3);
       singletons.add(new BindingProviderResolver(service));
       singletons.add(new RestController(controller));
+      singletons.add(new JsonResourceProvider());
 
       // Classes
       classes = new HashSet<Class<?>>(1);

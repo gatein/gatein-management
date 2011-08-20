@@ -25,15 +25,15 @@ package org.gatein.management.core.api;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ManagedDescription;
-import org.gatein.management.api.exceptions.ManagementException;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.PathAddressIterator;
 import org.gatein.management.api.PathTemplateResolver;
+import org.gatein.management.api.exceptions.ManagementException;
 import org.gatein.management.api.operation.OperationHandler;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -158,13 +158,6 @@ public class SimpleManagedResource extends AbstractManagedResource
    @Override
    protected void getOperationEntries(PathAddressIterator iterator, Map<String, OperationEntry> entries)
    {
-      for (Map.Entry<String, OperationEntry> entry : operations.entrySet())
-      {
-         if (entry.getValue().isInherited())
-         {
-            entries.put(entry.getKey(), entry.getValue());
-         }
-      }
       if (iterator.hasNext())
       {
          String name = iterator.next();
@@ -181,30 +174,24 @@ public class SimpleManagedResource extends AbstractManagedResource
          {
             entries.put(entry.getKey(), entry.getValue());
          }
+
+         AbstractManagedResource parent = this.parent;
+         while (parent != null)
+         {
+            Map<String, OperationEntry> parentMap = new HashMap<String, OperationEntry>();
+            parent.getOperationEntries(PathAddress.empty().iterator(), parentMap);
+            for (Map.Entry<String, OperationEntry> entry : parentMap.entrySet())
+            {
+               if (entry.getValue().isInherited() && !entries.containsKey(entry.getKey()))
+               {
+                  entries.put(entry.getKey(), entry.getValue());
+               }
+            }
+            
+            parent = parent.parent;
+         }
       }
    }
-
-   //   @Override
-//   protected Map<String, ManagedDescription> getOperationDescriptions(PathAddressIterator iterator)
-//   {
-//      if (iterator.hasNext())
-//      {
-//         String name = iterator.next();
-//         SimpleManagedResource resource = getChildResource(iterator, name);
-//
-//         return (resource != null) ? resource.getOperationDescriptions(iterator) : Collections.<String, ManagedDescription>emptyMap();
-//      }
-//      else
-//      {
-//         Map<String, ManagedDescription> map = new HashMap<String, ManagedDescription>();
-//         for (Map.Entry<String, OperationEntry> entry : operations.entrySet())
-//         {
-//            map.put(entry.getKey(), entry.getValue().getDescription());
-//         }
-//
-//         return map;
-//      }
-//   }
    
    //------------------------------- SubResource information -------------------------------//
 

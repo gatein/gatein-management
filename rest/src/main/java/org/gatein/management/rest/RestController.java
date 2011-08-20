@@ -32,6 +32,8 @@ import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationNames;
+import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.rest.content.Resource;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
@@ -244,7 +246,7 @@ public class RestController
             return failure("No response returned.", operationName, Status.INTERNAL_SERVER_ERROR, contentType);
          }
 
-         return success(resp, contentType);
+         return success(uriInfo, resp, contentType);
       }
       //TODO: Wrap controller execution in a callback and reuse exception handling for all http methods
       catch (ResourceNotFoundException nfe)
@@ -298,9 +300,16 @@ public class RestController
       return Response.status(status).entity(new FailureResult(failureDescription, operationName)).type(mediaType).build();
    }
 
-   private Response success(ManagedResponse response, ContentType contentType)
+   private Response success(UriInfo uriInfo, ManagedResponse response, ContentType contentType)
    {
       MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
-      return Response.ok(response.getResult()).type(mediaType).build();
+
+      Object result = response.getResult();
+      if (result instanceof ReadResourceModel)
+      {
+         result = new Resource(uriInfo, (ReadResourceModel) result);
+      }
+
+      return Response.ok(result).type(mediaType).build();
    }
 }

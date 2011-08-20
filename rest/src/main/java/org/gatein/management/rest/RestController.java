@@ -35,6 +35,7 @@ import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.rest.content.Resource;
 
+import javax.activation.MimeType;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -120,6 +121,7 @@ public class RestController
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
+   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML})
    @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo)
    {
@@ -129,6 +131,7 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
+   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML})
    @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
@@ -145,6 +148,7 @@ public class RestController
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
+   @Consumes(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo)
    {
@@ -154,6 +158,7 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
+   @Consumes(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
@@ -165,6 +170,7 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
+   @Consumes("application/zip")
    @RolesAllowed("administrators")
    public Response zipGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
@@ -177,6 +183,7 @@ public class RestController
 
    @PUT
    @Path("/{path:.*}")
+   @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
    @Consumes("application/zip")
    @RolesAllowed("administrators")
    public Response customPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)

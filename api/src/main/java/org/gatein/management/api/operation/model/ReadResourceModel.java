@@ -22,9 +22,9 @@
 
 package org.gatein.management.api.operation.model;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,15 +32,11 @@ import java.util.Set;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@XmlRootElement(name = "result")
 public class ReadResourceModel
 {
-   @XmlElement
    private String description;
-   @XmlElement
-   private ChildrenContainer children;
-   @XmlElement
-   private OperationsContainer operations;
+   private Set<String> children;
+   private List<OperationInfo> operations;
 
    private ReadResourceModel() {}
 
@@ -52,8 +48,8 @@ public class ReadResourceModel
    public ReadResourceModel(String description, Set<String> children, List<OperationInfo> operations)
    {
       this.description = description;
-      this.children = new ChildrenContainer(children);
-      this.operations = new OperationsContainer(operations);
+      this.children = new LinkedHashSet<String>(children);
+      this.operations = new ArrayList<OperationInfo>(operations);
    }
 
    public String getDescription()
@@ -63,39 +59,11 @@ public class ReadResourceModel
 
    public Set<String> getChildren()
    {
-      return Collections.unmodifiableSet(children.children);
+      return Collections.unmodifiableSet(children);
    }
 
    public List<OperationInfo> getOperations()
    {
-      return Collections.unmodifiableList(operations.operations);
-   }
-
-   private static class ChildrenContainer
-   {
-      @XmlElement(name = "child")
-      private Set<String> children;
-
-      private ChildrenContainer()
-      {
-      }
-
-      private ChildrenContainer(Set<String> children)
-      {
-         this.children = children;
-      }
-   }
-
-   private static class OperationsContainer
-   {
-      @XmlElement(name = "operation")
-      private List<OperationInfo> operations;
-
-      private OperationsContainer(){}
-
-      private OperationsContainer(List<OperationInfo> operations)
-      {
-         this.operations = operations;
-      }
+      return Collections.unmodifiableList(operations);
    }
 }

@@ -44,7 +44,7 @@ public class JsonResourceProvider implements MessageBodyWriter<Resource>
    public void writeTo(Resource resource, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException
    {
       JsonWriter writer  =  new JsonWriter(new PrintWriter(entityStream));
-      writer.setIndent("   ");
+      //writer.setIndent("   ");
       writer.beginObject();
       writer.name("description").value(resource.getDescription());
       writer.name("children").beginArray();
@@ -83,11 +83,12 @@ public class JsonResourceProvider implements MessageBodyWriter<Resource>
    private void writeLink(String name, Link link, JsonWriter writer) throws IOException
    {
       writer.name(name).beginObject();
-      writer.name("href").value(link.getHref());
       if (link.getRel() != null)
       {
          writer.name("rel").value(link.getRel());
       }
+      writer.name("href").value(link.getHref());
+      
       if (link.getType() != null)
       {
          writer.name("type").value(link.getType());

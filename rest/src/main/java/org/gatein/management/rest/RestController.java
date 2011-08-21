@@ -71,10 +71,10 @@ public class RestController
       this.controller = controller;
    }
 
-   //------------------------------------- Custom Content Handlers -------------------------------------//
+   //------------------------------------- Html (browser) Handlers -------------------------------------//
+   // Note we add text/html here so we can handle browsers, even though we don't produce text/html
    @GET
-   @Consumes({MediaType.TEXT_HTML, MediaType.APPLICATION_XHTML_XML})
-   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+   @Produces({MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo)
    {
@@ -83,8 +83,7 @@ public class RestController
 
    @GET
    @Path("/{path:.*}")
-   @Consumes({MediaType.TEXT_HTML, MediaType.APPLICATION_XHTML_XML})
-   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+   @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
@@ -121,7 +120,6 @@ public class RestController
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
-   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML})
    @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo)
    {
@@ -131,7 +129,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML})
    @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
@@ -148,7 +145,6 @@ public class RestController
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
-   @Consumes(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo)
    {
@@ -158,7 +154,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
-   @Consumes(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
@@ -170,7 +165,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
-   @Consumes("application/zip")
    @RolesAllowed("administrators")
    public Response zipGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {

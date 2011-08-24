@@ -27,12 +27,12 @@
    <parent>
       <groupId>org.gatein.management</groupId>
       <artifactId>gatein-management-parent</artifactId>
-      <version>1.0.0-Beta02-SNAPSHOT</version>
+      <version>1.0.0-Beta02</version>
    </parent>
 
    <groupId>org.gatein.management</groupId>
    <artifactId>gatein-management-spi</artifactId>
-   <version>1.0.0-Beta02-SNAPSHOT</version>
+   <version>1.0.0-Beta02</version>
 
    <name>GateIn Management - SPI</name>
 

@@ -74,7 +74,7 @@ public class RestController
    //------------------------------------- Html (browser) Handlers -------------------------------------//
    // Note we add text/html here so we can handle browsers, even though we don't produce text/html
    @GET
-   @Produces({MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+   @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response customGetRequest(@Context UriInfo uriInfo)
    {

@@ -24,6 +24,7 @@ public class Operation
    {
       this.operationName = operationName;
       this.operationDescription = operationDescription;
+      this.operationLink = link;
    }
 
    @XmlElement (name = "operation-name")

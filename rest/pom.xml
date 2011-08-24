@@ -50,11 +50,11 @@
          <groupId>javax.annotation</groupId>
          <artifactId>jsr250-api</artifactId>
       </dependency>
-      <!-- gson -->
+      <!-- json -->
       <dependency>
-         <groupId>com.google.code.gson</groupId>
-         <artifactId>gson</artifactId>
-         <version>1.7.1</version>
+         <groupId>org.json</groupId>
+         <artifactId>json</artifactId>
+         <version>20070829</version>
       </dependency>
    </dependencies>
 

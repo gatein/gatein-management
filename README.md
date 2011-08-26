@@ -44,11 +44,10 @@ Http Methods:
 
     GET
 
-Example Response:
-
+Example GET Request @ http://localhost:8080/rest/private/managed-components:
     {
 
-        description: "Lists available children for given managed resource."
+        description: "Lists registered managed components."
         children: [
             {
                 name: "mop"
@@ -61,7 +60,7 @@ Example Response:
         operations: [
             {
                 operation-name: "read-resource"
-                operation-description: "Reads a component's resources along with any child resources."
+                operation-description: "Lists information about a managed resource, including available operations and children (sub-resources)."
                 -
                 link: {
                     rel: "self"

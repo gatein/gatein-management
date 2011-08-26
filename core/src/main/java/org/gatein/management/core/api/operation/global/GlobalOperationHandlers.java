@@ -61,13 +61,13 @@ public class GlobalOperationHandlers
             operations.add(new OperationInfo(desc.getKey(), desc.getValue().getDescription()));
          }
 
-         return new ReadResourceModel("Lists available children for given managed resource.", resource.getChildNames(address), operations);
+         return new ReadResourceModel("Lists registered managed components.", resource.getChildNames(address), operations);
       }
 
       @Override
       public String getDescription()
       {
-         return "Reads a component's resources along with any child resources.";
+         return "Lists information about a managed resource, including available operations and children (sub-resources).";
       }
    }
 }

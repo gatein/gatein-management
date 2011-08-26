@@ -36,10 +36,10 @@ public interface OperationHandler
     * the completion methods on {@code resultHandler} regardless of the outcome of the operation.
     *
     * @param operationContext the context for this operation
-    * @param resultHandler    the result handler to invoke when the operation is complete
-    * @throws org.gatein.management.api.exceptions.ResourceNotFoundException this is to allow implementations who are registered via path template to
-    *                               throw this exception when resolved template value does not match a known value.
-    * @throws OperationException    if the operation fails to execute correctly
+    * @param resultHandler the result handler to invoke when the operation is complete
+    * @throws ResourceNotFoundException this is to allow implementations who are registered via path template to
+    * throw this exception when resolved template value does not match a known value.
+    * @throws OperationException if the operation fails to execute correctly
     */
    void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException;
 }

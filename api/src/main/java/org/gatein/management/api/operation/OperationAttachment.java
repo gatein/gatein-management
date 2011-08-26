@@ -25,10 +25,15 @@ package org.gatein.management.api.operation;
 import java.io.InputStream;
 
 /**
+ * Identifies an attachment to an operation. Mostly just representing input.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public interface OperationAttachment
 {
+   /**
+    * @return the input stream of the attachment.
+    */
    InputStream getStream();
 }

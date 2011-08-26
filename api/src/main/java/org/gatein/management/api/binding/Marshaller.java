@@ -26,12 +26,30 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+ *
+ * A marshaller responsible for marshalling and unmarshalling of objects.  This marshaller should be returned from a
+ * {@link BindingProvider} which ties it to a specific {@link org.gatein.management.api.ContentType} to un/marshal from/to.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public interface Marshaller<T>
 {
+   /**
+    * Marshal an object to a stream.
+    *
+    * @param object the object to marshal.
+    * @param outputStream the stream to write the data to.
+    * @throws BindingException if an exception occurs during marshalling.
+    */
    public void marshal(T object, OutputStream outputStream) throws BindingException;
 
+   /**
+    * Unmarshal an object from a stream.
+    *
+    * @param inputStream stream containing data to read.
+    * @return object based on content read.
+    * @throws BindingException if an exception occurs during unmarshalling.
+    */
    public T unmarshal(InputStream inputStream) throws BindingException;
 }

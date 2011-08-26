@@ -1,78 +1,104 @@
-GateIn Management Module
+GateIn Management
 =============
 
-A management module to run on top of GateIn.  This module includes a simple set of tools including an import/export
-command line interface, RESTful services to manage portal objects, and a client API to manage portal objects.
+A management framework to be used within [GateIn](http://www.gatein.org).  Main goal is to provide an extensible framework that plays nicely with the portal while allowing REST services and CLI commands to be automatically consumed.
 
 Installation
 -----------
 
 `mvn clean install`
 
-NOTE: Until xml parsing is included, you will also need stax-builder which can be obtained from:
-[stax-builder](https://github.com/nscavell/stax-builder) and running `mvn clean install`
-
-Once that's done copy the ear from `packaging/jbossas/ear/target` to the JBoss Application Server deploy directory.
-
-Usage
+Restful API
 -----------
 
-### Restful Services
-Assuming the server is running @ http://localhost:8080
+Assuming GateIn is running @ http://localhost:8080 using the default portal container 'portal', the entry point of the REST API would be
 
-NOTE: These URL's are subject to change.  To obtain data from the server you should use the client API's.
+    http://localhost:8080/rest/private/managed-components
 
-#### Site Management Services:
+From here every resource can be located by performing a GET request and following children links.
 
-    http://localhost:8080/{rest-context-name}/private/portalobjects/sites/{ownerId}
+By default, a GET request to any managed resource will result in the operation 'read-resource'.  You can also specify the operation by adding a query parameter of 'op'.  For example
 
-    Examples:
-    http://localhost:8080/rest/private/portalobjects/sites/classic
+    http://localhost:8080/rest/private/managed-components?op=read-resource
+is the same as
 
-#### Page Management Services:
+    http://localhost:8080/rest/private/managed-components
 
-    http://localhost:8080/{rest-context-name}/private/portalobjects/pages?ownerType={ownerType}&ownerId={ownerId}
-    http://localhost:8080/{rest-context-name}/private/portalobjects/pages/{name}?ownerType={ownerType}&ownerId={ownerId}
+### Browser content negotiation
+For convenience, browser content negotiation is supported by adding a 'format' query parameter to the URL.  This should only be used to customize content via a browser.  All REST clients should follow the standard of providing an Accept header in the request.  The following url:
 
-Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include the ownerType as such ownerType=group or ownerType=user as a URL parameter.
+    http://localhost:8080/rest/private/managed-components?format=xml
+will return the result in XML format, instead of default JSON.
 
-    Examples:
-    All portal pages:
-        http://localhost:8080/rest/private/portalobjects/pages?ownerId=classic
-    Portal homepage:
-        http://localhost:8080/rest/private/portalobjects/pages/homepage?ownerId=classic
-    Application Registry
-        http://localhost:8080/rest/private/portalobjects/pages/registry?ownerType=group&ownerId=/platform/administrators
+_Note_: Browser content defaults to JSON for ease of readability. (JSON addons/plugins for browsers are available).
 
-#### Navigation Management Services
+### read-resource
 
-    http://localhost:8080/{rest-context-name}/private/portalobjects/navigations?ownerType={ownerType}&ownerId={ownerId}
-    http://localhost:8080/{rest-context-name}/private/portalobjects/navigations/{nav-uri}?ownerType={ownerType}&ownerId={ownerId}
+Default operation for GET requests.  This request retrieves information about a managed resource, including children and operations.
 
-Note: ownerType is not required and will default to 'portal'.  If you want to specify a group or user page include the ownerType as such ownerType=group or ownerType=user as a URL parameter.
-Note: nav-uri is the uri of the navigation, so if you have a nav of 'home-1' under home the nav-uri would be home/home-1
+Formats:
 
-    Examples:
-    All portal navigation:
-        http://localhost:8080/rest/private/portalobjects/navigations?ownerId=classic
-    Portal navigation homepage:
-        http://localhost:8080/rest/private/portalobjects/navigations/home?ownerId=classic
-    Application Registry navigation:
-        http://localhost:8080/rest/private/portalobjects/navigations/administration/registry?ownerType=group&ownerId=/platform/administrators
+    JSON, XML
 
+Http Methods:
 
-### Client API's
+    GET
 
-PortalObjectsMgmtClient is the client interface to 'manage' the portal objects of the portal.
+Example Response:
 
-To obtain an instance of the PortalObjectsMgmtClient to communicate with a portal running @ http://localhost:8080/portal/
+    {
 
-    PortalObjectsMgmtClient client = PortalObjectsMgmtClient.Factory.create(InetAddress.getByName("localhost"), 8080, "root", "gtn", "portal");
+        description: "Lists available children for given managed resource."
+        children: [
+            {
+                name: "mop"
+                link: {
+                    rel: "child"
+                    href: "http://localhost:8080/rest/private/managed-components/mop"
+                }
+            }
+        ]
+        operations: [
+            {
+                operation-name: "read-resource"
+                operation-description: "Reads a component's resources along with any child resources."
+                -
+                link: {
+                    rel: "self"
+                    href: http://localhost:8080/rest/private/managed-components
+                }
+            }
+        ]
 
-To get the homepage
+    }
 
-    Page page = client.getPage("portal", "classic", "homepage");
+Command Line Interface (CLI)
+-----------
+The CLI is based on [CRaSH](http://code.google.com/p/crsh/) and is meant to run as a web application under GateIn.  It provides telnet and ssh access to perform management operations.  The default ports are 2000 for ssh and 5000 for telnet. To change the ports, edit the properties file
 
-To get homepage navigation
+    cli/src/main/webapp/WEB-INF/crash/crash.properties
 
-    PageNode navigation = client.getNavigationNode("portal", "classic", "home");
+_Important_: gatein-management-cli.war must be added to GateIn as an exploded war file.  So to install this, copy the target/gatein-management-cli folder to
+
+    $JBOSS_HOME/server/default/deploy/gatein-managmenet-cli.war
+
+### SCP
+An scp command is provided to be able to download/upload content to the management system.  To invoke the scp command run the following
+
+    scp -P 2000 root@localhost:portal:/{address}
+where root is the username, portal is the portal context, and address is the address/path of the managed resource.
+
+For example to export the site classic from the mop managed component
+
+    scp -P 2000 root@localhost:portal:/mop/portalsites/classic.zip
+
+Developers
+-----------
+### SPI (extension)
+The extension component is a means for registering a managed component for GateIn. The implementation uses the [Java 6 ServiceLoader](http://download.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html) to look up extensions. By adding a
+
+    org.gatein.management.spi.ManagementExtension
+file under
+
+    /META-INF/services/
+pointing to your implementation, the SPI framework will load your extension.

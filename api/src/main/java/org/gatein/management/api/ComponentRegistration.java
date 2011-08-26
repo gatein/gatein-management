@@ -30,7 +30,17 @@ import org.gatein.management.api.binding.BindingProvider;
  */
 public interface ComponentRegistration
 {
+   /**
+    * Registers the component with the management system.
+    *
+    * @param description the description of the component.
+    * @return registration for further registration of operations and sub-resources.
+    */
    ManagedResource.Registration registerManagedResource(ManagedDescription description);
 
+   /**
+    * @param bindingProvider the binding provider responsible for returning marshallers responsible for
+    * the marshalling and unmarshalling of results from operations.
+    */
    void registerBindingProvider(BindingProvider bindingProvider);
 }

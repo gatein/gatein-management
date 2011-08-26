@@ -29,24 +29,58 @@ import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
 
 /**
+ * Information provided to an operation handler during operation execution.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public interface OperationContext
 {
+   /**
+    *
+    * @return Path of the current operation.
+    */
    PathAddress getAddress();
 
+   /**
+    *
+    * @return name of the operation
+    */
    String getOperationName();
 
+   /**
+    *
+    * @return the current managed resource
+    */
    ManagedResource getManagedResource();
 
+   /**
+    *
+    * @return the runtime context
+    */
    RuntimeContext getRuntimeContext();
 
+   /**
+    * Retrieves the current attachment available.
+    *
+    * @param remove removes the attribute, pointing to the next attribute if more are available.
+    * @return the operation attachment
+    */
    OperationAttachment getAttachment(boolean remove);
 
+   /**
+    * @return the operation attributes
+    */
    OperationAttributes getAttributes();
 
+   /**
+    *
+    * @return the binding provider registered by an extension.
+    */
    BindingProvider getBindingProvider();
 
+   /**
+    * @return the content type of the operation.  This can indicate the content type of the response or request (or both)
+    */
    ContentType getContentType();
 }

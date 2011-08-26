@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * An object to represent the address of managed resources.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
@@ -36,11 +38,19 @@ public class PathAddress implements Iterable<String>
 {
    public static final PathAddress EMPTY_ADDRESS = new PathAddress(Collections.<String>emptyList());
 
+   /**
+    * @return an empty PathAddress to be used to identify no address when looking up a resource.
+    */
    public static PathAddress empty()
    {
       return EMPTY_ADDRESS;
    }
 
+   /**
+    * Construct a PathAddress out of a series of paths.
+    * @param paths Array of paths
+    * @return a PathAddress
+    */
    public static PathAddress pathAddress(String... paths)
    {
       if (paths == null) throw new IllegalArgumentException("paths is null");
@@ -48,6 +58,11 @@ public class PathAddress implements Iterable<String>
       return new PathAddress(Arrays.asList(paths));
    }
 
+   /**
+    * Construct a PathAddress from a path, splitting the string at each '/' character.
+    * @param addressPath path address in string format.
+    * @return a PathAddress
+    */
    public static PathAddress pathAddress(String addressPath)
    {
       if (addressPath == null) throw new IllegalArgumentException("addressString is null");
@@ -102,7 +117,7 @@ public class PathAddress implements Iterable<String>
     * Get a portion of this address using segments starting at {@code start} (inclusive).
     *
     * @param start the start index
-    * @return the partial address
+    * @return an immutable PathAddress representing the sub address.
     */
    public PathAddress subAddress(int start)
    {
@@ -114,23 +129,37 @@ public class PathAddress implements Iterable<String>
     *
     * @param start the start index
     * @param end   the end index
-    * @return the partial address
+    * @return an immutable PathAddress representing the sub address.
     */
    public PathAddress subAddress(int start, int end)
    {
       return new PathAddress(pathList.subList(start, end));
    }
 
+   /**
+    * @return the last path of the PathAddress
+    */
    public String getLastElement()
    {
       return pathList.size() == 0 ? null : pathList.get(pathList.size() - 1);
    }
 
+   /**
+    * Retrieves a path at a specific index
+    *
+    * @param index index of the path
+    * @return the path at the index
+    */
    public String get(int index)
    {
       return pathList.get(index);
    }
 
+   /**
+    * Resolves a template name specified when registering components via SPI/API.
+    * @param templateName name of the template variable.
+    * @return value of the template variable as determined by the path of the address.
+    */
    public String resolvePathTemplate(String templateName)
    {
       for (PathTemplateResolver resolver : resolvers)
@@ -163,6 +192,9 @@ public class PathAddress implements Iterable<String>
       return pathList.size();
    }
 
+   /**
+    * @return an immutable copy of this PathAddress
+    */
    public PathAddress copy()
    {
       return new PathAddress(new ArrayList<String>(pathList), new ArrayList<PathTemplateResolver>(resolvers));

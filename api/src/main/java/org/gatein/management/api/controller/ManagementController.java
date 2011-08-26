@@ -26,10 +26,20 @@ import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 
 /**
+ * Main management interface to communicate with managed resources.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public interface ManagementController
 {
+   /**
+    * The execute method is the means to communicate with all managed resources.
+    *
+    * @param request The managed request holding the information about the request.
+    * @return a managed response
+    * @throws ResourceNotFoundException if the managed resource could not be located.
+    * @throws OperationException if the operation failed.
+    */
    ManagedResponse execute(ManagedRequest request) throws ResourceNotFoundException, OperationException;
 }

@@ -23,6 +23,8 @@
 package org.gatein.management.api.exceptions;
 
 /**
+ * An exception occurring during a management operation with the operation name associated with it.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */

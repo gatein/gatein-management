@@ -25,12 +25,26 @@ package org.gatein.management.api.operation;
 import java.util.List;
 
 /**
+ * Access to attributes for an operation.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public interface OperationAttributes
 {
+   /**
+    * Single attribute value.  If more then one value exists for the given attribute, the first value is returned.
+    *
+    * @param name the name of the attribute.
+    * @return the value (or first value) of the attribute. Null if the attribute does not exist.
+    */
    String getValue(String name);
 
+   /**
+    * List of values for a given attribute.
+    *
+    * @param name the name of the attribute
+    * @return list of values.
+    */
    List<String> getValues(String name);
 }

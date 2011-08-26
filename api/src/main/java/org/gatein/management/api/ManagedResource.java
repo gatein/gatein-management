@@ -33,24 +33,84 @@ import java.util.Set;
  */
 public interface ManagedResource
 {
+   /**
+    * Managed resource description
+    *
+    * @param address address of the managed resource
+    * @return description of this managed resource
+    */
    ManagedDescription getResourceDescription(PathAddress address);
 
+   /**
+    * Retrieves an operation handler for a given managed resource.
+    *
+    * @param address address of the managed resource
+    * @param operationName name of the operation
+    * @return the {@link OperationHandler} responsible for executing the operation.
+    */
    OperationHandler getOperationHandler(PathAddress address, String operationName);
 
+   /**
+    * Description of the operation for a given managed resource.
+    *
+    * @param address address of the resource
+    * @param operationName name of the operation
+    * @return a managed description or null if operation doesn't exist.
+    */
    ManagedDescription getOperationDescription(PathAddress address, String operationName);
 
+   /**
+    * Description of all operations for a given managed resource.
+    *
+    * @param address address of the resource
+    * @return map of descriptions with the key being the operation name.
+    */
    Map<String, ManagedDescription> getOperationDescriptions(PathAddress address);
 
+   /**
+    * Retrieves a managed resource given an address.
+    *
+    * @param address address of the sub-resource
+    * @return a manged resource or null if none was found.
+    */
    ManagedResource getSubResource(PathAddress address);
 
+   /**
+    * List of child names for a managed resource.
+    *
+    * @param address address of the managed resource.
+    * @return set of child names, or an empty set if no children exist.
+    */
    Set<String> getChildNames(PathAddress address);
 
    public static interface Registration
    {
+      /**
+       * Registers a sub-resource for the given managed resource.  This becomes a child of the managed resource.
+       *
+       * @param name name of the sub-resource
+       * @param description description of the sub-resource
+       * @return registration belonging to the sub-resource.
+       */
       Registration registerSubResource(String name, ManagedDescription description);
 
+      /**
+       * Registers an operation handler for a given operation.
+       *
+       * @param operationName name of the operation
+       * @param operationHandler object responsible for handling the operation
+       * @param description description of the operation
+       */
       void registerOperationHandler(String operationName, OperationHandler operationHandler, ManagedDescription description);
 
+      /**
+       * Registers an operation handler for a given operation.
+       *
+       * @param operationName name of the operation
+       * @param operationHandler object responsible for handling the operation
+       * @param description description of the operation
+       * @param inherited indicates whether this operation should be inherited by sub-resources. Default is false.
+       */
       void registerOperationHandler(String operationName, OperationHandler operationHandler, ManagedDescription description, boolean inherited);
    }
 }

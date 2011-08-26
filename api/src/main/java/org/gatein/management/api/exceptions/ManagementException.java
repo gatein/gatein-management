@@ -23,6 +23,8 @@
 package org.gatein.management.api.exceptions;
 
 /**
+ * Base management exceptions.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */

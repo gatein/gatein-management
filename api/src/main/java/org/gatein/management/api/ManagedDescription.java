@@ -23,6 +23,8 @@
 package org.gatein.management.api;
 
 /**
+ * Object representing a managed description.  The description can be describing an operation or managed resource for example.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */

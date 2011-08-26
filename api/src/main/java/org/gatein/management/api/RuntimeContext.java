@@ -23,10 +23,18 @@
 package org.gatein.management.api;
 
 /**
+ * Access to GateIn runtime.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public interface RuntimeContext
 {
+   /**
+    * Provides access to runtime components.
+    *
+    * @param componentClass the class (type) of the component.
+    * @return the runtime component
+    */
    <T> T getRuntimeComponent(Class<T> componentClass);
 }

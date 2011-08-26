@@ -25,6 +25,10 @@ package org.gatein.management.api;
 import org.gatein.management.api.binding.BindingProvider;
 
 /**
+ * Low level service to obtain managed resources and information about the resources.  However,
+ * {@link org.gatein.management.api.controller.ManagementController} should be
+ * used to communicate with managed resources.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */

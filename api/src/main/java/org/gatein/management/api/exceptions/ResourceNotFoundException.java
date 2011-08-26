@@ -23,6 +23,8 @@
 package org.gatein.management.api.exceptions;
 
 /**
+ * Used to indicate a managed resource was not found.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */

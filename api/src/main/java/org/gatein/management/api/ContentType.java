@@ -26,13 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Available content types for management operations.
+ *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 public enum ContentType
 {
-   // Supported content types for management operations
-
    JSON("json"),
    XML("xml"),
    ZIP("zip");
@@ -57,11 +57,19 @@ public enum ContentType
       MAP = tmp;
    }
 
+   /**
+    *
+    * @return name of the content type.
+    */
    public String getName()
    {
       return name;
    }
 
+   /**
+    * @param name name of the content type
+    * @return content type based on the name
+    */
    public static ContentType forName(String name)
    {
       return MAP.get(name);

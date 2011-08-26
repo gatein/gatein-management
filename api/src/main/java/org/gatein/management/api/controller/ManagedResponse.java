@@ -31,16 +31,40 @@ import java.io.OutputStream;
  */
 public interface ManagedResponse
 {
+   /**
+    * @return outcome of the response.  If it failed, a failure description must be provided.
+    */
    Outcome getOutcome();
 
+   /**
+    * The result of an operation.  This object is the object an {@link org.gatein.management.api.operation.OperationHandler}
+    * sets on the {@link org.gatein.management.api.operation.ResultHandler} object.  This result is specific to the operation
+    * handler, and the extension it belongs to.
+    * @return the result.
+    */
    Object getResult();
 
+   /**
+    * Will write the result to the outputStream.  This will use the {@link org.gatein.management.api.binding.BindingProvider}
+    * registered for an extension.
+    *
+    * @param outputStream the stream to write the result to.
+    * @throws IOException if an exception occurred writing to the stream.
+    */
    void writeResult(OutputStream outputStream) throws IOException;
 
    public static interface Outcome
    {
+      /**
+       * Indicates a successful outcome
+       * @return true if the outcome was a success.
+       */
       boolean isSuccess();
 
+      /**
+       * Indicates the outcome was a failure, providing a description.
+       * @return the description of the failure.
+       */
       String getFailureDescription();
    }
 }

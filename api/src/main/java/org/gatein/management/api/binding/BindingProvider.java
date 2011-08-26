@@ -30,5 +30,13 @@ import org.gatein.management.api.ContentType;
  */
 public interface BindingProvider
 {
+   /**
+    * Returns a marshaller given the class and content type.
+    *
+    * @param type the type of class
+    * @param contentType the content type
+    * @return the the marshaller or null if none was found for the given class and content type.
+    * @throws BindingException if an exception occurs finding a marshaller.
+    */
    <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException;
 }

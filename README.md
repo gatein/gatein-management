@@ -45,6 +45,7 @@ Http Methods:
     GET
 
 Example GET Request @ http://localhost:8080/rest/private/managed-components:
+
     {
 
         description: "Lists registered managed components."

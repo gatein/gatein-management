@@ -91,7 +91,7 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
    }
 
    @Override
-   public final Set<String> getChildNames(PathAddress address)
+   public final Set<String> getSubResourceNames(PathAddress address)
    {
       return getChildNames(address.iterator());
    }

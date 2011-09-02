@@ -48,10 +48,11 @@ Example GET Request @ http://localhost:8080/rest/private/managed-components:
 
     {
 
-        description: "Lists registered managed components."
+        description: "Available operations and children (sub-resources)."
         children: [
             {
                 name: "mop"
+                description: "MOP (Model Object for Portal) Managed Resource, responsible for handling management operations on navigation, pages, and sites."
                 link: {
                     rel: "child"
                     href: "http://localhost:8080/rest/private/managed-components/mop"

@@ -96,6 +96,7 @@ public class JsonResourceProvider implements MessageBodyWriter<Resource>
    private void writeChild(Child child, JSONWriter writer) throws IOException, JSONException
    {
       writer.object().key("name").value(child.getName());
+      writer.key("description").value(child.getDescription());
       writeLink("link", child.getLink(), writer);
       writer.endObject();
    }

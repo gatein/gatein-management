@@ -25,6 +25,7 @@ package org.gatein.management.core.api;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ManagedDescription;
+import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.PathAddressIterator;
 import org.gatein.management.api.PathTemplateResolver;
@@ -209,6 +210,12 @@ public class SimpleManagedResource extends AbstractManagedResource
       {
          return this;
       }
+   }
+
+   @Override
+   public ManagedResource getSubResource(String childName)
+   {
+      return children.get(childName);
    }
 
    @Override

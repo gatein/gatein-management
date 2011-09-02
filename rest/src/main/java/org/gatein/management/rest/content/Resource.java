@@ -1,7 +1,7 @@
 package org.gatein.management.rest.content;
 
 import org.gatein.management.api.operation.OperationNames;
-import org.gatein.management.api.operation.model.OperationInfo;
+import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 
 import javax.ws.rs.core.MediaType;
@@ -42,27 +42,27 @@ public class Resource
       if (readResource.getOperations() != null)
       {
          List<Operation> operations = new ArrayList<Operation>(readResource.getOperations().size());
-         for (OperationInfo info : readResource.getOperations())
+         for (NamedDescription operationDescribed : readResource.getOperations())
          {
-            Operation operation = new Operation(info.getName(), info.getDescription(), null);
+            Operation operation = new Operation(operationDescribed.getName(), operationDescribed.getDescription(), null);
             operations.add(operation);
 
             Link link;
-            if (info.getName().equals(OperationNames.READ_RESOURCE))
+            if (operationDescribed.getName().equals(OperationNames.READ_RESOURCE))
             {
                link = new LinkBuilder(uriBuilder).rel("self").build();
             }
-            else if (info.getName().equals(OperationNames.READ_CONFIG_AS_XML))
+            else if (operationDescribed.getName().equals(OperationNames.READ_CONFIG_AS_XML))
             {
                link = new LinkBuilder(uriBuilder)
                   .rel("content").extension("xml").type(MediaType.APPLICATION_XML).replaceQuery("").build();
             }
-            else if (info.getName().equals(OperationNames.EXPORT_RESOURCE))
+            else if (operationDescribed.getName().equals(OperationNames.EXPORT_RESOURCE))
             {
                link = new LinkBuilder(uriBuilder)
                   .rel("content").extension("zip").type("application/zip").replaceQuery("").method("get").build();
             }
-            else if (info.getName().equals(OperationNames.IMPORT_RESOURCE))
+            else if (operationDescribed.getName().equals(OperationNames.IMPORT_RESOURCE))
             {
                link = new LinkBuilder(uriBuilder)
                   .rel("operation").replaceQuery("").type("application/zip").method("put").build();
@@ -70,17 +70,18 @@ public class Resource
             else
             {
                link = new LinkBuilder(uriBuilder)
-                  .rel("operation").replaceQueryParam("op", info.getName()).build();
+                  .rel("operation").replaceQueryParam("op", operationDescribed.getName()).build();
             }
             operation.setOperationLink(link);
          }
          this.operations = new OperationsContainer(operations);
       }
 
-      Set<Child> children = new LinkedHashSet<Child>(readResource.getChildren().size());
-      for (String child : readResource.getChildren())
+      Set<Child> children = new LinkedHashSet<Child>(readResource.getChildDescriptions().size());
+      for (NamedDescription childDescribed : readResource.getChildDescriptions())
       {
-         children.add(new Child(child, new LinkBuilder(uriBuilder).rel("child").path(child).build()));
+         Link link = new LinkBuilder(uriBuilder).rel("child").path(childDescribed.getName()).build();
+         children.add(new Child(childDescribed.getName(), childDescribed.getDescription(), link));
       }
 
       this.children = new ChildrenContainer(children);

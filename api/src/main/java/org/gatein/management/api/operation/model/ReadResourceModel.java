@@ -35,21 +35,30 @@ import java.util.Set;
 public class ReadResourceModel
 {
    private String description;
-   private Set<String> children;
-   private List<OperationInfo> operations;
+   private List<NamedDescription> operations;
+   private List<NamedDescription> children;
+   private boolean childDescriptionsSet;
 
-   private ReadResourceModel() {}
-
-   public ReadResourceModel(String description, Set<String> children)
+   /**
+    * Result of a successful read-resource operation.
+    *
+    * @param description description of the result of a read-resource operation.
+    * @param childNames the children (if any) of the managed resource.
+    *
+    */
+   public ReadResourceModel(String description, Set<String> childNames)
    {
-      this(description, children, Collections.<OperationInfo>emptyList());
-   }
+      if (description == null) throw new IllegalArgumentException("description was null");
+      if (childNames == null) throw new IllegalArgumentException("childNames was null");
 
-   public ReadResourceModel(String description, Set<String> children, List<OperationInfo> operations)
-   {
       this.description = description;
-      this.children = new LinkedHashSet<String>(children);
-      this.operations = new ArrayList<OperationInfo>(operations);
+      this.children = new ArrayList<NamedDescription>(childNames.size());
+      for (String childName : childNames)
+      {
+         // Core implementation will add the descriptions after so 'dynamic' extensions don't have to.
+         children.add(new NamedDescription(childName, null));
+      }
+      childDescriptionsSet = false;
    }
 
    public String getDescription()
@@ -59,11 +68,61 @@ public class ReadResourceModel
 
    public Set<String> getChildren()
    {
-      return Collections.unmodifiableSet(children);
+      Set<String> childNames = new LinkedHashSet<String>(children.size());
+      for (NamedDescription nd : children)
+      {
+         childNames.add(nd.getName());
+      }
+
+      return Collections.unmodifiableSet(childNames);
    }
 
-   public List<OperationInfo> getOperations()
+   public List<NamedDescription> getOperations()
    {
+      if (operations == null) return Collections.emptyList();
+
       return Collections.unmodifiableList(operations);
+   }
+
+   public void addOperation(NamedDescription namedDescription)
+   {
+      if (operations == null) operations = new ArrayList<NamedDescription>();
+
+      operations.add(namedDescription);
+   }
+
+   public NamedDescription getChildDescription(String childName)
+   {
+      return findNamedDescription(childName, children);
+   }
+
+   public List<NamedDescription> getChildDescriptions()
+   {
+      return Collections.unmodifiableList(children);
+   }
+
+   public void setChildDescription(String name, String description)
+   {
+      NamedDescription found = findNamedDescription(name, children);
+      if (found != null)
+      {
+         found.setDescription(description);
+         childDescriptionsSet = true;
+      }
+   }
+
+   public boolean isChildDescriptionsSet()
+   {
+      return childDescriptionsSet;
+   }
+
+   private NamedDescription findNamedDescription(String name, List<NamedDescription> namedDescriptions)
+   {
+      for (NamedDescription nd : namedDescriptions)
+      {
+         if (name.equals(nd.getName())) return nd;
+      }
+
+      return null;
    }
 }

@@ -36,15 +36,11 @@ import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationHandler;
-import org.gatein.management.api.operation.model.OperationInfo;
+import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
-import org.gatein.management.core.api.ManagementServiceImpl;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -102,19 +98,36 @@ public class SimpleManagementController implements ManagementController
          else
          {
             Object result = resultHandler.getResult();
+
+            // Set descriptions based on the ManagedResource so 'dynamic' extensions don't have to.
             if (result instanceof ReadResourceModel)
             {
                ReadResourceModel readResource = (ReadResourceModel) result;
-               if (readResource.getOperations() == null || readResource.getOperations().isEmpty())
+               if (!readResource.isChildDescriptionsSet())
+               {
+                  ManagedResource currentResource = root.getSubResource(address);
+                  // Set children descriptions
+                  for (String subResourceName : currentResource.getSubResourceNames(PathAddress.empty()))
+                  {
+                     ManagedResource subResource = currentResource.getSubResource(subResourceName);
+                     for (String childName : readResource.getChildren())
+                     {
+                        ManagedResource mr = root.getSubResource(address.append(childName));
+                        if (mr == subResource)
+                        {
+                           readResource.setChildDescription(childName, mr.getResourceDescription(PathAddress.empty()).getDescription());
+                        }
+                     }
+                  }
+               }
+
+               if (readResource.getOperations().isEmpty())
                {
                   Map<String, ManagedDescription> descriptions = root.getOperationDescriptions(address);
-                  List<OperationInfo> operations = new ArrayList<OperationInfo>(descriptions.size());
                   for (Map.Entry<String, ManagedDescription> desc : descriptions.entrySet())
                   {
-                     operations.add(new OperationInfo(desc.getKey(), desc.getValue().getDescription()));
+                     readResource.addOperation(new NamedDescription(desc.getKey(), desc.getValue().getDescription()));
                   }
-
-                  result = new ReadResourceModel(readResource.getDescription(), readResource.getChildren(), operations);
                }
             }
 

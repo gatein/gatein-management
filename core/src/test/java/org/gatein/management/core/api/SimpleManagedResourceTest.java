@@ -25,12 +25,9 @@ package org.gatein.management.core.api;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.operation.OperationHandler;
-import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -74,6 +71,25 @@ public class SimpleManagedResourceTest
       assertNotNull(root.getSubResource(PathAddress.pathAddress("b")));
       assertNotNull(root.getSubResource(PathAddress.pathAddress("c")));
       assertNotNull(root.getSubResource(PathAddress.pathAddress("c", "c-1")));
+   }
+
+   @Test
+   public void testChildSubResource()
+   {
+      SimpleManagedResource root = createRootResource();
+      ManagedResource.Registration foo = root.registerSubResource("foo", description("foo description"));
+
+      foo.registerSubResource("bar/{name: [a-zA-Z]*}", description("bar description"));
+      ManagedResource.Registration barname = foo.registerSubResource("bar/{name: [a-zA-Z]*}/foo/{param: .*}", description("bar name description"));
+      barname.registerSubResource("child", description("bar name child description"));
+
+      ManagedResource fooResource = root.getSubResource("foo");
+      assertNotNull(fooResource);
+      ManagedResource barResource = fooResource.getSubResource("bar/{name: [a-zA-Z]*}");
+      assertNotNull(barResource);
+      ManagedResource barnameResource = fooResource.getSubResource("bar/{name: [a-zA-Z]*}/foo/{param: .*}");
+      assertNotNull(barnameResource);
+      assertNotNull(barnameResource.getSubResource("child"));
    }
 
    @Test
@@ -437,7 +453,7 @@ public class SimpleManagedResourceTest
 
    private void assertChildNames(ManagedResource root, Set<String> expected, String...path)
    {
-      Set<String> actual = root.getChildNames(PathAddress.pathAddress(path));
+      Set<String> actual = root.getSubResourceNames(PathAddress.pathAddress(path));
       assertNotNull(actual);
       assertEquals(expected.size(), actual.size());
 

@@ -60,6 +60,17 @@ public class PathAddressTest
    }
 
    @Test
+   public void testPathAddressSlashes()
+   {
+      PathAddress address = PathAddress.pathAddress("one", "two", "three");
+
+      assertEquals(address, PathAddress.pathAddress("one/two", "three"));
+      assertEquals(address, PathAddress.pathAddress("one/two/", "three"));
+      assertEquals(address, PathAddress.pathAddress("/one/two/", "three"));
+      assertEquals(address, PathAddress.pathAddress("one", "/two/three"));
+   }
+
+   @Test
    public void testSubAddress()
    {
       PathAddress address = PathAddress.pathAddress("one", "two", "three");

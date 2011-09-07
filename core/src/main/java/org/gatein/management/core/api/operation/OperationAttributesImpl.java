@@ -48,13 +48,16 @@ public class OperationAttributesImpl implements OperationAttributes
    @Override
    public String getValue(String name)
    {
-      List<String> list = attributes.get(name);
-      return (list != null && list.size() > 0) ? list.get(0) : null;
+      List<String> list = getValues(name);
+      return (list.isEmpty()) ? null : list.get(0);
    }
 
    @Override
    public List<String> getValues(String name)
    {
-      return Collections.unmodifiableList(attributes.get(name));
+      List<String> list = attributes.get(name);
+      if (list == null) return Collections.emptyList();
+      
+      return Collections.unmodifiableList(list);
    }
 }

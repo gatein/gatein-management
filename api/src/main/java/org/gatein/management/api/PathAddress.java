@@ -23,7 +23,6 @@
 package org.gatein.management.api;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +54,12 @@ public class PathAddress implements Iterable<String>
    {
       if (paths == null) throw new IllegalArgumentException("paths is null");
 
-      return new PathAddress(Arrays.asList(paths));
+      PathAddress address = PathAddress.empty();
+      for (String path : paths)
+      {
+         address = address.append(path);
+      }
+      return address;
    }
 
    /**
@@ -72,7 +76,7 @@ public class PathAddress implements Iterable<String>
          addressPath = addressPath.substring(1, addressPath.length());
       }
 
-      return new PathAddress(Arrays.asList(addressPath.split("/")));
+      return new PathAddress(split(addressPath, "/"));
    }
 
    List<String> pathList;
@@ -181,6 +185,25 @@ public class PathAddress implements Iterable<String>
       return Collections.unmodifiableList(resolvers);
    }
 
+   /**
+    * Whether or not this address accepts the filter.
+    * @param filter the filter
+    * @return true if the {@link PathTemplateFilter#filter(PathAddress)} method returns a filtered address which is filtered, and
+    * matches {@link org.gatein.management.api.FilteredAddress#matches()}.
+    */
+   public boolean accepts(PathTemplateFilter filter)
+   {
+      FilteredAddress filtered = filter.filter(this);
+      if (filtered != null && filtered.isFiltered())
+      {
+         return filtered.matches();
+      }
+      else
+      {
+         return true;
+      }
+   }
+
    @Override
    public PathAddressIterator iterator()
    {
@@ -228,5 +251,20 @@ public class PathAddress implements Iterable<String>
       }
 
       return sb.toString();
+   }
+
+   static List<String> split(String string, String regex)
+   {
+      String[] split = string.split(regex);
+      List<String> trimmed = new ArrayList<String>(split.length);
+      for (String s : split)
+      {
+         if (s != null && !s.equals(""))
+         {
+            trimmed.add(s.trim());
+         }
+      }
+
+      return trimmed;
    }
 }

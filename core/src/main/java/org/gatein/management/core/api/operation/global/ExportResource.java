@@ -36,6 +36,7 @@ import org.gatein.management.api.operation.StepResultHandler;
 import org.gatein.management.api.operation.model.ExportResourceModel;
 import org.gatein.management.api.operation.model.ExportTask;
 import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.core.api.PathAddressFilter;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ import java.util.List;
  */
 public class ExportResource extends QueryOperationHandler<ExportResourceModel>
 {
-      @Override
+   @Override
    protected ExportResourceModel execute(OperationContext operationContext) throws ResourceNotFoundException, OperationException
    {
       ManagedResource resource = operationContext.getManagedResource();
@@ -96,7 +97,21 @@ public class ExportResource extends QueryOperationHandler<ExportResourceModel>
       OperationHandler handler = resource.getOperationHandler(address, operationName);
       if (handler != null && handler != this)
       {
-         handler.execute(operationContext, stepResultHandler);
+         List<String> filterAttributes = operationContext.getAttributes().getValues("filter");
+         PathAddressFilter filter;
+         try
+         {
+            filter = PathAddressFilter.parse(filterAttributes);
+         }
+         catch (Exception e)
+         {
+            throw new OperationException(operationName, "Invalid 'filter' attribute: " + filterAttributes, e);
+         }
+
+         if (filter.accept(address))
+         {
+            handler.execute(operationContext, stepResultHandler);
+         }
       }
       else
       {

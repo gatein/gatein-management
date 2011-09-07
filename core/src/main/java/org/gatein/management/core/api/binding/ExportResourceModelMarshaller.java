@@ -67,15 +67,22 @@ public class ExportResourceModelMarshaller implements Marshaller<ExportResourceM
 
       try
       {
-         for (ExportTask task : model.getTasks())
+         if (model.getTasks().isEmpty())
          {
-            String entry = task.getEntry();
-            zos.putNextEntry(new ZipEntry(entry));
+            zos.putNextEntry(new ZipEntry(""));
+         }
+         else
+         {
+            for (ExportTask task : model.getTasks())
+            {
+               String entry = task.getEntry();
+               zos.putNextEntry(new ZipEntry(entry));
 
-            // Call export task responsible for writing the data.
-            task.export(zos);
+               // Call export task responsible for writing the data.
+               task.export(zos);
 
-            zos.closeEntry();
+               zos.closeEntry();
+            }
          }
          zos.flush();
          zos.finish();

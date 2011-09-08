@@ -27,12 +27,11 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.QueryOperationHandler;
-import org.gatein.management.api.operation.model.OperationInfo;
+import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -54,14 +53,24 @@ public class GlobalOperationHandlers
          ManagedResource resource = operationContext.getManagedResource();
          PathAddress address = operationContext.getAddress();
 
-         Map<String, ManagedDescription> descriptions = resource.getOperationDescriptions(address);
-         List<OperationInfo> operations = new ArrayList<OperationInfo>(descriptions.size());
-         for (Map.Entry<String, ManagedDescription> desc : descriptions.entrySet())
+         Set<String> children = resource.getSubResourceNames(address);
+         ReadResourceModel readResourceModel = new ReadResourceModel("Available operations and children (sub-resources).", children);
+
+         // Set children descriptions
+         for (String child : children)
          {
-            operations.add(new OperationInfo(desc.getKey(), desc.getValue().getDescription()));
+            ManagedDescription desc = resource.getResourceDescription(address.append(child));
+            readResourceModel.setChildDescription(child, desc.getDescription());
          }
 
-         return new ReadResourceModel("Lists registered managed components.", resource.getChildNames(address), operations);
+         // Set operation descriptions
+         Map<String, ManagedDescription> descriptions = resource.getOperationDescriptions(address);
+         for (Map.Entry<String, ManagedDescription> desc : descriptions.entrySet())
+         {
+            readResourceModel.addOperation(new NamedDescription(desc.getKey(), desc.getValue().getDescription()));
+         }
+
+         return readResourceModel;
       }
 
       @Override

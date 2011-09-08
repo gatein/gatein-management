@@ -76,12 +76,20 @@ public interface ManagedResource
    ManagedResource getSubResource(PathAddress address);
 
    /**
-    * List of child names for a managed resource.
+    * Retrieves a managed resource given a child's name.
+    *
+    * @param childName name of the child sub-resource
+    * @return a manged resource or null if none was found.
+    */
+   ManagedResource getSubResource(String childName);
+
+   /**
+    * List of direct sub-resource names for a given managed resource and address
     *
     * @param address address of the managed resource.
-    * @return set of child names, or an empty set if no children exist.
+    * @return set of sub-resource names, or an empty set if no sub-resources exist.
     */
-   Set<String> getChildNames(PathAddress address);
+   Set<String> getSubResourceNames(PathAddress address);
 
    public static interface Registration
    {

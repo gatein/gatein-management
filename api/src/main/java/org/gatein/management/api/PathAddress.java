@@ -52,7 +52,7 @@ public class PathAddress implements Iterable<String>
     */
    public static PathAddress pathAddress(String... paths)
    {
-      if (paths == null) throw new IllegalArgumentException("paths is null");
+      if (paths == null || paths.length == 0) return empty();
 
       PathAddress address = PathAddress.empty();
       for (String path : paths)
@@ -69,7 +69,7 @@ public class PathAddress implements Iterable<String>
     */
    public static PathAddress pathAddress(String addressPath)
    {
-      if (addressPath == null) throw new IllegalArgumentException("addressString is null");
+      if (addressPath == null || addressPath.length() == 0) return empty();
 
       if (addressPath.charAt(0) == '/')
       {

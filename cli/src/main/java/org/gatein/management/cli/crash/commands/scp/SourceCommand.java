@@ -63,7 +63,7 @@ public class SourceCommand extends SCPCommand
 
       return controller.execute(ManagedRequest.Factory.create(
          operationName,
-         PathAddress.pathAddress(trim(path.split("/"))),
+         PathAddress.pathAddress(path),
          contentType)
       );
    }

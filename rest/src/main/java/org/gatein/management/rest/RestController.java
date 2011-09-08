@@ -185,7 +185,7 @@ public class RestController
       ContentType contentType = ContentType.ZIP;
       String operationName = OperationNames.IMPORT_RESOURCE;
 
-      PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
+      PathAddress address = PathAddress.pathAddress(path);
       try
       {
          controller.execute(ManagedRequest.Factory.create(operationName, address, uriInfo.getQueryParameters(), data, contentType));
@@ -238,7 +238,7 @@ public class RestController
          }
       }
 
-      final PathAddress address = PathAddress.pathAddress(trim(path.split("/")));
+      final PathAddress address = PathAddress.pathAddress(path);
       try
       {
          ManagedResponse resp = controller.execute(ManagedRequest.Factory.create(operationName, address, parameters, contentType));
@@ -270,20 +270,6 @@ public class RestController
 
          return failure(message, operationName, Status.INTERNAL_SERVER_ERROR, contentType);
       }
-   }
-
-   private static String[] trim(String[] array)
-   {
-      List<String> trimmed = new ArrayList<String>(array.length);
-      for (String s : array)
-      {
-         if (s != null && !"".equals(s))
-         {
-            trimmed.add(s);
-         }
-      }
-
-      return trimmed.toArray(new String[trimmed.size()]);
    }
 
    private Response failure(String failureDescription, String operationName, Status status, ContentType contentType)

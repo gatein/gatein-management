@@ -77,7 +77,7 @@ public class SinkCommand extends SCPCommand
                   }
                };
 
-               controller.execute(ManagedRequest.Factory.create(operationName, PathAddress.pathAddress(trim(path.split("/"))), inputStream, ContentType.ZIP));
+               controller.execute(ManagedRequest.Factory.create(operationName, PathAddress.pathAddress(path), inputStream, ContentType.ZIP));
                ack();
                readAck();
                

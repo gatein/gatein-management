@@ -25,6 +25,7 @@ package org.gatein.management.core.api.operation.global;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.PathTemplateFilter;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationContext;
@@ -38,6 +39,7 @@ import org.gatein.management.api.operation.model.ExportTask;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +49,7 @@ import java.util.List;
  */
 public class ExportResource extends QueryOperationHandler<ExportResourceModel>
 {
-      @Override
+   @Override
    protected ExportResourceModel execute(OperationContext operationContext) throws ResourceNotFoundException, OperationException
    {
       ManagedResource resource = operationContext.getManagedResource();
@@ -96,7 +98,21 @@ public class ExportResource extends QueryOperationHandler<ExportResourceModel>
       OperationHandler handler = resource.getOperationHandler(address, operationName);
       if (handler != null && handler != this)
       {
-         handler.execute(operationContext, stepResultHandler);
+         List<String> filterAttributes = operationContext.getAttributes().getValues("filter");
+         PathTemplateFilter filter;
+         try
+         {
+            filter = PathTemplateFilter.parse(filterAttributes);
+         }
+         catch (ParseException e)
+         {
+            throw new OperationException(operationName, "Could not parse filter attributes.", e);
+         }
+
+         if (address.accepts(filter))
+         {
+            handler.execute(operationContext, stepResultHandler);
+         }
       }
       else
       {

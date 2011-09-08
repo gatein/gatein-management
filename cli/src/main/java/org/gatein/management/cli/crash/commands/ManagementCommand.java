@@ -54,7 +54,7 @@ public class ManagementCommand extends GateInCommand implements Completer
             ManagementController controller = (ManagementController) getProperty("controller");
 
             PathAddress address = (PathAddress) getProperty("address");
-            PathAddress relative = PathAddress.pathAddress(trim(prefix.split("/")));
+            PathAddress relative = PathAddress.pathAddress(prefix);
 
             // Append to current address if not relative
             if (prefix.length() == 0 || prefix.charAt(0) != '/')
@@ -124,8 +124,7 @@ public class ManagementCommand extends GateInCommand implements Completer
       {
          if (path.charAt(0) == '/')
          {
-            String[] paths = trim(path.split("/"));
-            pathAddress = PathAddress.pathAddress(paths);
+            pathAddress = PathAddress.pathAddress(path);
          }
          else if (path.equals(".."))
          {
@@ -153,19 +152,5 @@ public class ManagementCommand extends GateInCommand implements Completer
       }
 
       return Collections.emptySet();
-   }
-
-   protected String[] trim(String[] array)
-   {
-      List<String> trimmed = new ArrayList<String>(array.length);
-      for (String s : array)
-      {
-         if (s != null && !"".equals(s))
-         {
-            trimmed.add(s);
-         }
-      }
-
-      return trimmed.toArray(new String[trimmed.size()]);
    }
 }

@@ -120,11 +120,6 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       }
    }
 
-   protected String[] trim(String[] array)
-   {
-      return scpManagementCommand.trim(array);
-   }
-
    protected void ack() throws IOException
    {
       out.write(0);
@@ -215,12 +210,6 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       protected <T> T getComponent(String containerName, Class<T> componentClass) throws ScriptException
       {
          return super.getComponent(containerName, componentClass);
-      }
-
-      @Override
-      protected String[] trim(String[] array)
-      {
-         return super.trim(array);
       }
    }
 

@@ -177,7 +177,7 @@ public class PathAddress implements Iterable<String>
 
    public void addPathTemplateResolver(PathTemplateResolver resolver)
    {
-      resolvers.add(resolver);
+      resolvers.add(0, resolver);
    }
 
    public List<PathTemplateResolver> getPathTemplateResolvers()

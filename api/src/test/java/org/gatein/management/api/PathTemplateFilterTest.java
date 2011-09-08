@@ -30,6 +30,21 @@ public class PathTemplateFilterTest
       });
 
       Assert.assertTrue(address.accepts(filter));
+
+      filter = PathTemplateFilter.create("foo").include("bar", "foobar").build();
+      address = PathAddress.pathAddress("some", "path");
+
+      address.addPathTemplateResolver(new PathTemplateResolver()
+      {
+         @Override
+         public String resolve(String templateName)
+         {
+            if (templateName.equals("foo")) return "foobar";
+            return null;
+         }
+      });
+
+      Assert.assertTrue(address.accepts(filter));
    }
 
    @Test
@@ -38,6 +53,20 @@ public class PathTemplateFilterTest
       PathTemplateFilter filter = PathTemplateFilter.create("foo").include("bar").build();
       PathAddress address = PathAddress.pathAddress("some", "path");
 
+      address.addPathTemplateResolver(new PathTemplateResolver()
+      {
+         @Override
+         public String resolve(String templateName)
+         {
+            if (templateName.equals("foo")) return "blah";
+            return null;
+         }
+      });
+
+      Assert.assertFalse(address.accepts(filter));
+
+      filter = PathTemplateFilter.create("foo").include("foo").and("abc").include("123").build();
+      address = PathAddress.pathAddress("some", "path");
       address.addPathTemplateResolver(new PathTemplateResolver()
       {
          @Override
@@ -66,6 +95,9 @@ public class PathTemplateFilterTest
             return null;
          }
       });
+
+      Assert.assertTrue(address.accepts(filter));
+
       address.addPathTemplateResolver(new PathTemplateResolver()
       {
          @Override

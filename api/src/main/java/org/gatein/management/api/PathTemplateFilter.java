@@ -2,7 +2,9 @@ package org.gatein.management.api;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,27 +23,9 @@ public abstract class PathTemplateFilter
 
    private static final String WILDCARD = "*";
 
-   private static final PathTemplateFilter NO_OP_FILTER = new PathTemplateFilter()
-   {
-      @Override
-      FilteredAddress filter(PathAddress address)
-      {
-         return new FilteredAddress()
-         {
-            @Override
-            public boolean isFiltered()
-            {
-               return true;
-            }
+   abstract FilteredAddress filter(PathAddress address);
 
-            @Override
-            public boolean matches()
-            {
-               return true;
-            }
-         };
-      }
-   };
+   public abstract boolean hasPathTemplate(String pathTemplateName);
 
    /**
     * Used to parse a attributes to a filter attribute format.
@@ -134,15 +118,13 @@ public abstract class PathTemplateFilter
       return new BuilderImpl(pathTemplate);
    }
 
-   abstract FilteredAddress filter(PathAddress address);
-
    private static class SimpleFilter extends PathTemplateFilter
    {
-      private final List<Rule> rules;
+      private final List<Expression> expressions;
 
-      public SimpleFilter(List<Rule> rules)
+      public SimpleFilter(List<Expression> expressions)
       {
-         this.rules = rules;
+         this.expressions = expressions;
       }
 
       @Override
@@ -153,9 +135,9 @@ public abstract class PathTemplateFilter
             @Override
             public boolean isFiltered()
             {
-               for (Rule rule : rules)
+               for (Expression expression : expressions)
                {
-                  boolean filtered = rule.resolves(address);
+                  boolean filtered = expression.resolves(address);
                   if (filtered) return true;
                }
 
@@ -165,24 +147,47 @@ public abstract class PathTemplateFilter
             @Override
             public boolean matches()
             {
+               //TODO: Clean this logic up.
                boolean overall = true;
-               for (Rule rule : rules)
+               Set<String> matchedTemplates = new HashSet<String>();
+               for (Expression expression : expressions)
                {
-                  boolean match = rule.match(address);
-                  if (match && rule.filterType == FilterType.exclusion && rule.resolves(address))
+                  if (matchedTemplates.contains(expression.templateName)) continue;
+
+                  boolean match = expression.match(address);
+                  if (match && expression.filterType == FilterType.exclusion && expression.resolves(address))
                   {
                      return false;
                   }
-                  if (rule.filterType == FilterType.exclusion)
+                  else if (expression.filterType == FilterType.exclusion)
                   {
-                     match = true;
+                     overall = true;
                   }
-                  overall = overall && match;
+                  else if (match && expression.resolves(address))
+                  {
+                     matchedTemplates.add(expression.templateName);
+                     overall = true;
+                  }
+                  else
+                  {
+                     overall = overall && match;
+                  }
                }
 
                return overall;
             }
          };
+      }
+
+      @Override
+      public boolean hasPathTemplate(String pathTemplateName)
+      {
+         for (Expression expression : expressions)
+         {
+            if (expression.templateName.equals(pathTemplateName)) return true;
+         }
+
+         return false;
       }
 
       @Override
@@ -193,7 +198,7 @@ public abstract class PathTemplateFilter
 
          SimpleFilter that = (SimpleFilter) o;
 
-         if (!rules.equals(that.rules)) return false;
+         if (!expressions.equals(that.expressions)) return false;
 
          return true;
       }
@@ -201,17 +206,45 @@ public abstract class PathTemplateFilter
       @Override
       public int hashCode()
       {
-         return rules.hashCode();
+         return expressions.hashCode();
       }
 
       @Override
       public String toString()
       {
          return "SimpleFilter{" +
-            "rules=" + rules +
+            "expressions=" + expressions +
             '}';
       }
    }
+
+   private static final PathTemplateFilter NO_OP_FILTER = new PathTemplateFilter()
+   {
+      @Override
+      FilteredAddress filter(PathAddress address)
+      {
+         return new FilteredAddress()
+         {
+            @Override
+            public boolean isFiltered()
+            {
+               return true;
+            }
+
+            @Override
+            public boolean matches()
+            {
+               return true;
+            }
+         };
+      }
+
+      @Override
+      public boolean hasPathTemplate(String pathTemplateName)
+      {
+         return false;
+      }
+   };
 
    public static interface Builder
    {
@@ -290,33 +323,33 @@ public abstract class PathTemplateFilter
    private static class BuilderImpl implements Builder, FilterTypeBuilder
    {
       private String pathTemplate;
-      private List<Rule> rules;
+      private List<Expression> expressions;
 
       public BuilderImpl(String pathTemplate)
       {
          this.pathTemplate = pathTemplate;
-         rules = new ArrayList<Rule>();
+         expressions = new ArrayList<Expression>();
       }
 
       @Override
       public FilterTypeBuilder include(String... includes)
       {
          if (includes == null) throw new IllegalArgumentException("includes is null");
-         addRule(FilterType.inclusion, includes);
+         addExpression(FilterType.inclusion, includes);
          return this;
       }
 
       @Override
       public FilterTypeBuilder includeAll()
       {
-         addRule(FilterType.inclusion, WILDCARD);
+         addExpression(FilterType.inclusion, WILDCARD);
          return this;
       }
 
       @Override
       public FilterTypeBuilder excludeAll()
       {
-         addRule(FilterType.exclusion, WILDCARD);
+         addExpression(FilterType.exclusion, WILDCARD);
          return this;
       }
 
@@ -324,14 +357,14 @@ public abstract class PathTemplateFilter
       public FilterTypeBuilder exclude(String... excludes)
       {
          if (excludes == null) throw new IllegalArgumentException("excludes is null");
-         addRule(FilterType.exclusion, excludes);
+         addExpression(FilterType.exclusion, excludes);
          return this;
       }
 
       @Override
       public PathTemplateFilter build()
       {
-         return new SimpleFilter(new ArrayList<Rule>(rules));
+         return new SimpleFilter(new ArrayList<Expression>(expressions));
       }
 
       @Override
@@ -341,36 +374,35 @@ public abstract class PathTemplateFilter
          return this;
       }
 
-      private void addRule(FilterType filterType, String...expressions)
+      private void addExpression(FilterType filterType, String... values)
       {
-         for (String expression : expressions)
+         for (String value : values)
          {
-            rules.add(new Rule(pathTemplate, expression, filterType));
+            expressions.add(new Expression(pathTemplate, value, filterType));
          }
       }
    }
 
-   // By default rules are ANDed.  We could add an option that says match any rule.
-   private static class Rule
+   private static class Expression
    {
       private final String templateName;
-      private final String expression;
+      private final String value;
       private final FilterType filterType;
 
-      private Rule(String templateName, String expression, FilterType filterType)
+      private Expression(String templateName, String value, FilterType filterType)
       {
          this.templateName = templateName;
-         this.expression = expression;
+         this.value = value;
          this.filterType = filterType;
       }
 
       public boolean match(PathAddress address)
       {
-         if (expression.equals("*")) return true;
+         if (value.equals("*")) return true;
 
          if (templateName == null)
          {
-            String path = expression;
+            String path = value;
             if (path.charAt(0) != '/') path = "/" + path;
 
             return path.equals(address.toString());
@@ -380,8 +412,8 @@ public abstract class PathTemplateFilter
             String resolved = address.resolvePathTemplate(templateName);
             if (resolved == null) return true; // we match because no path template matches
 
-            String path = expression;
-            if (expression.charAt(0) == '/') path = expression.substring(1); // strip the leading slash because path template's don't match leading slashes
+            String path = value;
+            if (value.charAt(0) == '/') path = value.substring(1); // strip the leading slash because path template's don't match leading slashes
 
             return resolved.equals(path);
          }
@@ -398,11 +430,11 @@ public abstract class PathTemplateFilter
          if (this == o) return true;
          if (o == null || getClass() != o.getClass()) return false;
 
-         Rule rule = (Rule) o;
+         Expression expression = (Expression) o;
 
-         if (!expression.equals(rule.expression)) return false;
-         if (filterType != rule.filterType) return false;
-         if (!templateName.equals(rule.templateName)) return false;
+         if (!value.equals(expression.value)) return false;
+         if (filterType != expression.filterType) return false;
+         if (!templateName.equals(expression.templateName)) return false;
 
          return true;
       }
@@ -411,7 +443,7 @@ public abstract class PathTemplateFilter
       public int hashCode()
       {
          int result = templateName.hashCode();
-         result = 31 * result + expression.hashCode();
+         result = 31 * result + value.hashCode();
          result = 31 * result + filterType.hashCode();
          return result;
       }
@@ -419,9 +451,9 @@ public abstract class PathTemplateFilter
       @Override
       public String toString()
       {
-         return "Rule{" +
+         return "expression{" +
             "templateName='" + templateName + '\'' +
-            ", expression='" + expression + '\'' +
+            ", value='" + value + '\'' +
             ", filterType=" + filterType +
             '}';
       }

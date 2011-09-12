@@ -127,6 +127,8 @@ public class SimpleManagedResource extends AbstractManagedResource
    @Override
    protected OperationEntry getOperationEntry(PathAddressIterator iterator, String operationName)
    {
+      if (operationName == null) return null;
+      
       OperationEntry entry = operations.get(operationName);
       if (iterator.hasNext())
       {

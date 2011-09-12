@@ -3,12 +3,13 @@ import org.gatein.management.api.ContentType
 import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedRequest
 import org.gatein.management.api.exceptions.ResourceNotFoundException
+import org.gatein.management.api.exceptions.OperationException
 
 assertConnected = {
   if (session == null) throw new ScriptException("Not connected !");
 };
 
-execute = { String operationName, PathAddress pathAddress, ContentType contentType, Closure printResult ->
+execute = { String operationName, PathAddress pathAddress, ContentType contentType, Map<String, List<String>> attributes, InputStream data, Closure printResult ->
   assertConnected();
 
   if (controller == null) throw new ScriptException("Management controller not available.");
@@ -17,7 +18,7 @@ execute = { String operationName, PathAddress pathAddress, ContentType contentTy
 
   try
   {
-    response = controller.execute(ManagedRequest.Factory.create(operationName, pathAddress, contentType));
+    response = controller.execute(ManagedRequest.Factory.create(operationName, pathAddress, attributes, data, contentType));
     if (response == null) return "No response for path $address";
 
     if (response.outcome.isSuccess())
@@ -33,6 +34,10 @@ execute = { String operationName, PathAddress pathAddress, ContentType contentTy
   catch (ResourceNotFoundException e)
   {
     return "No resource found for path '$pathAddress'";
+  }
+  catch (OperationException e)
+  {
+    return "Operation exception for operation " + e.getOperationName() + ", Message: " + e.getMessage();
   }
   catch (Exception e)
   {

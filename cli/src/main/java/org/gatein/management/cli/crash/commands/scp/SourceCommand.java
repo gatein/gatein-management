@@ -11,6 +11,8 @@ import org.gatein.management.api.operation.OperationNames;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -24,9 +26,9 @@ public class SourceCommand extends SCPCommand
    }
 
    @Override
-   protected void execute(ManagementController controller, String path) throws Exception
+   protected void execute(ManagementController controller, String path, Map<String, List<String>> attributes) throws Exception
    {
-      ManagedResponse response = getResponse(controller, path);
+      ManagedResponse response = getResponse(controller, path, attributes);
 
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       response.writeResult(outputStream);
@@ -46,7 +48,7 @@ public class SourceCommand extends SCPCommand
       readAck();
    }
 
-   private ManagedResponse getResponse(ManagementController controller, String path)
+   private ManagedResponse getResponse(ManagementController controller, String path, Map<String, List<String>> attributes)
    {
       String operationName = OperationNames.EXPORT_RESOURCE;
       ContentType contentType = ContentType.ZIP;
@@ -64,6 +66,7 @@ public class SourceCommand extends SCPCommand
       return controller.execute(ManagedRequest.Factory.create(
          operationName,
          PathAddress.pathAddress(path),
+         attributes,
          contentType)
       );
    }

@@ -136,7 +136,8 @@ public class SimpleManagementController implements ManagementController
       }
       else
       {
-         throw new OperationException(operationName, "Operation not found for address '" + address + "'");
+         // Why pass in operation name, if it's not used as part of the message...
+         throw new OperationException(operationName, "Operation '" + operationName  + "' not found for address '" + address + "'");
       }
    }
 

@@ -15,6 +15,12 @@ import org.gatein.management.cli.crash.commands.ManagementCommand;
 import javax.jcr.Session;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -93,7 +99,35 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       scpManagementCommand.start(containerName);
       try
       {
-         execute(scpManagementCommand.getComponent(containerName, ManagementController.class), path);
+         // Parse attributes
+         Map<String, List<String>> attributes = new HashMap<String, List<String>>();
+         if (path.contains("?"))
+         {
+            String query = path.substring(path.indexOf("?") + 1, path.length());
+            path = path.substring(0, path.indexOf("?"));
+            try
+            {
+               for (String q : query.split("&"))
+               {
+                  String[] param = q.split("=");
+                  if (param.length != 2) throw new Exception();
+
+                  List<String> values = attributes.get(param[0]);
+                  if (values == null)
+                  {
+                     values = new ArrayList<String>();
+                     attributes.put(param[0], values);
+                  }
+                  values.add(param[1]);
+               }
+            }
+            catch (Exception e)
+            {
+               throw new Exception("Could not parse attribute query: " + query);
+            }
+         }
+         ManagementController controller = scpManagementCommand.getComponent(containerName, ManagementController.class);
+         execute(controller, path, attributes);
       }
       finally
       {
@@ -105,7 +139,7 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       }
    }
 
-   protected abstract void execute(ManagementController controller, String path) throws Exception;
+   protected abstract void execute(ManagementController controller, String path, Map<String, List<String>> attributes) throws Exception;
 
    protected String getFileName()
    {
@@ -162,11 +196,30 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       }
    }
 
+   //private static final String REGEX = "([\\w\\.-]*):(.*)";
+   private static final String REGEX = ".*";
+   private static final Pattern PATTERN = Pattern.compile(REGEX);
+
    private void parseSCPAction(SCPAction action)
    {
       String target = action.getTarget();
 
-      int pos1 = target.indexOf(':');
+      String REGEX = "([\\w\\.-]*):(.*)";
+      Pattern PATTERN = Pattern.compile(REGEX);
+
+      Matcher matcher = PATTERN.matcher(target);
+      if (PATTERN.matcher(target).matches())
+      {
+         containerName = matcher.group(1);
+         path = matcher.group(2);
+      }
+      else
+      {
+         containerName = "portal";
+         path = target;
+      }
+
+      /*int pos1 = target.indexOf(':');
       if (pos1 != -1)
       {
          containerName = target.substring(0, pos1);
@@ -176,7 +229,9 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       {
          containerName = "portal";
          path = target;
-      }
+      }*/
+
+      System.out.println("Container: " + containerName + ", Path: " + path);
 
       if (path.charAt(0) == '/') path = path.substring(1);
    }

@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.core.api.binding;
+package org.gatein.management.core.api.binding.zip;
 
 import org.gatein.common.io.IOTools;
 import org.gatein.management.api.binding.BindingException;
@@ -46,10 +46,6 @@ import java.util.zip.ZipOutputStream;
  */
 public class ExportResourceModelMarshaller implements Marshaller<ExportResourceModel>
 {
-   static final ExportResourceModelMarshaller INSTANCE = new ExportResourceModelMarshaller();
-
-   private ExportResourceModelMarshaller(){}
-
    @Override
    public void marshal(ExportResourceModel model, OutputStream outputStream) throws BindingException
    {

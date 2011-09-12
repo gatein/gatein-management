@@ -84,6 +84,7 @@ public interface ManagedRequest
             @Override
             public Map<String, List<String>> getAttributes()
             {
+               if (attributes == null) return Collections.emptyMap();
                return attributes;
             }
 

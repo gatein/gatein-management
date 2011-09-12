@@ -104,6 +104,14 @@
             <version>1.0</version>
          </dependency>
 
+         <!-- json -->
+         <!-- json -->
+         <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20070829</version>
+         </dependency>
+
          <!-- For security -->
          <dependency>
             <groupId>javax.annotation</groupId>

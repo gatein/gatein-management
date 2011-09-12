@@ -50,14 +50,17 @@ public class GateInCommand extends CRaSHCommand
          Object repositoryService = getComponentInstanceOfTypeMethod.invoke(container, repositoryServiceClass);
          if (repositoryService != null)
          {
-            Method getDefaultRepositoryMethod = repositoryService.getClass().getMethod("getCurrentRepository");
-            Repository repository = (Repository) getDefaultRepositoryMethod.invoke(repositoryService);
+            Method getCurrentRepositoryMethod = repositoryService.getClass().getMethod("getCurrentRepository");
+            Repository repository = (Repository) getCurrentRepositoryMethod.invoke(repositoryService);
             SimpleCredentials credentials = new SimpleCredentials(userName, password.toCharArray());
             Session session = repository.login(credentials, "portal-system");
             if (session == null)
             {
                throw new Exception("JCR Session was null.");
             }
+
+            // This verifies the user has access to the JCR.
+            session.getRootNode();
 
             return session;
          }

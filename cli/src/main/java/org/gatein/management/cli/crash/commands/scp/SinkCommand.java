@@ -9,9 +9,10 @@ import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.operation.OperationNames;
 
-import javax.print.DocFlavor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -27,7 +28,7 @@ public class SinkCommand extends SCPCommand
    }
 
    @Override
-   protected void execute(ManagementController controller, String path) throws Exception
+   protected void execute(ManagementController controller, String path, Map<String, List<String>> attributes) throws Exception
    {
       ack();
       String line = readLine();
@@ -77,7 +78,7 @@ public class SinkCommand extends SCPCommand
                   }
                };
 
-               controller.execute(ManagedRequest.Factory.create(operationName, PathAddress.pathAddress(path), inputStream, ContentType.ZIP));
+               controller.execute(ManagedRequest.Factory.create(operationName, PathAddress.pathAddress(path), attributes, inputStream, ContentType.ZIP));
                ack();
                readAck();
                

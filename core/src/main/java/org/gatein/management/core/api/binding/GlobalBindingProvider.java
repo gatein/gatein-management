@@ -27,6 +27,9 @@ import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.operation.model.ExportResourceModel;
+import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.core.api.binding.json.ReadResourceModelMarshaller;
+import org.gatein.management.core.api.binding.zip.ExportResourceModelMarshaller;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -34,12 +37,19 @@ import org.gatein.management.api.operation.model.ExportResourceModel;
  */
 public class GlobalBindingProvider implements BindingProvider
 {
+   private static final Marshaller<ExportResourceModel> EXPORT_RESOURCE_MARSHALLER = new ExportResourceModelMarshaller();
+   private static final Marshaller<ReadResourceModel> JSON_READ_RESOURCE_MODEL_MARSHALLER = new ReadResourceModelMarshaller();
+
    @Override
    public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
    {
       if (contentType == ContentType.ZIP && type == ExportResourceModel.class)
       {
-         return (Marshaller<T>) ExportResourceModelMarshaller.INSTANCE;
+         return (Marshaller<T>) EXPORT_RESOURCE_MARSHALLER;
+      }
+      else if (contentType == ContentType.JSON && type == ReadResourceModel.class)
+      {
+         return (Marshaller<T>) JSON_READ_RESOURCE_MODEL_MARSHALLER;
       }
 
       return null;

@@ -46,10 +46,13 @@
          <groupId>org.gatein.common</groupId>
          <artifactId>common-common</artifactId>
       </dependency>
+      <!-- json -->
       <dependency>
-         <groupId>javax.ws.rs</groupId>
-         <artifactId>jsr311-api</artifactId>
+         <groupId>org.json</groupId>
+         <artifactId>json</artifactId>
       </dependency>
+      
+      <!-- Testing -->
       <dependency>
          <groupId>org.mockito</groupId>
          <artifactId>mockito-core</artifactId>

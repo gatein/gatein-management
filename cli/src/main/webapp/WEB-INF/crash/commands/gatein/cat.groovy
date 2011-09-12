@@ -20,7 +20,7 @@ The cat command invokes the 'read-config-as-xml' operation on the given resource
     def before = address;
     def pathAddress = getAddress(address, path);
 
-    execute(OperationNames.READ_CONFIG_AS_XML, pathAddress, ContentType.XML, { result ->
+    execute(OperationNames.READ_CONFIG_AS_XML, pathAddress, ContentType.XML, null, null, { result ->
       address = before;
       def resp = response as ManagedResponse;
       def baos = new ByteArrayOutputStream();

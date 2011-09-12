@@ -13,7 +13,7 @@ welcome = { ->
  `.______.' |      `.   .'           `. ....''             |         | ${shellContext.version}
 
 Follow and support the project on http://crsh.googlecode.com
-Welcome to $hostName + !
+GateIn Management CLI running @ $hostName
 It is ${new Date()} now""";
 }
 

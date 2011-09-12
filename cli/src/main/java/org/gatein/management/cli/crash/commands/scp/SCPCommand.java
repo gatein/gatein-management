@@ -87,13 +87,12 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
    private void execute() throws Exception
    {
       // Log in
-      Session jcrSession = null;
       String userName = session.getAttribute(SSHLifeCycle.USERNAME);
       String password = session.getAttribute(SSHLifeCycle.PASSWORD);
 
       log.debug("Attempting to authenticate user " + userName);
 
-      jcrSession = scpManagementCommand.login(userName, password, containerName);
+      Session jcrSession = scpManagementCommand.login(userName, password, containerName);
       if (jcrSession == null) throw new Exception("JCR session was null.");
 
       scpManagementCommand.start(containerName);
@@ -196,17 +195,12 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       }
    }
 
-   //private static final String REGEX = "([\\w\\.-]*):(.*)";
-   private static final String REGEX = ".*";
+   private static final String REGEX = "([\\w\\.-]*):(.*)";
    private static final Pattern PATTERN = Pattern.compile(REGEX);
 
    private void parseSCPAction(SCPAction action)
    {
       String target = action.getTarget();
-
-      String REGEX = "([\\w\\.-]*):(.*)";
-      Pattern PATTERN = Pattern.compile(REGEX);
-
       Matcher matcher = PATTERN.matcher(target);
       if (PATTERN.matcher(target).matches())
       {
@@ -218,20 +212,6 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
          containerName = "portal";
          path = target;
       }
-
-      /*int pos1 = target.indexOf(':');
-      if (pos1 != -1)
-      {
-         containerName = target.substring(0, pos1);
-         path = target.substring(pos1 + 1);
-      }
-      else
-      {
-         containerName = "portal";
-         path = target;
-      }*/
-
-      System.out.println("Container: " + containerName + ", Path: " + path);
 
       if (path.charAt(0) == '/') path = path.substring(1);
    }

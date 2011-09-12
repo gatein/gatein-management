@@ -85,37 +85,6 @@
             </exclusion>
          </exclusions>
       </dependency>
-      <dependency>
-         <groupId>org.crsh</groupId>
-         <artifactId>crsh.shell.telnet</artifactId>
-         <version>${org.crsh.version}</version>
-         <exclusions>
-            <exclusion>
-               <groupId>org.slf4j</groupId>
-               <artifactId>slf4j-api</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>commons-logging</groupId>
-               <artifactId>commons-logging</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>org.gatein.common</groupId>
-               <artifactId>common-logging</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>org.codehaus.groovy</groupId>
-               <artifactId>groovy-all</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>net.sf.jpam</groupId>
-               <artifactId>jpam</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>log4j</groupId>
-               <artifactId>log4j</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
       <dependency><!-- TODO: Remove when we have better authentication -->
          <groupId>javax.jcr</groupId>
          <artifactId>jcr</artifactId>

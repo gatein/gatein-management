@@ -75,7 +75,7 @@ Example GET Request @ http://localhost:8080/rest/private/managed-components:
 
 Command Line Interface (CLI)
 -----------
-The CLI is based on [CRaSH](http://code.google.com/p/crsh/) and is meant to run as a web application under GateIn.  It provides telnet and ssh access to perform management operations.  The default ports are 2000 for ssh and 5000 for telnet. To change the ports, edit the properties file
+The CLI is based on [CRaSH](http://code.google.com/p/crsh/) and is meant to run as a web application under GateIn.  It provides ssh access to perform management operations.  The default port for ssh is 2000.  To change the port, edit the properties file
 
     cli/src/main/webapp/WEB-INF/crash/crash.properties
 

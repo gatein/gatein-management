@@ -26,6 +26,9 @@ import org.gatein.management.api.ComponentRegistration;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.operation.OperationNames;
+import org.gatein.management.core.api.operation.global.ExportResource;
+import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.spi.ExtensionContext;
 
 import java.util.Map;
@@ -55,7 +58,10 @@ public class ExtensionContextImpl implements ExtensionContext
          @Override
          public ManagedResource.Registration registerManagedResource(ManagedDescription description)
          {
-            return rootRegistration.registerSubResource(name, description);
+            ManagedResource.Registration registration = rootRegistration.registerSubResource(name, description);
+            registration.registerOperationHandler(OperationNames.EXPORT_RESOURCE, GlobalOperationHandlers.EXPORT_RESOURCE, ExportResource.DESCRIPTION, true);
+
+            return registration;
          }
 
          @Override

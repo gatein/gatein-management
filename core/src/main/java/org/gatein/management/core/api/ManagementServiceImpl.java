@@ -147,6 +147,5 @@ public class ManagementServiceImpl implements ManagementService
    private void initGlobalOperations(ManagedResource.Registration registration)
    {
       registration.registerOperationHandler(OperationNames.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, GlobalOperationHandlers.READ_RESOURCE, true);
-      registration.registerOperationHandler(OperationNames.EXPORT_RESOURCE, GlobalOperationHandlers.EXPORT_RESOURCE, ExportResource.DESCRIPTION, true);
    }
 }

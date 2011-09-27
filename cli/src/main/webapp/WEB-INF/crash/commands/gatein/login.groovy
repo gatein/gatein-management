@@ -4,6 +4,7 @@ import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedRequest
 import org.gatein.management.api.exceptions.ResourceNotFoundException
 import org.gatein.management.api.exceptions.OperationException
+import org.gatein.common.logging.LoggerFactory
 
 assertConnected = {
   if (session == null) throw new ScriptException("Not connected !");
@@ -33,10 +34,12 @@ execute = { String operationName, PathAddress pathAddress, ContentType contentTy
   }
   catch (ResourceNotFoundException e)
   {
+    logger.error("Resource not found for address $pathAddress.", e);
     return "No resource found for path '$pathAddress'";
   }
   catch (OperationException e)
   {
+    logger.error("Operation exception for operation $operationName and address $pathAddress", e);
     return "Operation exception for operation " + e.getOperationName() + ", Message: " + e.getMessage();
   }
   catch (Exception e)

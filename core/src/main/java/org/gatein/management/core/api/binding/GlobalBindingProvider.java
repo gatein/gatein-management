@@ -27,9 +27,14 @@ import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.operation.model.ExportResourceModel;
+import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.core.api.binding.json.ReadResourceModelMarshaller;
 import org.gatein.management.core.api.binding.zip.ExportResourceModelMarshaller;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -39,10 +44,13 @@ public class GlobalBindingProvider implements BindingProvider
 {
    private static final Marshaller<ExportResourceModel> EXPORT_RESOURCE_MARSHALLER = new ExportResourceModelMarshaller();
    private static final Marshaller<ReadResourceModel> JSON_READ_RESOURCE_MODEL_MARSHALLER = new ReadResourceModelMarshaller();
+   private static final Marshaller<NoResultModel> NO_RESULT_MODEL_MARSHALLER = new NoOpMarshaller();
 
    @Override
    public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
    {
+      if (NoResultModel.class.isAssignableFrom(type)) return (Marshaller<T>) NO_RESULT_MODEL_MARSHALLER;
+
       if (contentType == ContentType.ZIP && type == ExportResourceModel.class)
       {
          return (Marshaller<T>) EXPORT_RESOURCE_MARSHALLER;
@@ -53,5 +61,27 @@ public class GlobalBindingProvider implements BindingProvider
       }
 
       return null;
+   }
+
+   private static final class NoOpMarshaller implements Marshaller<NoResultModel>
+   {
+      @Override
+      public void marshal(NoResultModel object, OutputStream outputStream) throws BindingException
+      {
+         try
+         {
+            outputStream.close();
+         }
+         catch (IOException e)
+         {
+            throw new BindingException("Exception closing underlying stream.", e);
+         }
+      }
+
+      @Override
+      public NoResultModel unmarshal(InputStream inputStream) throws BindingException
+      {
+         return NoResultModel.INSTANCE;
+      }
    }
 }

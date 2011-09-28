@@ -25,6 +25,7 @@ The ls command displays the content of a managed resource. By default it lists t
 
       for (def child : result.children)
       {
+        if (child.charAt(0) == '/') child = child.substring(1);
         builder.node(child);
       }
 

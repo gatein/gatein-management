@@ -27,6 +27,7 @@ The cd command changes the current resource address the content of a managed res
 
       for (def child : result.children)
       {
+        if (child.charAt(0) == '/') child = child.substring(1);
         builder.node(child);
       }
 

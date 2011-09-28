@@ -84,6 +84,8 @@ public class ManagementCommand extends GateInCommand implements Completer
             Map<String, Boolean> completions = new HashMap<String, Boolean>(children.size());
             for (String child : children)
             {
+               if (child.charAt(0) == '/') child = child.substring(1);
+               
                // Look ahead to see if there are more children
                PathAddress nextAddress = address.append(child);
                boolean more = getChildren(controller, nextAddress).size() > 0;

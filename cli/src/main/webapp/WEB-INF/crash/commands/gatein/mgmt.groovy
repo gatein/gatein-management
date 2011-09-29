@@ -14,6 +14,7 @@ import org.gatein.management.cli.crash.arguments.ContentTypeOption
 import org.gatein.management.cli.crash.arguments.Password
 import org.gatein.management.cli.crash.arguments.UserName
 import org.gatein.management.cli.crash.commands.ManagementCommand
+import org.gatein.common.logging.LoggerFactory
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
@@ -34,7 +35,8 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
                         @Password String password,
                         @Container String containerName) throws ScriptException
   {
-    if (userName != null && password == null) {
+    if (userName != null && password == null)
+    {
       password = readLine("password:", false);
     }
 
@@ -44,6 +46,7 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
 
     session = login(userName, password, containerName);
     controller = getComponent(containerName, ManagementController.class);
+    logger = LoggerFactory.getLogger("org.gatein.management.cli");
 
     begin = {
       start(containerName);

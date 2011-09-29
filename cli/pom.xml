@@ -26,7 +26,7 @@
    <parent>
       <groupId>org.gatein.management</groupId>
       <artifactId>gatein-management-parent</artifactId>
-      <version>1.0.0-Beta04</version>
+      <version>1.0.0-Beta05-SNAPSHOT</version>
    </parent>
 
    <artifactId>gatein-management-cli</artifactId>

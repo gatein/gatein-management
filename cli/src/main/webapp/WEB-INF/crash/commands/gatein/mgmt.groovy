@@ -62,8 +62,9 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
       password = readLine("password:", false);
     }
 
-    if (userName == null) userName = "root";
-    if (password == null) password = "gtn";
+    if (userName == null) return "Please specify a username."
+    if (password == null) return "Please specify a password."
+
     if (containerName == null) containerName = "portal";
 
     session = login(userName, password, containerName);

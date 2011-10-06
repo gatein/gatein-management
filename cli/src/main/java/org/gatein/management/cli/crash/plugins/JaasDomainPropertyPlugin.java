@@ -20,23 +20,40 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.cli.crash.arguments;
+package org.gatein.management.cli.crash.plugins;
 
-import org.crsh.cmdline.annotations.Man;
-import org.crsh.cmdline.annotations.Option;
-import org.crsh.cmdline.annotations.Usage;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import org.crsh.plugin.CRaSHPlugin;
+import org.crsh.plugin.PropertyPlugin;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Option(names = {"c", "container"})
-@Usage("portal container name (default is 'portal')")
-@Man("The portal container name. The default value is 'portal'.")
-public @interface Container
+public class JaasDomainPropertyPlugin extends CRaSHPlugin<PropertyPlugin> implements PropertyPlugin<String>
 {
+   static final String JAAS_DOMAIN_PROPERTY = "jaas.domain";
+
+   @Override
+   public PropertyPlugin getImplementation()
+   {
+      return this;
+   }
+
+   @Override
+   public String getPropertyName()
+   {
+      return "jaas.domain";
+   }
+
+   @Override
+   public String getDefaultValue()
+   {
+      return null;
+   }
+
+   @Override
+   public String parse(String value)
+   {
+      return value;
+   }
 }

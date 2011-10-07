@@ -52,7 +52,6 @@ public class ManagementCommand extends GateInCommand implements Completer
       super();
    }
 
-   //TODO: Support children with / in the name
    @Override
    public Map<String, Boolean> complete(ParameterDescriptor<?> parameter, String prefix) throws Exception
    {

@@ -20,6 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
+
+
 import org.crsh.command.ScriptException
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.PathAddress
@@ -74,8 +76,28 @@ execute = { String operationName, PathAddress pathAddress, ContentType contentTy
   }
 };
 
-//execute = { String operationName, PathAddress pathAddress, Closure printResult ->
-//  assertConnected();
-//
-//  execute(operationName, pathAddress, null, printResult);
-//};
+parseAttributes = { List<String> attributes ->
+  def map = [:] as Map<String, List<String>>;
+  for (attr in attributes)
+  {
+    if (attr ==~ /[^=]*=.*/)
+    {
+      String key = attr.substring(0, attr.indexOf('='));
+      String value = attr.substring(attr.indexOf('=') + 1, attr.length());
+
+      List<String> list = map[key];
+      if (list == null)
+      {
+        list = new ArrayList<String>();
+        map[key] = list;
+      }
+      list.add(value);
+    }
+    else
+    {
+      throw new ScriptException("Invalid attribute arguement '$attr'");
+    }
+  }
+
+  return map;
+}

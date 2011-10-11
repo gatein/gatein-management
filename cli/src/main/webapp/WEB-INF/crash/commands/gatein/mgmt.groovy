@@ -37,6 +37,12 @@ import org.gatein.management.cli.crash.arguments.Password
 import org.gatein.management.cli.crash.arguments.UserName
 import org.gatein.management.cli.crash.commands.ManagementCommand
 import org.gatein.common.logging.LoggerFactory
+import org.gatein.management.cli.crash.arguments.AttributeOption
+import org.crsh.cmdline.annotations.Option
+import org.gatein.management.cli.crash.arguments.OperationOption
+import org.crsh.cmdline.annotations.Required
+import org.gatein.management.cli.crash.arguments.OperationOption
+import org.gatein.management.cli.crash.arguments.AttributeOption
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
@@ -59,7 +65,7 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
   {
     if (userName != null && password == null)
     {
-      password = readLine("password:", false);
+      password = readLine("Password:", false);
     }
 
     if (userName == null) userName = "root";
@@ -113,66 +119,20 @@ Executes the read-resource operation of the current address (path) passing in at
 
 """)
   @Command
-  public Object exec(@ContentTypeOption String contentType, @Argument String pathArg, @Argument String operationArg, @Argument List<String> attributesArg)
+  public Object exec(@ContentTypeOption String contentType, @AttributeOption List<String> attributes, @Required @OperationOption String operation, @Argument String path)
   {
-    def path = pathArg;
-    def operation = operationArg;
-    def attributes = new HashMap<String, List<String>>();
-
-    if (attributesArg != null)
-    {
-      for (String attr: attributesArg)
-      {
-        addAttribute(attr, attributes)
-      }
-    }
-
-    if (operationArg == null)
-    {
-      operation = pathArg;
-      path = null;
-    }
-    else if (operationArg.contains("="))
-    {
-      addAttribute(operationArg, attributes)
-      operation = pathArg;
-      path = null;
-    }
-
-    if (operation == null) return "Operation name is required."
-
-    def ct = (contentType == null) ? ContentType.JSON : ContentType.forName(contentType)
+    def ct = (contentType == null) ? ContentType.JSON : ContentType.forName(contentType);
+    if (ct == null) return "Invalid content type '$contentType'.";
 
     def before = address;
     def addr = getAddress(address, path);
 
-    execute(operation, addr, ct, attributes, null, { result ->
+    execute(operation, addr, ct, parseAttributes(attributes), null, { result ->
       address = before;
       def resp = response as ManagedResponse;
       def baos = new ByteArrayOutputStream();
       resp.writeResult(baos);
       return new String(baos.toByteArray());
     });
-  }
-
-  private void addAttribute(String attr, HashMap<String, List<String>> attributes)
-  {
-    if (attr ==~ /[^=]*=.*/)
-    {
-      String key = attr.substring(0, attr.indexOf('='));
-      String value = attr.substring(attr.indexOf('=') + 1, attr.length());
-
-      List<String> list = attributes.get(key);
-      if (list == null)
-      {
-        list = new ArrayList<String>();
-        attributes.put(key, list);
-      }
-      list.add(value);
-    }
-    else
-    {
-      throw new ScriptException("Invalid attribute arguement '$attr'");
-    }
   }
 }

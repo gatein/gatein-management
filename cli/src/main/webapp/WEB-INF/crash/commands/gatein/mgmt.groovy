@@ -72,7 +72,7 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
     
     if (userName != null && password == null)
     {
-      password = readLine("Password:", false);
+      password = readLine("Password: ", false);
     }
 
     if (containerName == null) containerName = "portal";

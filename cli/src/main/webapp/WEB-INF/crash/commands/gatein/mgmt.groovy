@@ -37,19 +37,21 @@ import org.gatein.management.cli.crash.arguments.Password
 import org.gatein.management.cli.crash.arguments.UserName
 import org.gatein.management.cli.crash.commands.ManagementCommand
 import org.gatein.common.logging.LoggerFactory
+import org.crsh.term.Term
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
 {
-  @Usage("login to gatein management")
+  @Usage("connect to the gatein management system")
   @Man("""
-This command logs you into a gatein managed component, allowing you to execute management operations.
+This command connects you into the gatein management system, allowing you to execute management operations. The default
+container is 'portal' if no container option is specified. The default user is the username used to connect to CRaSH.
 
-% mgmt login -c portal mop
-Connect to the MOP managed component.
+% mgmt connect -c portal
+Connect to portal container 'portal'. This is default behavior.
 
-% mgmt login -c portal -u root -p gtn mop
-Connect to the MOP managed component using the username 'root' and password 'gtn'.  This is the default.
+% mgmt connect -c sample-portal -u root -p gtn
+Connect to portal container 'sample-portal' using the username 'root' and password 'gtn'.
 
 """)
   @Command
@@ -57,13 +59,21 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
                         @Password String password,
                         @Container String containerName) throws ScriptException
   {
+    if (userName == null)
+    {
+      def term = getProperty("term") as Term
+      userName = (term == null) ? null : term.getTermProperty("USER");
+    }
+
+    if (userName == null)
+    {
+      return "Username is required, and wasn't found while authenticating into CRaSH.";
+    }
+    
     if (userName != null && password == null)
     {
       password = readLine("password:", false);
     }
-
-    if (userName == null) return "Please specify a username."
-    if (password == null) return "Please specify a password."
 
     if (containerName == null) containerName = "portal";
 

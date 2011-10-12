@@ -54,9 +54,9 @@ public class JaasAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugin> 
    public boolean authenticate(final String username, final String password) throws Exception
    {
       String domain = getContext().getProperty(JaasDomainPropertyPlugin.JAAS_DOMAIN_PROPERTY, String.class);
-
       if (domain != null)
       {
+         log.debug("Will use the JAAS domain '" + domain + "' for authenticating user " + username +" into CRaSH.");
          LoginContext loginContext = new LoginContext(domain, new Subject(), new CallbackHandler()
          {
             @Override
@@ -93,7 +93,7 @@ public class JaasAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugin> 
       }
       else
       {
-         log.warn("jaas.domain property not configured. JAAS authentication disabled.");
+         log.warn("The JAAS domain property '" + JaasDomainPropertyPlugin.JAAS_DOMAIN_PROPERTY + "' was not found. JAAS authentication disabled.");
          return true;
       }
    }

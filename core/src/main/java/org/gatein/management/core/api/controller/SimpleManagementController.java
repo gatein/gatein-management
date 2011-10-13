@@ -52,8 +52,8 @@ public class SimpleManagementController implements ManagementController
 {
    private static final Logger log = LoggerFactory.getLogger(SimpleManagementController.class);
 
-   private ManagementService managementService;
-   private RuntimeContext runtimeContext;
+   private final ManagementService managementService;
+   private final RuntimeContext runtimeContext;
    private ManagedResource rootResource;
 
    public SimpleManagementController(ManagementService managementService, RuntimeContext runtimeContext)
@@ -65,6 +65,13 @@ public class SimpleManagementController implements ManagementController
    @Override
    public ManagedResponse execute(ManagedRequest request) throws ResourceNotFoundException, OperationException
    {
+      // Simple way to reload extensions. NOTE: ManagementServiceImpl is not thread safe, so this should be used with caution.
+      if (request.getAttributes().containsKey("reload-extensions"))
+      {
+         managementService.reloadExtensions();
+         rootResource = managementService.getManagedResource(PathAddress.empty());
+      }
+
       PathAddress address = request.getAddress();
       String operationName = request.getOperationName();
 

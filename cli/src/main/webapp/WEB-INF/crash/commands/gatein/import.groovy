@@ -45,6 +45,8 @@ The import command invokes the 'import-resource' operation on the given resource
   @Command
   public Object main(@Argument String pathArg, @Argument String fileArg, @Argument List<String> attributesArg) throws ScriptException
   {
+    assertConnected()
+
     //TODO: This logic is duplicated in mgmt exec, we should have a base class responsible for parsing common mgmt requests.
     def path = pathArg;
     def file = fileArg;

@@ -40,6 +40,8 @@ The cd command changes the current resource address the content of a managed res
   @Command
   public Object main(@Argument String path) throws ScriptException
   {
+    assertConnected()
+    
     def pathAddress = getAddress(address, path);
 
     execute(OperationNames.READ_RESOURCE, pathAddress, ContentType.JSON, null, null, { ReadResourceModel result ->

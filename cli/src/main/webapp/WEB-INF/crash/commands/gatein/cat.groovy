@@ -39,6 +39,8 @@ The cat command invokes the 'read-config-as-xml' operation on the given resource
   @Command
   public Object main(@Argument String path) throws ScriptException
   {
+    assertConnected()
+
     def before = address;
     def pathAddress = getAddress(address, path);
 

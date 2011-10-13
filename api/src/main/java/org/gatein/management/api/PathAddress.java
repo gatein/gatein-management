@@ -244,10 +244,11 @@ public class PathAddress implements Iterable<String>
    public String toString()
    {
       Iterator<String> iterator = this.iterator();
-      StringBuilder sb = new StringBuilder();
+      StringBuilder sb = new StringBuilder("/");
       while (iterator.hasNext())
       {
-         sb.append("/").append(iterator.next());
+         sb.append(iterator.next());
+         if (iterator.hasNext()) sb.append("/");
       }
 
       return sb.toString();

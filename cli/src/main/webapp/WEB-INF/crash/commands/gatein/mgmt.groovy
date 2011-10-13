@@ -115,6 +115,8 @@ Executes the read-resource operation of the current address (path) passing in at
   @Command
   public Object exec(@ContentTypeOption String contentType, @Argument String pathArg, @Argument String operationArg, @Argument List<String> attributesArg)
   {
+    assertConnected()
+
     def path = pathArg;
     def operation = operationArg;
     def attributes = new HashMap<String, List<String>>();

@@ -33,6 +33,8 @@ class pwd extends ManagementCommand
   @Command
   public Object main() throws ScriptException
   {
+    assertConnected()
+    
     return address;
   }
 }

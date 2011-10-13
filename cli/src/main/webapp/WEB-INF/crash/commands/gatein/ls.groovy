@@ -40,6 +40,8 @@ The ls command displays the content of a managed resource. By default it lists t
   @Command
   public Object main(@Argument String path) throws ScriptException
   {
+    assertConnected()
+
     def pathAddress = getAddress(address, path);
 
     execute(OperationNames.READ_RESOURCE, pathAddress, null, null, null, { ReadResourceModel result ->

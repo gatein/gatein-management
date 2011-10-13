@@ -93,6 +93,7 @@ public class RestController
    }
 
    @POST
+   @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response htmlPostRequest(@Context UriInfo uriInfo, InputStream data)
@@ -102,7 +103,7 @@ public class RestController
 
    @POST
    @Path("/{path:.*}")
-   @Consumes(MediaType.WILDCARD)
+   @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response htmlPostRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
@@ -113,6 +114,7 @@ public class RestController
    }
 
    @PUT
+   @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response htmlPutRequest(@Context UriInfo uriInfo, InputStream data)
@@ -122,7 +124,7 @@ public class RestController
 
    @PUT
    @Path("/{path:.*}")
-   @Consumes(MediaType.WILDCARD)
+   @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
    public Response htmlPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
@@ -328,8 +330,8 @@ public class RestController
 
    @PUT
    @Path("/{path:.*}")
-   @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
    @Consumes("application/zip")
+   @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
    @RolesAllowed("administrators")
    public Response zipPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
    {

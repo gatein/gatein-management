@@ -30,6 +30,7 @@ import org.gatein.management.api.operation.model.ReadResourceModel
 import org.gatein.management.cli.crash.commands.ManagementCommand
 import org.crsh.shell.ui.UIBuilder
 import org.gatein.management.api.ContentType
+import org.gatein.management.api.PathAddress
 
 class cd extends ManagementCommand
 {
@@ -41,21 +42,15 @@ The cd command changes the current resource address the content of a managed res
   public Object main(@Argument String path) throws ScriptException
   {
     assertConnected()
-    
+
+    if ("..".equals(path) && address.size() == 0) return "";
+
     def pathAddress = getAddress(address, path);
 
     execute(OperationNames.READ_RESOURCE, pathAddress, ContentType.JSON, null, null, { ReadResourceModel result ->
       if (result == null) return "$path: no such path"
 
-      def builder = new UIBuilder();
-
-      for (def child : result.children)
-      {
-        if (child.charAt(0) == '/') child = child.substring(1);
-        builder.node(child);
-      }
-
-      return builder;
+      return "";
     });
   }
 }

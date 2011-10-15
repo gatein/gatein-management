@@ -1,3 +1,2 @@
 org.gatein.management.cli.crash.commands.scp.SCPCommandPlugin
 org.gatein.management.cli.crash.plugins.JaasAuthenticationPlugin
-org.gatein.management.cli.crash.plugins.JaasDomainPropertyPlugin

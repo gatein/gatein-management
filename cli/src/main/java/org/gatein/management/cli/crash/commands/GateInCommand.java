@@ -81,7 +81,7 @@ public class GateInCommand extends CRaSHCommand
                throw new Exception("JCR Session was null.");
             }
 
-            // This verifies the user has access to the JCR.
+            // This verifies the user has admin access to the JCR.
             session.getRootNode();
 
             return session;
@@ -102,6 +102,14 @@ public class GateInCommand extends CRaSHCommand
       try
       {
          ClassLoader cl = Thread.currentThread().getContextClassLoader();
+
+         // Set the current container
+         Class<?> eXoContainerContextClass = cl.loadClass("org.exoplatform.container.ExoContainerContext");
+         Class<?> eXoContainerClass = cl.loadClass("org.exoplatform.container.ExoContainer");
+         Method setCurrentContainerMethod = eXoContainerContextClass.getMethod("setCurrentContainer", eXoContainerClass);
+         setCurrentContainerMethod.invoke(eXoContainerContextClass, getContainer(containerName));
+
+         // Start the RequestLifeCycle
          Class<?> requestLifeCycleClass = cl.loadClass("org.exoplatform.container.component.RequestLifeCycle");
          Class<?> exoContainerClass = cl.loadClass("org.exoplatform.container.ExoContainer");
          Method beginMethod = requestLifeCycleClass.getMethod("begin", exoContainerClass);
@@ -115,9 +123,11 @@ public class GateInCommand extends CRaSHCommand
 
    protected void end()
    {
+      ClassLoader cl = Thread.currentThread().getContextClassLoader();
+
+      // End RequestLifeCycle
       try
       {
-         ClassLoader cl = Thread.currentThread().getContextClassLoader();
          Class<?> requestLifeCycleClass = cl.loadClass("org.exoplatform.container.component.RequestLifeCycle");
          Method endMethod = requestLifeCycleClass.getMethod("end");
          endMethod.invoke(null);
@@ -125,6 +135,21 @@ public class GateInCommand extends CRaSHCommand
       catch (Exception e)
       {
          throw new ScriptException("Could not end gatein request lifecycle.", e);
+      }
+      finally
+      {
+         // Set current container to null
+         try
+         {
+            Class<?> eXoContainerContextClass = cl.loadClass("org.exoplatform.container.ExoContainerContext");
+            Class<?> eXoContainerClass = cl.loadClass("org.exoplatform.container.ExoContainer");
+            Method setCurrentContainerMethod = eXoContainerContextClass.getMethod("setCurrentContainer", eXoContainerClass);
+            setCurrentContainerMethod.invoke(eXoContainerContextClass, (Object) null);
+         }
+         catch (Throwable t)
+         {
+            log.error("Error while setting current container to null while ending request.");
+         }
       }
    }
 

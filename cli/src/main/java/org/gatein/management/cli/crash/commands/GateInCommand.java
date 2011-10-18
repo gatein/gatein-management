@@ -67,8 +67,22 @@ public class GateInCommand extends CRaSHCommand
       // TODO: Find better way to "authenticate"
       try
       {
+         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
          Method getComponentInstanceOfTypeMethod = container.getClass().getMethod("getComponentInstanceOfType", Class.class);
-         Class<?> repositoryServiceClass = Thread.currentThread().getContextClassLoader().loadClass("org.exoplatform.services.jcr.RepositoryService");
+
+         // Set current identity (similar to SetCurrentIdentityFilter behavior)
+         Class<?> authenticatorClass = tccl.loadClass("org.exoplatform.services.security.Authenticator");
+         Object authenticator = getComponentInstanceOfTypeMethod.invoke(container, authenticatorClass);
+         Method createIdentityMethod = authenticatorClass.getMethod("createIdentity", String.class);
+         Object identity = createIdentityMethod.invoke(authenticator, userName);
+         Class<?> identityRegistryClass = tccl.loadClass("org.exoplatform.services.security.IdentityRegistry");
+         Class<?> identityClass = tccl.loadClass("org.exoplatform.services.security.Identity");
+         Object identityRegistry = getComponentInstanceOfTypeMethod.invoke(container, identityRegistryClass);
+         Method registerIdentityMethod = identityRegistryClass.getMethod("register", identityClass);
+         registerIdentityMethod.invoke(identityRegistry, identity);
+
+         // Log into the JCR to determine authorization
+         Class<?> repositoryServiceClass = tccl.loadClass("org.exoplatform.services.jcr.RepositoryService");
          Object repositoryService = getComponentInstanceOfTypeMethod.invoke(container, repositoryServiceClass);
          if (repositoryService != null)
          {
@@ -81,7 +95,7 @@ public class GateInCommand extends CRaSHCommand
                throw new Exception("JCR Session was null.");
             }
 
-            // This verifies the user has admin access to the JCR.
+            // This verifies the user has access to the JCR.
             session.getRootNode();
 
             return session;
@@ -112,8 +126,8 @@ public class GateInCommand extends CRaSHCommand
          // Start the RequestLifeCycle
          Class<?> requestLifeCycleClass = cl.loadClass("org.exoplatform.container.component.RequestLifeCycle");
          Class<?> exoContainerClass = cl.loadClass("org.exoplatform.container.ExoContainer");
-         Method beginMethod = requestLifeCycleClass.getMethod("begin", exoContainerClass);
-         beginMethod.invoke(requestLifeCycleClass, getContainer(containerName));
+         Method beginMethod = requestLifeCycleClass.getMethod("begin", exoContainerClass, boolean.class);
+         beginMethod.invoke(requestLifeCycleClass, getContainer(containerName), true);
       }
       catch (Exception e)
       {

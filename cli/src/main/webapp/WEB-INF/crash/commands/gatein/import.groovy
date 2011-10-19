@@ -20,25 +20,20 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
+import java.text.SimpleDateFormat
+import javax.script.ScriptException
 import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Man
+import org.crsh.cmdline.annotations.Required
 import org.crsh.cmdline.annotations.Usage
-import org.crsh.command.ScriptException
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.controller.ManagedResponse
 import org.gatein.management.api.operation.OperationNames
+import org.gatein.management.cli.crash.arguments.FileOption
+import org.gatein.management.cli.crash.arguments.ImportModeOption
+import org.gatein.management.cli.crash.arguments.ImportModeOption.ImportModeCompleter
 import org.gatein.management.cli.crash.commands.ManagementCommand
-import javax.script.ScriptException
-import org.crsh.command.ScriptException
-import javax.script.ScriptException
-import java.text.SimpleDateFormat
-import org.crsh.cmdline.annotations.Option
-import org.gatein.management.cli.crash.arguments.ImportModeOption
-import org.gatein.management.cli.crash.arguments.FileOption
-import org.crsh.cmdline.annotations.Required
-import org.gatein.management.cli.crash.arguments.FileOption
-import org.gatein.management.cli.crash.arguments.ImportModeOption
 
 class importfile extends ManagementCommand
 {
@@ -49,7 +44,7 @@ class importfile extends ManagementCommand
 The import command invokes the 'import-resource' operation on the given resource.
 """)
   @Command
-  public Object main(@ImportModeOption String importMode, @Required @FileOption String file, @Argument String pathArg) throws ScriptException
+  public Object main(@Required @FileOption String file, @ImportModeOption String importMode, @Argument String path) throws ScriptException
   {
     def actualFile = new File(file);
     if (!actualFile.exists()) return "File $actualFile does not exist.";
@@ -57,8 +52,13 @@ The import command invokes the 'import-resource' operation on the given resource
     def before = address;
     def pathAddress = getAddress(address, path);
 
+    if (importMode != null && ! ImportModeCompleter.modes.contains(importMode))
+    {
+      return "Invalid import mode. Valid values are: " + ImportModeCompleter.modes;
+    }
+
     def attributes = [:]
-    if (importMode != null) attributes["importMode"] = importMode;
+    if (importMode != null) attributes["importMode"] = [importMode];
 
     execute(OperationNames.IMPORT_RESOURCE, pathAddress, ContentType.ZIP, attributes, new FileInputStream(actualFile), { result ->
       address = before;

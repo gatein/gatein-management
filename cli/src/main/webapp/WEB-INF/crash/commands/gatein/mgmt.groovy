@@ -23,26 +23,24 @@
 import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Man
+import org.crsh.cmdline.annotations.Required
 import org.crsh.cmdline.annotations.Usage
 import org.crsh.command.ScriptException
+import org.gatein.common.logging.LoggerFactory
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedResponse
 import org.gatein.management.api.controller.ManagementController
 import org.gatein.management.api.operation.OperationNames
 import org.gatein.management.api.operation.model.ReadResourceModel
+import org.gatein.management.cli.crash.arguments.AttributeOption
 import org.gatein.management.cli.crash.arguments.Container
 import org.gatein.management.cli.crash.arguments.ContentTypeOption
+import org.gatein.management.cli.crash.arguments.FileOption
+import org.gatein.management.cli.crash.arguments.OperationOption
 import org.gatein.management.cli.crash.arguments.Password
 import org.gatein.management.cli.crash.arguments.UserName
 import org.gatein.management.cli.crash.commands.ManagementCommand
-import org.gatein.common.logging.LoggerFactory
-import org.gatein.management.cli.crash.arguments.AttributeOption
-import org.crsh.cmdline.annotations.Option
-import org.gatein.management.cli.crash.arguments.OperationOption
-import org.crsh.cmdline.annotations.Required
-import org.gatein.management.cli.crash.arguments.OperationOption
-import org.gatein.management.cli.crash.arguments.AttributeOption
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
@@ -84,7 +82,6 @@ Connect to the MOP managed component using the username 'root' and password 'gtn
       end();
     }
 
-    //TODO: Is this worthwhile ?
     host = InetAddress.getLocalHost();
 
     execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result ->
@@ -119,20 +116,30 @@ Executes the read-resource operation of the current address (path) passing in at
 
 """)
   @Command
-  public Object exec(@ContentTypeOption String contentType, @AttributeOption List<String> attributes, @Required @OperationOption String operation, @Argument String path)
+  public Object exec(@ContentTypeOption String contentType, @FileOption String file, @AttributeOption List<String> attributes, @Required @OperationOption String operation, @Argument String path)
   {
     def ct = (contentType == null) ? ContentType.JSON : ContentType.forName(contentType);
     if (ct == null) return "Invalid content type '$contentType'.";
 
+    InputStream inputStream = null;
+    if (file != null)
+    {
+      def actualFile = new File(file);
+      if (!actualFile.exists()) return "File $actualFile does not exist.";
+      inputStream = new FileInputStream(actualFile);
+    }
+
     def before = address;
     def addr = getAddress(address, path);
 
-    execute(operation, addr, ct, parseAttributes(attributes), null, { result ->
+    execute(operation, addr, ct, parseAttributes(attributes),  inputStream, { result ->
       address = before;
       def resp = response as ManagedResponse;
       def baos = new ByteArrayOutputStream();
       resp.writeResult(baos);
-      return new String(baos.toByteArray());
+
+      String data = new String(baos.toByteArray());
+      return (data.length() == 0) ? "Operation '$operation' at address '$addr' was successful." : data;
     });
   }
 }

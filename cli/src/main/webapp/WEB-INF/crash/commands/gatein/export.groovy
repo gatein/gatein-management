@@ -45,8 +45,7 @@ The export command invokes the 'export-resource' operation on the given resource
 to a file or directory.  The path of the file or directory must be absolute, and the directory must exist.
 """)
   @Command
-  //public Object main(@Required @FileOption String file, @FilterOption List<String> filters, @Argument String path) throws ScriptException
-  public Object main(@Option(names = ['f', 'file']) String file, @Argument String path) throws ScriptException
+  public Object main(@Required @FileOption String file, @FilterOption List<String> filters, @Argument String path) throws ScriptException
   {
     if (file.charAt(0) != '/') return "File or directory must be absolute.";
 

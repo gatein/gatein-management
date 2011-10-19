@@ -28,7 +28,6 @@ import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedRequest
 import org.gatein.management.api.exceptions.ResourceNotFoundException
 import org.gatein.management.api.exceptions.OperationException
-import org.gatein.common.logging.LoggerFactory
 
 assertConnected = {
   if (session == null) throw new ScriptException("Not connected !");

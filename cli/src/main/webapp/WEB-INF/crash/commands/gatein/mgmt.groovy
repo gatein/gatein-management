@@ -39,6 +39,7 @@ import org.gatein.management.cli.crash.commands.ManagementCommand
 import org.gatein.common.logging.LoggerFactory
 import org.crsh.term.Term
 import org.crsh.shell.ShellProcessContext
+import org.crsh.command.InvocationContext
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
@@ -58,12 +59,11 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
   @Command
   public Object connect(@UserName String userName,
                         @Password String password,
-                        @Container String containerName) throws ScriptException
+                        @Container String containerName, InvocationContext<Void, Void> ctx) throws ScriptException
   {
     if (userName == null)
     {
-      def ctx = getProperty("processContext") as ShellProcessContext
-      userName = (ctx == null) ? null : ctx.getProperty("USER");
+      userName = ctx.getProperty("USER");
     }
 
     if (userName == null)

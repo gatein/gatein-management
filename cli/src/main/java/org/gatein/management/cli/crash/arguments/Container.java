@@ -35,8 +35,8 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Option(names = {"c", "container"})
-@Usage("portal container name")
-@Man("The portal container name")
+@Usage("portal container name (default is 'portal')")
+@Man("The portal container name. The default value is 'portal'.")
 public @interface Container
 {
 }

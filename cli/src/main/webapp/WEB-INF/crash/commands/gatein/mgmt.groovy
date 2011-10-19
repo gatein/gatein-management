@@ -23,23 +23,25 @@
 import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Man
+import org.crsh.cmdline.annotations.Required
 import org.crsh.cmdline.annotations.Usage
+import org.crsh.command.InvocationContext
 import org.crsh.command.ScriptException
+import org.gatein.common.logging.LoggerFactory
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedResponse
 import org.gatein.management.api.controller.ManagementController
 import org.gatein.management.api.operation.OperationNames
 import org.gatein.management.api.operation.model.ReadResourceModel
+import org.gatein.management.cli.crash.arguments.AttributeOption
 import org.gatein.management.cli.crash.arguments.Container
 import org.gatein.management.cli.crash.arguments.ContentTypeOption
+import org.gatein.management.cli.crash.arguments.FileOption
+import org.gatein.management.cli.crash.arguments.OperationOption
 import org.gatein.management.cli.crash.arguments.Password
 import org.gatein.management.cli.crash.arguments.UserName
 import org.gatein.management.cli.crash.commands.ManagementCommand
-import org.gatein.common.logging.LoggerFactory
-import org.crsh.term.Term
-import org.crsh.shell.ShellProcessContext
-import org.crsh.command.InvocationContext
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
@@ -61,6 +63,8 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
                         @Password String password,
                         @Container String containerName, InvocationContext<Void, Void> ctx) throws ScriptException
   {
+    if (session != null) return "Currently connected: $connectionInfo"
+
     if (userName == null)
     {
       userName = ctx.getProperty("USER");
@@ -90,11 +94,12 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
       end();
     }
 
-    //TODO: Is this worthwhile ?
-    host = InetAddress.getLocalHost();
+    def host = InetAddress.getLocalHost();
+
+    connectionInfo = "[user=$userName, container='$containerName', host='$host']";
 
     execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result ->
-      return "Successfully connected to gatein management system: [user=$userName, container='$containerName', host='$host']"
+      return "Successfully connected to gatein management system: $connectionInfo"
     });
   }
 
@@ -109,7 +114,7 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
     controller = null;
     address = null;
     container = null;
-    host = null;
+    connectionInfo = null;
     return "Disconnected from management system.";
   }
 
@@ -125,68 +130,31 @@ Executes the read-resource operation of the current address (path) passing in at
 
 """)
   @Command
-  public Object exec(@ContentTypeOption String contentType, @Argument String pathArg, @Argument String operationArg, @Argument List<String> attributesArg)
+  public Object exec(@ContentTypeOption String contentType, @FileOption String file, @AttributeOption List<String> attributes, @Required @OperationOption String operation, @Argument String path)
   {
     assertConnected()
+    def ct = (contentType == null) ? ContentType.JSON : ContentType.forName(contentType);
+    if (ct == null) return "Invalid content type '$contentType'.";
 
-    def path = pathArg;
-    def operation = operationArg;
-    def attributes = new HashMap<String, List<String>>();
-
-    if (attributesArg != null)
+    InputStream inputStream = null;
+    if (file != null)
     {
-      for (String attr: attributesArg)
-      {
-        addAttribute(attr, attributes)
-      }
+      def actualFile = new File(file);
+      if (!actualFile.exists()) return "File $actualFile does not exist.";
+      inputStream = new FileInputStream(actualFile);
     }
-
-    if (operationArg == null)
-    {
-      operation = pathArg;
-      path = null;
-    }
-    else if (operationArg.contains("="))
-    {
-      addAttribute(operationArg, attributes)
-      operation = pathArg;
-      path = null;
-    }
-
-    if (operation == null) return "Operation name is required."
-
-    def ct = (contentType == null) ? ContentType.JSON : ContentType.forName(contentType)
 
     def before = address;
     def addr = getAddress(address, path);
 
-    execute(operation, addr, ct, attributes, null, { result ->
+    execute(operation, addr, ct, parseAttributes(attributes),  inputStream, { result ->
       address = before;
       def resp = response as ManagedResponse;
       def baos = new ByteArrayOutputStream();
       resp.writeResult(baos);
-      return new String(baos.toByteArray());
+
+      String data = new String(baos.toByteArray());
+      return (data.length() == 0) ? "Operation '$operation' at address '$addr' was successful." : data;
     });
-  }
-
-  private void addAttribute(String attr, HashMap<String, List<String>> attributes)
-  {
-    if (attr ==~ /[^=]*=.*/)
-    {
-      String key = attr.substring(0, attr.indexOf('='));
-      String value = attr.substring(attr.indexOf('=') + 1, attr.length());
-
-      List<String> list = attributes.get(key);
-      if (list == null)
-      {
-        list = new ArrayList<String>();
-        attributes.put(key, list);
-      }
-      list.add(value);
-    }
-    else
-    {
-      throw new ScriptException("Invalid attribute arguement '$attr'");
-    }
   }
 }

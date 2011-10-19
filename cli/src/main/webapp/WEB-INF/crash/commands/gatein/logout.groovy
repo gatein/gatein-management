@@ -28,4 +28,4 @@ session = null;
 controller = null;
 address = null;
 container = null;
-host = null;
+connectionInfo = null;

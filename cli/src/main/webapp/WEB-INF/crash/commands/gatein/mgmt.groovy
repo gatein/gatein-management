@@ -94,9 +94,7 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
       end();
     }
 
-    def host = InetAddress.getLocalHost();
-
-    connectionInfo = "[user=$userName, container='$containerName', host='$host']";
+    connectionInfo = "[user=$userName, container='$containerName', host='$hostName']";
 
     execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result ->
       return "Successfully connected to gatein management system: $connectionInfo"

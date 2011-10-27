@@ -23,12 +23,16 @@ import org.gatein.management.api.PathAddress
 */
 
 welcome = { ->
-  def hostName;
+  hostName = "unknown";
   try {
     hostName = java.net.InetAddress.getLocalHost().getHostName();
   } catch (java.net.UnknownHostException ignore) {
-    hostName = "localhost";
+  } catch (ArrayIndexOutOfBoundsException ignore) {
+    try {
+      hostName = java.net.InetAddress.getByName(null).getHostName();
+    } catch (Exception e) {}
   }
+
   return """\
    ______
  .~      ~. |`````````,       .'.                   ..'''' |         |

@@ -224,7 +224,7 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
    {
       String target = action.getTarget();
       Matcher matcher = PATTERN.matcher(target);
-      if (PATTERN.matcher(target).matches())
+      if (matcher.matches())
       {
          containerName = matcher.group(1);
          path = matcher.group(2);

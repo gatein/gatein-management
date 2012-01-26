@@ -35,7 +35,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Option(names = {"p", "password"})
-@Usage("the user passowrd")
+@Usage("the user password")
 @Man("The user password")
 public @interface Password
 {

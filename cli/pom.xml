@@ -35,7 +35,7 @@
    <name>GateIn Management - CLI</name>
 
    <properties>
-      <org.crsh.version>1.0.0-beta23</org.crsh.version>
+      <org.crsh.version>1.0.0-beta24</org.crsh.version>
    </properties>
 
    <dependencies>

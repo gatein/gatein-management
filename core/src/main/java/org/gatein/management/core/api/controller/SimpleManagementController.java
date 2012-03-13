@@ -42,6 +42,7 @@ import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -112,20 +113,7 @@ public class SimpleManagementController implements ManagementController
                ReadResourceModel readResource = (ReadResourceModel) result;
                if (!readResource.isChildDescriptionsSet())
                {
-                  ManagedResource currentResource = root.getSubResource(address);
-                  // Set children descriptions
-                  for (String subResourceName : currentResource.getSubResourceNames(PathAddress.empty()))
-                  {
-                     ManagedResource subResource = currentResource.getSubResource(subResourceName);
-                     for (String childName : readResource.getChildren())
-                     {
-                        ManagedResource mr = root.getSubResource(address.append(childName));
-                        if (mr == subResource)
-                        {
-                           readResource.setChildDescription(childName, mr.getResourceDescription(PathAddress.empty()).getDescription());
-                        }
-                     }
-                  }
+                  populateChildDescriptions(root, address, readResource);
                }
 
                if (readResource.getOperations().isEmpty())
@@ -145,6 +133,37 @@ public class SimpleManagementController implements ManagementController
       {
          // Why pass in operation name, if it's not used as part of the message...
          throw new OperationException(operationName, "Operation '" + operationName  + "' not found for address '" + address + "'");
+      }
+   }
+   
+   private void populateChildDescriptions(ManagedResource root, PathAddress address, ReadResourceModel readResource)
+   {
+      ManagedResource currentResource = root.getSubResource(address);
+      Set<String> subResourceNames = currentResource.getSubResourceNames(PathAddress.empty());
+      
+      // We have children but no sub resources which typically means that the same resource serves multiple paths like a navigation URI.
+      if (!readResource.getChildren().isEmpty() && subResourceNames.isEmpty())
+      {
+         for (String childName : readResource.getChildren())
+         {
+            readResource.setChildDescription(childName, currentResource.getResourceDescription(PathAddress.empty()).getDescription());
+         }
+      }
+      else
+      {
+         // Set children descriptions
+         for (String subResourceName : subResourceNames)
+         {
+            ManagedResource subResource = currentResource.getSubResource(subResourceName);
+            for (String childName : readResource.getChildren())
+            {
+               ManagedResource mr = root.getSubResource(address.append(childName));
+               if (mr == subResource || mr == currentResource)
+               {
+                  readResource.setChildDescription(childName, mr.getResourceDescription(PathAddress.empty()).getDescription());
+               }
+            }
+         }
       }
    }
 

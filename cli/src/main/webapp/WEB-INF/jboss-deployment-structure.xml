@@ -1,0 +1,15 @@
+<jboss-deployment-structure>
+
+   <deployment>
+      <dependencies>
+         <module name="org.gatein.lib" />
+         <module name="org.gatein.common" />
+         <module name="org.gatein.wci" />
+         <module name="javax.jcr.api"/>
+      </dependencies>
+      <resources>
+         <resource-root path="WEB-INF/lib/bcprov-jdk16-1.46.jar" use-physical-code-source="true"/>
+      </resources>
+   </deployment>
+
+</jboss-deployment-structure>

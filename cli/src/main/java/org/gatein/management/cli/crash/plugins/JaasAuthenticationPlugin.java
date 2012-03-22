@@ -109,6 +109,7 @@ public class JaasAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugin> 
          }
          catch (Exception e)
          {
+            if (log.isDebugEnabled()) log.error("Exception authenticating to JAAS domain " + domain, e);
             return false;
          }
       }

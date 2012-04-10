@@ -22,16 +22,40 @@
 
 package org.gatein.management.core.spi;
 
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ComponentRegistration;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.annotations.Managed;
+import org.gatein.management.api.annotations.ManagedOperation;
+import org.gatein.management.api.annotations.ManagedPath;
+import org.gatein.management.api.annotations.Mapped;
+import org.gatein.management.api.annotations.MappedAttribute;
+import org.gatein.management.api.annotations.MappedPath;
+import org.gatein.management.api.annotations.Mapper;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.model.ModelProvider;
+import org.gatein.management.api.operation.OperationContext;
+import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.OperationNames;
+import org.gatein.management.api.operation.ResultHandler;
+import org.gatein.management.api.operation.model.NoResultModel;
+import org.gatein.management.core.api.AbstractManagedResource;
 import org.gatein.management.core.api.ManagementProviders;
 import org.gatein.management.core.api.operation.global.ExportResource;
 import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.spi.ExtensionContext;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -39,12 +63,14 @@ import org.gatein.management.spi.ExtensionContext;
  */
 public class ExtensionContextImpl implements ExtensionContext
 {
-   private final ManagedResource.Registration rootRegistration;
+   private static final Logger log = LoggerFactory.getLogger("org.gatein.management.spi");
+
+   private final AbstractManagedResource rootResource;
    private final ManagementProviders providers;
 
-   public ExtensionContextImpl(ManagedResource.Registration rootRegistration, ManagementProviders providers)
+   public ExtensionContextImpl(AbstractManagedResource rootResource, ManagementProviders providers)
    {
-      this.rootRegistration = rootRegistration;
+      this.rootResource = rootResource;
       this.providers = providers;
    }
 
@@ -58,7 +84,7 @@ public class ExtensionContextImpl implements ExtensionContext
          @Override
          public ManagedResource.Registration registerManagedResource(ManagedDescription description)
          {
-            ManagedResource.Registration registration = rootRegistration.registerSubResource(name, description);
+            ManagedResource.Registration registration = rootResource.registerSubResource(name, description);
             registration.registerOperationHandler(OperationNames.EXPORT_RESOURCE, GlobalOperationHandlers.EXPORT_RESOURCE, ExportResource.DESCRIPTION, true);
 
             return registration;
@@ -74,6 +100,240 @@ public class ExtensionContextImpl implements ExtensionContext
          public void registerModelProvider(ModelProvider modelProvider)
          {
             providers.register(name, modelProvider);
+         }
+      };
+   }
+
+   @Override
+   public ComponentRegistration registerManagedComponent(Class<?> component)
+   {
+      boolean debug = log.isDebugEnabled();
+      if (debug) log.debug("Processing managed annotations for class " + component);
+
+      Managed managed = component.getAnnotation(Managed.class);
+      if (managed == null) throw new RuntimeException(Managed.class + " annotation not present on " + component);
+
+      ManagedPath componentPath = component.getAnnotation(ManagedPath.class);
+      if (componentPath == null) throw new RuntimeException(ManagedPath.class + " annotation must be present on " + component);
+
+      // Register component
+      PathAddress address = PathAddress.pathAddress(componentPath.value());
+      String componentName = address.iterator().next();
+      if (debug) log.debug("Registering managed component " + componentName);
+
+      ComponentRegistration registration = registerManagedComponent(componentName);
+      registration.registerManagedResource(description(managed.description()));
+
+      // Register operations
+      AbstractManagedResource resource = registerManagedPath(componentPath, managed, rootResource);
+      Method[] methods = component.getMethods();
+      for (Method method : methods)
+      {
+         Managed managedMethod = method.getAnnotation(Managed.class);
+         if (managedMethod != null)
+         {
+            if (debug) log.debug("Processing managed method " + getMethodName(method));
+            registerManagedOperation(registerManagedPath(method.getAnnotation(ManagedPath.class), managedMethod, resource), method, component);
+         }
+      }
+
+      return registration;
+   }
+
+   private AbstractManagedResource registerManagedPath(ManagedPath managedPath, Managed managed, AbstractManagedResource resource)
+   {
+      if (managedPath != null)
+      {
+         PathAddress address = PathAddress.pathAddress(managedPath.value());
+         Iterator<String> iterator = address.iterator();
+         while (iterator.hasNext())
+         {
+            String path = iterator.next();
+            String description = "";
+            if (iterator.hasNext())
+            {
+               description = managed.description();
+            }
+            AbstractManagedResource child = (AbstractManagedResource) resource.getSubResource(path);
+            if (child == null)
+            {
+               if (log.isDebugEnabled()) log.debug("Registering sub resource " + path);
+               child = (AbstractManagedResource) resource.registerSubResource(path, description(description));
+            }
+
+            resource = child;
+         }
+      }
+      return resource;
+   }
+
+   private void registerManagedOperation(AbstractManagedResource resource, final Method method, final Class<?> componentClass)
+   {
+      ManagedOperation mo = method.getAnnotation(ManagedOperation.class);
+      String operationName = OperationNames.READ_RESOURCE;
+      String description = "";
+      if (mo != null)
+      {
+         operationName = mo.name();
+         description = mo.description();
+      }
+
+      final boolean debug = log.isDebugEnabled();
+      if (debug) log.debug("Registering operation " + operationName + " for path " + resource.getPath());
+
+      resource.registerOperationHandler(operationName, new OperationHandler()
+      {
+         @Override
+         public void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
+         {
+            if (debug) log.debug("Executing operation handler for annotated method " + getMethodName(method) + " for address " + operationContext.getAddress());
+
+            Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            Object[] params = new Object[parameterAnnotations.length];
+            for (int i = 0; i < parameterAnnotations.length; i++)
+            {
+               MappedPath pathTemplate;
+               MappedAttribute managedAttribute;
+               Mapped mapped;
+               // Resolve path template and set as parameter to method
+               if ((pathTemplate = getAnnotation(parameterAnnotations[i], MappedPath.class)) != null)
+               {
+                  params[i] = operationContext.getAddress().resolvePathTemplate(pathTemplate.value());
+                  if (debug) log.debug("Resolved path template " + pathTemplate.value() + "=" + params[i]);
+               }
+               // Resolve attribute name and set as parameter to method
+               else if ((managedAttribute = getAnnotation(parameterAnnotations[i], MappedAttribute.class)) != null)
+               {
+                  if (List.class == method.getParameterTypes()[i])
+                  {
+                     params[i] = operationContext.getAttributes().getValues(managedAttribute.value());
+                  }
+                  else if (String.class == method.getParameterTypes()[i])
+                  {
+                     params[i] = operationContext.getAttributes().getValue(managedAttribute.value());
+                  }
+                  else
+                  {
+                     throw new RuntimeException("The parameter type " + method.getParameterTypes()[i] + " cannot be annotated by @" + MappedAttribute.class.getName() + ". Only List<String> and String are allowed.");
+                  }
+
+                  if (debug) log.debug("Resolved attribute " + managedAttribute.value() + "=" + params[i]);
+               }
+               // Call custom mapper and set value as parameter to method
+               else if ((mapped = getAnnotation(parameterAnnotations[i], Mapped.class)) != null)
+               {
+                  Mapper<?> mapper = null;
+                  try
+                  {
+                     mapper = mapped.value().newInstance();
+                  }
+                  catch (Exception e)
+                  {
+                     throw new RuntimeException("Could not create mapper class " + mapped.value() + " for parameter type " + method.getParameterTypes()[i], e);
+                  }
+
+                  params[i] = mapper.map(operationContext.getAddress(), operationContext.getAttributes());
+               }
+               else
+               {
+                  Class<?> marshalClass = method.getParameterTypes()[i];
+                  if (debug) log.debug("Encountered unannotated parameter. Will try and find marshaller for type " + marshalClass);
+
+                  Marshaller<?> marshaller = operationContext.getBindingProvider().getMarshaller(marshalClass, operationContext.getContentType());
+                  if (marshaller != null)
+                  {
+                     params[i] = marshaller.unmarshal(operationContext.getAttachment(true).getStream());
+                     if (debug) log.debug("Successfully unmarshaled object of type " + marshalClass);
+                  }
+                  else
+                  {
+                     throw new RuntimeException("Could not find marshaller for " + marshalClass +
+                        " and therefore cannot pass parameter of this type to method " + getMethodName(method) + " for component " + componentClass);
+                  }
+               }
+            }
+
+            Object component = operationContext.getRuntimeContext().getRuntimeComponent(componentClass);
+            if (component == null)
+            {
+               // try and invoke it ourselves...
+               try
+               {
+                  component = componentClass.newInstance();
+               }
+               catch (Exception e)
+               {
+                  throw new RuntimeException("Could not create new instance of class " + componentClass, e);
+               }
+            }
+            try
+            {
+               Object result = method.invoke(component, params);
+               if (method.getReturnType() == void.class)
+               {
+                  resultHandler.completed(NoResultModel.INSTANCE);
+               }
+               else
+               {
+                  if (result == null)
+                  {
+                     throw new ResourceNotFoundException("");
+                  }
+                  else
+                  {
+                     resultHandler.completed(result);
+                  }
+               }
+            }
+            catch (IllegalAccessException e)
+            {
+               throw new RuntimeException("Cannot access method " + method + " on object " + component, e);
+            }
+            catch (InvocationTargetException e)
+            {
+               throw new RuntimeException("Could not invoke method " + method + " on object " + component, e);
+            }
+         }
+      }, description(description));
+   }
+
+   private <A extends Annotation> A getAnnotation(Annotation[] annotations, Class<A> type)
+   {
+      for (Annotation annotation : annotations)
+      {
+         if (annotation.annotationType() == type) return type.cast(annotation);
+      }
+
+      return null;
+   }
+
+   private String getMethodName(Method method)
+   {
+      String name = method.getName();
+      StringBuilder sb = new StringBuilder();
+      sb.append(name).append("(");
+      Class<?>[] parameters = method.getParameterTypes();
+      for (int i=0; i<parameters.length; i++)
+      {
+         sb.append(parameters[i].getName());
+         if (i != parameters.length-1)
+         {
+            sb.append(", ");
+         }
+      }
+      sb.append(")");
+
+      return sb.toString();
+   }
+
+   private ManagedDescription description(final String description)
+   {
+      return new ManagedDescription()
+      {
+         @Override
+         public String getDescription()
+         {
+            return description;
          }
       };
    }

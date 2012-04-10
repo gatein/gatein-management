@@ -125,8 +125,15 @@ public class ManagementServiceImpl implements ManagementService
       ServiceLoader<ManagementExtension> loader = ServiceLoader.load(ManagementExtension.class);
       for (ManagementExtension extension : loader)
       {
-         extension.initialize(context);
-         extensions.add(extension);
+         try
+         {
+            extension.initialize(context);
+            extensions.add(extension);
+         }
+         catch (Exception e)
+         {
+            log.error("Could not initialize extension " + extension, e);
+         }
       }
 
       log.debug("Successfully loaded " + extensions.size() + " management extension(s).");

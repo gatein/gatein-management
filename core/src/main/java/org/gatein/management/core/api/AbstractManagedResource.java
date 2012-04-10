@@ -106,7 +106,7 @@ public abstract class AbstractManagedResource implements ManagedResource, Manage
 
    protected abstract Set<String> getChildNames(PathAddressIterator iterator);
 
-   protected String getPath()
+   public String getPath()
    {
       if (parent == null)
       {

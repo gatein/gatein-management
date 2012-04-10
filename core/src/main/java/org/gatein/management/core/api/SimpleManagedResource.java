@@ -68,7 +68,7 @@ public class SimpleManagedResource extends AbstractManagedResource
       if (name == null) throw new IllegalArgumentException("name is null");
       if (description == null) throw new IllegalArgumentException("description is null");
 
-      if (name.startsWith("/")) name = name.substring(1, name.length());
+      if (name.charAt(0) == '/') name = name.substring(1, name.length());
 
       PathElement element;
       try

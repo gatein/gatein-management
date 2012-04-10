@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,17 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.spi;
+package org.gatein.management.api.annotations;
 
-import org.gatein.management.api.ComponentRegistration;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
- * @version $Revision$
  */
-public interface ExtensionContext
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface MappedAttribute
 {
-   ComponentRegistration registerManagedComponent(String name);
-
-   ComponentRegistration registerManagedComponent(Class<?> component);
+   String value();
 }

@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,17 +20,24 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.spi;
+package org.gatein.management.api.annotations;
 
-import org.gatein.management.api.ComponentRegistration;
+import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.operation.OperationAttributes;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
- * @version $Revision$
  */
-public interface ExtensionContext
+public abstract class Mapper<T>
 {
-   ComponentRegistration registerManagedComponent(String name);
+   protected Mapper(){}
 
-   ComponentRegistration registerManagedComponent(Class<?> component);
+   /**
+    * Used as a custom mapper to resolve parameters annotated with {@link Mapped}
+    *
+    * @param address used to resolve {@link ManagedPath} annotations by calling {@link PathAddress#resolvePathTemplate(String)}
+    * @param attributes all operation attributes
+    * @return the object to be passed as the parameter annotated by {@link Mapped}
+    */
+   public abstract T map(PathAddress address, OperationAttributes attributes);
 }

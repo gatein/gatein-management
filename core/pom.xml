@@ -51,6 +51,11 @@
          <groupId>org.json</groupId>
          <artifactId>json</artifactId>
       </dependency>
+      <!-- JBoss DMR -->
+      <dependency>
+         <groupId>org.jboss</groupId>
+         <artifactId>jboss-dmr</artifactId>
+      </dependency>
       
       <!-- Testing -->
       <dependency>

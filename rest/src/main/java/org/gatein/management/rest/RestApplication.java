@@ -26,7 +26,7 @@ import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.rest.providers.BindingProviderResolver;
 import org.gatein.management.rest.providers.JsonResourceProvider;
-import org.gatein.management.rest.providers.ManagedComponentProvider;
+import org.gatein.management.rest.providers.ManagedResponseWriter;
 
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
@@ -53,7 +53,7 @@ public class RestApplication extends Application
 
       // Classes
       classes = new HashSet<Class<?>>(1);
-      classes.add(ManagedComponentProvider.class);
+      classes.add(ManagedResponseWriter.class);
    }
 
    @Override

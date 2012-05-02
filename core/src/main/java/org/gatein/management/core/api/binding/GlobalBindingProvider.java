@@ -39,6 +39,8 @@ import java.io.OutputStream;
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
+ *
+ * //TODO: Add some built in marshallers that come standard with REST impls, like jaxb annotated objects, etc.
  */
 public class GlobalBindingProvider implements BindingProvider
 {

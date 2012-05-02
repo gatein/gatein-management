@@ -29,7 +29,6 @@ import org.gatein.management.api.operation.OperationNames;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +115,7 @@ class HttpManagedRequestBuilder
       if (op != null)
       {
          operationName = op;
-         if (operationName.equals(OperationNames.READ_CONFIG_AS_XML))
+         if (operationName.equals(OperationNames.READ_CONFIG))
          {
             contentType = ContentType.XML;
          }
@@ -135,7 +134,7 @@ class HttpManagedRequestBuilder
       if (path.endsWith(".xml"))
       {
          path = path.substring(0, path.lastIndexOf(".xml"));
-         operationName = OperationNames.READ_CONFIG_AS_XML;
+         operationName = OperationNames.READ_CONFIG;
          contentType = ContentType.XML;
       }
       else if (path.endsWith(".zip"))

@@ -416,6 +416,10 @@ public class RestController
       {
          return Response.ok().type(mediaType).build();
       }
+      else
+      {
+         return Response.ok(response).type(mediaType).build();
+      }
 
       return Response.ok(result).type(mediaType).build();
    }

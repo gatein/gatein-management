@@ -76,7 +76,7 @@ public class SourceCommand extends SCPCommand
       ContentType contentType = ContentType.ZIP;
       if (path.endsWith(".xml"))
       {
-         operationName = OperationNames.READ_CONFIG_AS_XML;
+         operationName = OperationNames.READ_CONFIG;
          contentType = ContentType.XML;
          path = path.substring(0, path.lastIndexOf(".xml"));
       }

@@ -26,7 +26,6 @@ import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlElement;
@@ -74,10 +73,9 @@ public class Resource
             {
                link = new LinkBuilder(uriBuilder).rel("self").build();
             }
-            else if (operationDescribed.getName().equals(OperationNames.READ_CONFIG_AS_XML))
+            else if (operationDescribed.getName().equals(OperationNames.READ_CONFIG))
             {
-               link = new LinkBuilder(uriBuilder)
-                  .rel("content").extension("xml").type(MediaType.APPLICATION_XML).replaceQuery("").build();
+               link = new LinkBuilder(uriBuilder).rel("content").replaceQuery("").build();
             }
             else if (operationDescribed.getName().equals(OperationNames.EXPORT_RESOURCE))
             {

@@ -33,11 +33,11 @@ public interface FilteredAddress
     * variable indicated during filtering does not resolve to anything.
     * @return true if the address should be filtered.
     */
-   abstract boolean isFiltered();
+   boolean isFiltered();
 
    /**
     * Indicates whether or not the filter matches.  This will only be called if the <code>isFiltered</code> method returns true.
     * @return true if the filter matches
     */
-   abstract boolean matches();
+   boolean matches();
 }

@@ -73,10 +73,6 @@ public class Resource
             {
                link = new LinkBuilder(uriBuilder).rel("self").build();
             }
-            else if (operationDescribed.getName().equals(OperationNames.READ_CONFIG))
-            {
-               link = new LinkBuilder(uriBuilder).rel("content").replaceQuery("").build();
-            }
             else if (operationDescribed.getName().equals(OperationNames.EXPORT_RESOURCE))
             {
                link = new LinkBuilder(uriBuilder)

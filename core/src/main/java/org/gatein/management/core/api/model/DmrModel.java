@@ -22,12 +22,12 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelBoolean;
 import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelObject;
 import org.gatein.management.api.model.ModelString;
-import org.gatein.management.api.model.ModelUndefined;
 import org.jboss.dmr.ModelNode;
 
 import java.math.BigDecimal;
@@ -36,9 +36,9 @@ import java.math.BigInteger;
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
-class DmrModelUndefined extends DmrModelValue implements ModelUndefined
+class DmrModel extends DmrModelValue implements Model
 {
-   DmrModelUndefined(ModelNode value)
+   DmrModel(ModelNode value)
    {
       super(value);
    }

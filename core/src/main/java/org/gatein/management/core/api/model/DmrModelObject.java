@@ -22,8 +22,8 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelObject;
-import org.gatein.management.api.model.ModelUndefined;
 import org.gatein.management.api.model.ModelValue;
 import org.jboss.dmr.ModelNode;
 
@@ -48,15 +48,15 @@ class DmrModelObject extends DmrModelValue implements ModelObject
    }
 
    @Override
-   public ModelUndefined get(String name)
+   public Model get(String name)
    {
-      return new DmrModelUndefined(value.get(name));
+      return new DmrModel(value.get(name));
    }
 
    @Override
-   public ModelUndefined get(String... names)
+   public Model get(String... names)
    {
-      return new DmrModelUndefined(value.get(names));
+      return new DmrModel(value.get(names));
    }
 
    @Override

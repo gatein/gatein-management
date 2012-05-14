@@ -26,11 +26,11 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * A <code>ModelValue</code> representing something that hasn't been defined yet.
+ * A <code>ModelValue</code> representing the initial state of a value that can be set to anything.
  *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
-public interface ModelUndefined extends ModelValue
+public interface Model extends ModelValue
 {
    ModelString set(String value);
 

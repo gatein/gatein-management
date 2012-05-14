@@ -183,7 +183,7 @@ public abstract class DmrModelValue implements ModelValue
          case STRING:
             return new DmrModelString(value);
          case UNDEFINED:
-            return new DmrModelUndefined(value);
+            return new DmrModel(value);
          default:
             throw new AssertionError(valueType);
       }

@@ -35,21 +35,20 @@ import java.util.Set;
 public interface ModelObject extends ModelValue
 {
    /**
-    * Method for retrieving or creating a <code>ModelValue</code>. For creating use the set methods, for retrieving
-    * use the {@link ModelObject#get(String, Class)} method.
+    * Method for retrieving or creating child <code>ModelValue</code>'s.
     *
-    * @param name the name of the value
-    * @return a <code>ModelUndefined</code> value representing the initial undefined state.
+    * @param name the name of the child
+    * @return a <code>Model</code> representing the value.
     */
-   ModelUndefined get(String name);
+   Model get(String name);
 
    /**
-    * Recursively retrieves model values for the given names.
+    * Recursively retrieves the children for the given names, creating any children along the way.
     *
-    * @param names the names of the values
-    * @return a <code>ModelUndefined</code> value representing the initial undefined state.
+    * @param names the child names
+    * @return a <code>Model</code> representing the value.
     */
-   ModelUndefined get(String... names);
+   Model get(String... names);
 
    <T extends ModelValue> T get(String name, Class<T> valueType);
 

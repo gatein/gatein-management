@@ -22,8 +22,8 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelList;
-import org.gatein.management.api.model.ModelUndefined;
 import org.gatein.management.api.model.ModelValue;
 import org.jboss.dmr.ModelNode;
 
@@ -60,9 +60,9 @@ class DmrModelList extends DmrModelValue implements ModelList
    }
 
    @Override
-   public ModelUndefined add()
+   public Model add()
    {
-      return new DmrModelUndefined(value.add());
+      return new DmrModel(value.add());
    }
 
    @Override

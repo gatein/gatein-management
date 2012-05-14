@@ -41,7 +41,7 @@ public interface ModelList extends ModelValue, Iterable<ModelValue>
 
    <T extends ModelValue> List<T> getValues(Class<T> valueType);
 
-   ModelUndefined add();
+   Model add();
 
    ModelList add(String value);
 

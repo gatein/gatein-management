@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,34 +20,39 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api;
+package org.gatein.management.core.api.binding.json;
 
-import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.BindingException;
+import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.model.ModelProvider;
+import org.gatein.management.api.model.ModelValue;
+import org.gatein.management.core.api.model.DmrModelValue;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
- * @version $Revision$
  */
-public interface ComponentRegistration
+public class ModelMapperMarshaller<T> implements Marshaller<T>
 {
-   /**
-    * Registers the component with the management system.
-    *
-    * @param description the description of the component.
-    * @return registration for further registration of operations and sub-resources.
-    */
-   ManagedResource.Registration registerManagedResource(ManagedDescription description);
+   private final ModelProvider.Mapper<T> mapper;
+   private final Marshaller<ModelValue> marshaller = ModelValueMarshaller.INSTANCE;
 
-   /**
-    * @param bindingProvider the binding provider responsible for returning marshallers responsible for
-    * the marshalling and unmarshalling of results from operations.
-    */
-   void registerBindingProvider(BindingProvider bindingProvider);
+   public ModelMapperMarshaller(ModelProvider.Mapper<T> mapper)
+   {
+      this.mapper = mapper;
+   }
 
-   /**
-    * Registers a model provider that can be used to map an object to a {@link org.gatein.management.api.model.ModelValue}
-    * @param modelProvider the model provider
-    */
-   void registerModelProvider(ModelProvider modelProvider);
+   @Override
+   public void marshal(T object, OutputStream outputStream, boolean pretty) throws BindingException
+   {
+      marshaller.marshal(mapper.to(DmrModelValue.newModel(), object), outputStream, pretty);
+   }
+
+   @Override
+   public T unmarshal(InputStream inputStream) throws BindingException
+   {
+      return mapper.from(marshaller.unmarshal(inputStream));
+   }
 }

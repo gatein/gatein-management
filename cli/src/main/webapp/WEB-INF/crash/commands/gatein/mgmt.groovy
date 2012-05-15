@@ -96,7 +96,7 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
 
     connectionInfo = "[user=$userName, container='$containerName', host='$hostName']";
 
-    execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result ->
+    execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result, error ->
       return "Successfully connected to gatein management system: $connectionInfo"
     });
   }
@@ -145,11 +145,11 @@ Executes the read-resource operation of the current address (path) passing in at
     def before = address;
     def addr = getAddress(address, path);
 
-    execute(operation, addr, ct, parseAttributes(attributes),  inputStream, { result ->
+    execute(operation, addr, ct, parseAttributes(attributes),  inputStream, { result, error ->
       address = before;
       def resp = response as ManagedResponse;
       def baos = new ByteArrayOutputStream();
-      resp.writeResult(baos);
+      resp.writeResult(baos, true);
 
       String data = new String(baos.toByteArray());
       return (data.length() == 0) ? "Operation '$operation' at address '$addr' was successful." : data;

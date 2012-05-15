@@ -61,7 +61,7 @@ public class SuccessfulResponse<T> implements ManagedResponse
       return result;
    }
 
-   public void writeResult(OutputStream outputStream) throws IOException
+   public void writeResult(OutputStream outputStream, boolean pretty) throws IOException
    {
       if (bindingProvider == null) throw new IOException("Cannot write result because no binding provider was specified.");
 
@@ -71,7 +71,7 @@ public class SuccessfulResponse<T> implements ManagedResponse
       Marshaller<T> marshaller = bindingProvider.getMarshaller(type, contentType);
       if (marshaller == null) throw new IOException("Could not find marshaller for type " + type + " and content type " + contentType);
 
-      marshaller.marshal(result, outputStream);
+      marshaller.marshal(result, outputStream, pretty);
    }
 
    private static final Outcome success = new Outcome()

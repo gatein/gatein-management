@@ -20,14 +20,12 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-
-
 import org.crsh.command.ScriptException
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedRequest
-import org.gatein.management.api.exceptions.ResourceNotFoundException
 import org.gatein.management.api.exceptions.OperationException
+import org.gatein.management.api.exceptions.ResourceNotFoundException
 
 assertConnected = {
   if (session == null) throw new ScriptException("Not connected !");
@@ -48,11 +46,11 @@ execute = { String operationName, PathAddress pathAddress, ContentType contentTy
     if (response.outcome.isSuccess())
     {
       address = pathAddress;
-      return printResult(response.result);
+      return printResult(response.result, null);
     }
     else
     {
-      return "Operation failure: $response.outcome.failureDescription";
+      return printResult(null, response.result);
     }
   }
   catch (ResourceNotFoundException e)

@@ -44,12 +44,13 @@ The cat command invokes the 'read-config-as-xml' operation on the given resource
 
     def before = address;
     def pathAddress = getAddress(address, path);
+    if (ct == null) ct = ContentType.XML;
 
-    execute(OperationNames.READ_CONFIG, pathAddress, ct, null, null, { result ->
+    execute(OperationNames.READ_CONFIG, pathAddress, ct, null, null, { result, error ->
       address = before;
       def resp = response as ManagedResponse;
       def baos = new ByteArrayOutputStream();
-      resp.writeResult(baos);
+      resp.writeResult(baos, true);
       return new String(baos.toByteArray());
     });
   }

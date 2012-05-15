@@ -23,6 +23,7 @@
 package org.gatein.management.core.api.controller;
 
 import org.gatein.management.api.controller.ManagedResponse;
+import org.gatein.management.api.model.ModelValue;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,11 +34,11 @@ import java.io.OutputStream;
  */
 public class FailureResponse implements ManagedResponse
 {
-   private final String failureDescription;
+   private final ModelValue failure;
 
-   public FailureResponse(String failureDescription)
+   public FailureResponse(ModelValue failure)
    {
-      this.failureDescription = failureDescription;
+      this.failure = failure;
    }
 
    @Override
@@ -49,11 +50,12 @@ public class FailureResponse implements ManagedResponse
    @Override
    public Object getResult()
    {
-      return null;
+      return failure;
    }
 
-   public void writeResult(OutputStream outputStream) throws IOException
+   public void writeResult(OutputStream outputStream, boolean pretty) throws IOException
    {
+      failure.toJsonStream(outputStream, pretty);
    }
 
    private class FailureOutcome implements Outcome
@@ -67,7 +69,7 @@ public class FailureResponse implements ManagedResponse
       @Override
       public String getFailureDescription()
       {
-         return failureDescription;
+         return failure.toString();
       }
    }
 }

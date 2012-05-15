@@ -101,7 +101,11 @@ public class SimpleManagementController implements ManagementController
 
          if (resultHandler.getFailureDescription() != null)
          {
-            return new FailureResponse(resultHandler.getFailureDescription());
+            return new FailureResponse(resultHandler.failed().set(resultHandler.getFailureDescription()));
+         }
+         else if (resultHandler.getFailure() != null)
+         {
+            return new FailureResponse(resultHandler.getFailure());
          }
          else
          {

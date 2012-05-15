@@ -32,18 +32,17 @@ import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.core.api.binding.GlobalBindingProvider;
-import org.gatein.management.core.api.operation.global.ExportResource;
+import org.gatein.management.core.api.binding.json.ModelMapperMarshaller;
 import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.core.spi.ExtensionContextImpl;
 import org.gatein.management.spi.ExtensionContext;
 import org.gatein.management.spi.ManagementExtension;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
@@ -56,7 +55,7 @@ public class ManagementServiceImpl implements ManagementService
 
    private ManagedResource rootResource;
    private List<ManagementExtension> extensions;
-   private Map<String, BindingProvider> bindingProviders;
+   private ManagementProviders providers;
    private BindingProvider globalBindingProvider;
 
    @Override
@@ -74,17 +73,27 @@ public class ManagementServiceImpl implements ManagementService
          public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
          {
             Marshaller<T> marshaller = null;
-            BindingProvider bp = bindingProviders.get(componentName);
+            BindingProvider bp = providers.getBindingProvider(componentName);
             if (bp != null)
             {
                marshaller = bp.getMarshaller(type, contentType);
-            }
-            if (marshaller == null)
-            {
-               marshaller = globalBindingProvider.getMarshaller(type, contentType);
+               if (marshaller != null) return marshaller;
             }
 
-            return marshaller;
+            if (contentType == ContentType.JSON)
+            {
+               ModelProvider mp = providers.getModelProvider(componentName);
+               if (mp != null)
+               {
+                  ModelProvider.Mapper<T> mapper = mp.getModelMapper(type);
+                  if (mapper != null)
+                  {
+                     return new ModelMapperMarshaller<T>(mapper);
+                  }
+               }
+            }
+
+            return globalBindingProvider.getMarshaller(type, contentType);
          }
       };
    }
@@ -110,8 +119,8 @@ public class ManagementServiceImpl implements ManagementService
          }
       });
 
-      Map<String, BindingProvider> map = new HashMap<String, BindingProvider>();
-      ExtensionContext context = new ExtensionContextImpl(resource, map);
+      ManagementProviders providers = new ManagementProviders();
+      ExtensionContext context = new ExtensionContextImpl(resource, providers);
 
       ServiceLoader<ManagementExtension> loader = ServiceLoader.load(ManagementExtension.class);
       for (ManagementExtension extension : loader)
@@ -125,7 +134,7 @@ public class ManagementServiceImpl implements ManagementService
       initGlobalOperations(resource);
 
       rootResource = resource;
-      bindingProviders = map;
+      this.providers = providers;
       globalBindingProvider = new GlobalBindingProvider();
    }
 

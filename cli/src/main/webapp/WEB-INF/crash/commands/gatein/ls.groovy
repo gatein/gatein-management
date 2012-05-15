@@ -26,7 +26,6 @@ import org.crsh.cmdline.annotations.Man
 import org.crsh.cmdline.annotations.Usage
 import org.crsh.command.ScriptException
 import org.crsh.shell.ui.UIBuilder
-import org.gatein.management.api.PathAddress
 import org.gatein.management.api.operation.OperationNames
 import org.gatein.management.api.operation.model.ReadResourceModel
 import org.gatein.management.cli.crash.commands.ManagementCommand
@@ -44,7 +43,7 @@ The ls command displays the content of a managed resource. By default it lists t
 
     def pathAddress = getAddress(address, path);
 
-    execute(OperationNames.READ_RESOURCE, pathAddress, null, null, null, { ReadResourceModel result ->
+    execute(OperationNames.READ_RESOURCE, pathAddress, null, null, null, { ReadResourceModel result, error ->
       def builder = new UIBuilder();
 
       for (def child : result.children)

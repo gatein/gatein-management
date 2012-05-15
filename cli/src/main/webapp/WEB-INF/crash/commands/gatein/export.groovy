@@ -20,20 +20,20 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import java.text.SimpleDateFormat
 import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Man
+import org.crsh.cmdline.annotations.Required
 import org.crsh.cmdline.annotations.Usage
 import org.crsh.command.ScriptException
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.controller.ManagedResponse
 import org.gatein.management.api.operation.OperationNames
-import org.gatein.management.cli.crash.commands.ManagementCommand
-import org.gatein.management.cli.crash.arguments.FilterOption
-import org.crsh.cmdline.annotations.Option
-import org.crsh.cmdline.annotations.Required
 import org.gatein.management.cli.crash.arguments.FileOption
+import org.gatein.management.cli.crash.arguments.FilterOption
+import org.gatein.management.cli.crash.commands.ManagementCommand
+
+import java.text.SimpleDateFormat
 
 class export extends ManagementCommand
 {
@@ -70,13 +70,13 @@ to a file or directory.  The path of the file or directory must be absolute, and
       if (actualFile.exists()) return "File $actualFile already exists.";
     }
 
-    execute(OperationNames.EXPORT_RESOURCE, pathAddress, ContentType.ZIP, ["filter":filters], null, { result ->
+    execute(OperationNames.EXPORT_RESOURCE, pathAddress, ContentType.ZIP, ["filter":filters], null, { result, error ->
       address = before;
       def resp = response as ManagedResponse;
       def fos = new FileOutputStream(actualFile)
       try
       {
-        resp.writeResult(fos);
+        resp.writeResult(fos, true);
         fos.flush();
         return "Export complete ! File location: $actualFile";
       }

@@ -44,7 +44,7 @@ import java.io.PrintWriter;
 public class ReadResourceModelMarshaller implements Marshaller<ReadResourceModel>
 {
    @Override
-   public void marshal(ReadResourceModel model, OutputStream outputStream) throws BindingException
+   public void marshal(ReadResourceModel model, OutputStream outputStream, boolean pretty) throws BindingException
    {
       PrintWriter printWriter = new PrintWriter(outputStream);
       try
@@ -69,7 +69,15 @@ public class ReadResourceModelMarshaller implements Marshaller<ReadResourceModel
          }
          json.endArray().endObject();
 
-         printWriter.write(new JSONObject(json.toString()).toString(3));
+         JSONObject output = new JSONObject(json.toString());
+         if (pretty)
+         {
+            printWriter.write(output.toString(3));
+         }
+         else
+         {
+            printWriter.write(output.toString());
+         }
          printWriter.flush();
       }
       catch (JSONException e)

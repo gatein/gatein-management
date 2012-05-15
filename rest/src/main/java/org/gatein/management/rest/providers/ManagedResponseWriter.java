@@ -27,8 +27,10 @@ import org.gatein.management.api.controller.ManagedResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import javax.xml.stream.XMLStreamConstants;
@@ -45,6 +47,9 @@ import java.lang.reflect.Type;
 @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/zip"})
 public class ManagedResponseWriter implements MessageBodyWriter<ManagedResponse>, XMLStreamConstants
 {
+   @Context
+   private UriInfo uriInfo;
+
    @Override
    public boolean isWriteable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType)
    {
@@ -60,6 +65,14 @@ public class ManagedResponseWriter implements MessageBodyWriter<ManagedResponse>
    @Override
    public void writeTo(ManagedResponse managedResponse, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> stringObjectMultivaluedMap, OutputStream outputStream) throws IOException, WebApplicationException
    {
-      managedResponse.writeResult(outputStream);
+      String pretty = uriInfo.getQueryParameters().getFirst("pretty");
+      if ("false".equalsIgnoreCase(pretty))
+      {
+         managedResponse.writeResult(outputStream, false);
+      }
+      else
+      {
+         managedResponse.writeResult(outputStream, true);
+      }
    }
 }

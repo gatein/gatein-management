@@ -53,7 +53,7 @@ public class SourceCommand extends SCPCommand
       ManagedResponse response = getResponse(controller, path, attributes);
 
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      response.writeResult(outputStream);
+      response.writeResult(outputStream, true);
       outputStream.flush();
       outputStream.close();
 

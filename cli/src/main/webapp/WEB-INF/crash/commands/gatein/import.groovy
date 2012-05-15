@@ -20,8 +20,6 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import java.text.SimpleDateFormat
-import javax.script.ScriptException
 import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Man
@@ -34,6 +32,9 @@ import org.gatein.management.cli.crash.arguments.FileOption
 import org.gatein.management.cli.crash.arguments.ImportModeOption
 import org.gatein.management.cli.crash.arguments.ImportModeOption.ImportModeCompleter
 import org.gatein.management.cli.crash.commands.ManagementCommand
+
+import java.text.SimpleDateFormat
+import javax.script.ScriptException
 
 class importfile extends ManagementCommand
 {
@@ -61,13 +62,20 @@ The import command invokes the 'import-resource' operation on the given resource
     def attributes = [:]
     if (importMode != null) attributes["importMode"] = [importMode];
 
-    execute(OperationNames.IMPORT_RESOURCE, pathAddress, ContentType.ZIP, attributes, new FileInputStream(actualFile), { result ->
+    execute(OperationNames.IMPORT_RESOURCE, pathAddress, ContentType.ZIP, attributes, new FileInputStream(actualFile), { result, error ->
       address = before;
-      def resp = response as ManagedResponse;
 
-      String failure = resp.outcome.failureDescription;
-
-      return (failure != null) ? failure : "Successfully imported file $actualFile";
+      if (error != null)
+      {
+        def resp = response as ManagedResponse;
+        def baos = new ByteArrayOutputStream();
+        resp.writeResult(baos, true);
+        return new String(baos.toByteArray());
+      }
+      else
+      {
+        "Successfully imported file $actualFile";
+      }
     });
   }
 }

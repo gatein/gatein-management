@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,34 +20,37 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api;
-
-import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.model.ModelProvider;
+package org.gatein.management.api.model;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
- * @version $Revision$
  */
-public interface ComponentRegistration
+public interface ModelProvider
 {
    /**
-    * Registers the component with the management system.
+    * Retrieve the model mapper for the given class
     *
-    * @param description the description of the component.
-    * @return registration for further registration of operations and sub-resources.
+    * @param type the class which can be mapped to a ModelValue
+    * @return the mapper
     */
-   ManagedResource.Registration registerManagedResource(ManagedDescription description);
+   <T> Mapper<T> getModelMapper(Class<T> type);
 
-   /**
-    * @param bindingProvider the binding provider responsible for returning marshallers responsible for
-    * the marshalling and unmarshalling of results from operations.
-    */
-   void registerBindingProvider(BindingProvider bindingProvider);
+   public static interface Mapper<T>
+   {
+      /**
+       * Create the object from the given <code>ModelValue</code>
+       *
+       * @param value used to create the object
+       * @return the object representing the <code>ModelValue</code>
+       */
+      T from(ModelValue value);
 
-   /**
-    * Registers a model provider that can be used to map an object to a {@link org.gatein.management.api.model.ModelValue}
-    * @param modelProvider the model provider
-    */
-   void registerModelProvider(ModelProvider modelProvider);
+      /**
+       * Create the <code>ModelValue</code> from the given object.
+       * @param model the unset/undefined model value to set
+       * @param object the object used to map to a <code>ModelValue</code>
+       * @return the <code>ModelValue</code>
+       */
+      ModelValue to(Model model, T object);
+   }
 }

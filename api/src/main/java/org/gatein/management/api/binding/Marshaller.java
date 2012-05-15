@@ -40,9 +40,10 @@ public interface Marshaller<T>
     *
     * @param object the object to marshal.
     * @param outputStream the stream to write the data to.
+    * @param pretty true if the marshaled content should be formatted pretty, including new lines and spaces.
     * @throws BindingException if an exception occurs during marshalling.
     */
-   public void marshal(T object, OutputStream outputStream) throws BindingException;
+   public void marshal(T object, OutputStream outputStream, boolean pretty) throws BindingException;
 
    /**
     * Unmarshal an object from a stream.

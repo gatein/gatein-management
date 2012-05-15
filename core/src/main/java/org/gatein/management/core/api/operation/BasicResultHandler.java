@@ -22,7 +22,10 @@
 
 package org.gatein.management.core.api.operation;
 
+import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.ResultHandler;
+import org.gatein.management.core.api.model.DmrModelValue;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -32,6 +35,7 @@ public class BasicResultHandler implements ResultHandler
 {
    private Object result;
    private String failureDescription;
+   private ModelValue failure;
 
    @Override
    public void completed(Object result)
@@ -40,9 +44,24 @@ public class BasicResultHandler implements ResultHandler
    }
 
    @Override
+   public Model completed()
+   {
+      this.result = DmrModelValue.newModel();
+      return (Model) result;
+   }
+
+   @Override
    public void failed(String failureDescription)
    {
       this.failureDescription = failureDescription;
+   }
+
+   @Override
+   public Model failed()
+   {
+      Model failure = DmrModelValue.newModel();
+      this.failure = failure;
+      return failure;
    }
 
    public Object getResult()
@@ -53,5 +72,10 @@ public class BasicResultHandler implements ResultHandler
    public String getFailureDescription()
    {
       return failureDescription;
+   }
+
+   public ModelValue getFailure()
+   {
+      return failure;
    }
 }

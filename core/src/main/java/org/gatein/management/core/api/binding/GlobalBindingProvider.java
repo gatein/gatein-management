@@ -26,9 +26,11 @@ import org.gatein.management.api.ContentType;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.model.ExportResourceModel;
 import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.core.api.binding.json.ModelValueMarshaller;
 import org.gatein.management.core.api.binding.json.ReadResourceModelMarshaller;
 import org.gatein.management.core.api.binding.zip.ExportResourceModelMarshaller;
 
@@ -49,6 +51,7 @@ public class GlobalBindingProvider implements BindingProvider
    private static final Marshaller<NoResultModel> NO_RESULT_MODEL_MARSHALLER = new NoOpMarshaller();
 
    @Override
+   @SuppressWarnings("unchecked")
    public <T> Marshaller<T> getMarshaller(Class<T> type, ContentType contentType) throws BindingException
    {
       if (NoResultModel.class.isAssignableFrom(type)) return (Marshaller<T>) NO_RESULT_MODEL_MARSHALLER;
@@ -61,6 +64,10 @@ public class GlobalBindingProvider implements BindingProvider
       {
          return (Marshaller<T>) JSON_READ_RESOURCE_MODEL_MARSHALLER;
       }
+      else if (contentType == ContentType.JSON && ModelValue.class.isAssignableFrom(type))
+      {
+         return (Marshaller<T>) ModelValueMarshaller.INSTANCE;
+      }
 
       return null;
    }
@@ -68,7 +75,7 @@ public class GlobalBindingProvider implements BindingProvider
    private static final class NoOpMarshaller implements Marshaller<NoResultModel>
    {
       @Override
-      public void marshal(NoResultModel object, OutputStream outputStream) throws BindingException
+      public void marshal(NoResultModel object, OutputStream outputStream, boolean pretty) throws BindingException
       {
          try
          {

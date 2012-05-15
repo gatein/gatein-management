@@ -47,7 +47,7 @@ import java.util.zip.ZipOutputStream;
 public class ExportResourceModelMarshaller implements Marshaller<ExportResourceModel>
 {
    @Override
-   public void marshal(ExportResourceModel model, OutputStream outputStream) throws BindingException
+   public void marshal(ExportResourceModel model, OutputStream outputStream, boolean pretty) throws BindingException
    {
       File file;
       ZipOutputStream zos = null;

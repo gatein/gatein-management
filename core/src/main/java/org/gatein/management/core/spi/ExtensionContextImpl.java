@@ -26,12 +26,12 @@ import org.gatein.management.api.ComponentRegistration;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.operation.OperationNames;
+import org.gatein.management.core.api.ManagementProviders;
 import org.gatein.management.core.api.operation.global.ExportResource;
 import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.spi.ExtensionContext;
-
-import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -40,12 +40,12 @@ import java.util.Map;
 public class ExtensionContextImpl implements ExtensionContext
 {
    private final ManagedResource.Registration rootRegistration;
-   private final Map<String, BindingProvider> bindingProviders;
+   private final ManagementProviders providers;
 
-   public ExtensionContextImpl(ManagedResource.Registration rootRegistration, Map<String, BindingProvider> bindingProviders)
+   public ExtensionContextImpl(ManagedResource.Registration rootRegistration, ManagementProviders providers)
    {
       this.rootRegistration = rootRegistration;
-      this.bindingProviders = bindingProviders;
+      this.providers = providers;
    }
 
    @Override
@@ -67,7 +67,13 @@ public class ExtensionContextImpl implements ExtensionContext
          @Override
          public void registerBindingProvider(BindingProvider bindingProvider)
          {
-            bindingProviders.put(name, bindingProvider);
+            providers.register(name, bindingProvider);
+         }
+
+         @Override
+         public void registerModelProvider(ModelProvider modelProvider)
+         {
+            providers.register(name, modelProvider);
          }
       };
    }

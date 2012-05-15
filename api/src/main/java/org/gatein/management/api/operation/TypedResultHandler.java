@@ -22,6 +22,8 @@
 
 package org.gatein.management.api.operation;
 
+import org.gatein.management.api.model.Model;
+
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
@@ -35,5 +37,17 @@ public abstract class TypedResultHandler<T> implements ResultHandler
       doCompleted((T) result);
    }
 
+   @Override
+   public Model completed()
+   {
+      throw new UnsupportedOperationException("A typed result handler should not call this method");
+   }
+
    protected abstract void doCompleted(T result);
+
+   @Override
+   public Model failed()
+   {
+      throw new UnsupportedOperationException("A typed result handler should not call this method");
+   }
 }

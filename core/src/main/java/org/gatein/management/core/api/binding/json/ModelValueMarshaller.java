@@ -37,12 +37,14 @@ import java.io.OutputStream;
  */
 public class ModelValueMarshaller implements Marshaller<ModelValue>
 {
+   public static final ModelValueMarshaller INSTANCE = new ModelValueMarshaller();
+
    @Override
-   public void marshal(ModelValue value, OutputStream outputStream) throws BindingException
+   public void marshal(ModelValue value, OutputStream outputStream, boolean pretty) throws BindingException
    {
       try
       {
-         value.toJsonStream(outputStream, true);
+         value.toJsonStream(outputStream, pretty);
          outputStream.flush();
       }
       catch (IOException e)

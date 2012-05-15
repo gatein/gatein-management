@@ -22,6 +22,7 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelBoolean;
 import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelNumber;
@@ -148,6 +149,11 @@ public abstract class DmrModelValue implements ModelValue
    public static <T extends ModelValue> T readFromJsonStream(InputStream inputStream, Class<T> valueType) throws IOException
    {
       return valueType.cast(readFromJsonStream(inputStream));
+   }
+
+   public static Model newModel()
+   {
+      return new DmrModel(new ModelNode());
    }
 
    @Override

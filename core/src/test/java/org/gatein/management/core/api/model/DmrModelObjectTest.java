@@ -67,6 +67,19 @@ public class DmrModelObjectTest
    }
 
    @Test
+   public void testGet_Set_Null()
+   {
+      // String
+      assertNull(modelObject().get("foo").set((String) null).getValue());
+
+      // BigInteger
+      assertNull(modelObject().get("foo").set((BigInteger) null).getBigInteger());
+
+      // BigDecimal
+      assertNull(modelObject().get("foo").set((BigDecimal) null).getBigDecimal());
+   }
+
+   @Test
    public void testSet()
    {
       // String
@@ -82,6 +95,22 @@ public class DmrModelObjectTest
       // Boolean
       assertTrue(modelObject().set("foo", true).get("foo", ModelBoolean.class).getValue());
       assertFalse(modelObject().set("foo", false).get("foo", ModelBoolean.class).getValue());
+   }
+
+   @Test
+   public void testSet_Null()
+   {
+      // String
+      assertFalse(modelObject().set("foo", (String) null).get("foo").isDefined());
+      assertNull(modelObject().set("foo", (String) null).get("foo", ModelString.class).getValue());
+
+      // BigInteger
+      assertFalse(modelObject().set("foo", (BigInteger) null).get("foo").isDefined());
+      assertNull(modelObject().set("foo", (BigInteger) null).get("foo", ModelNumber.class).getBigInteger());
+
+      // BigDecimal
+      assertFalse(modelObject().set("foo", (BigDecimal) null).get("foo").isDefined());
+      assertNull(modelObject().set("foo", (BigDecimal) null).get("foo", ModelNumber.class).getBigDecimal());
    }
 
    @Test

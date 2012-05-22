@@ -54,6 +54,13 @@ public class DmrModelTest
    }
 
    @Test
+   public void testNullString()
+   {
+      assertFalse(newModel().set((String) null).isDefined());
+      assertNull(newModel().set((String) null).getValue());
+   }
+
+   @Test
    public void testNumber()
    {
       assertTrue(newModel().set(3).isDefined());
@@ -82,6 +89,16 @@ public class DmrModelTest
       assertEquals(ModelValue.ModelValueType.NUMBER, newModel().set(bd).getValueType());
       assertEquals(ModelNumber.ModelNumberType.BIG_DECIMAL, newModel().set(bd).getNumberType());
       assertEquals(BigDecimal.valueOf(Math.PI), newModel().set(bd).getBigDecimal());
+   }
+
+   @Test
+   public void testNullNumber()
+   {
+      assertFalse(newModel().set((BigInteger) null).isDefined());
+      assertNull(newModel().set((BigInteger) null).getBigInteger());
+
+      assertFalse(newModel().set((BigDecimal) null).isDefined());
+      assertNull(newModel().set((BigDecimal) null).getBigDecimal());
    }
 
    @Test

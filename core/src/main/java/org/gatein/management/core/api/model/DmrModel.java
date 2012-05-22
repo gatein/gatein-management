@@ -46,6 +46,8 @@ class DmrModel extends DmrModelValue implements Model
    @Override
    public ModelString set(String value)
    {
+      if (value == null) return asValue(ModelString.class);
+
       return (ModelString) asValue(this.value.set(value));
    }
 
@@ -70,12 +72,16 @@ class DmrModel extends DmrModelValue implements Model
    @Override
    public ModelNumber set(BigInteger value)
    {
+      if (value == null) return asValue(ModelNumber.class);
+
       return (ModelNumber) asValue(this.value.set(value));
    }
 
    @Override
    public ModelNumber set(BigDecimal value)
    {
+      if (value == null) return asValue(ModelNumber.class);
+
       return (ModelNumber) asValue(this.value.set(value));
    }
 

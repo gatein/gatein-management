@@ -35,7 +35,8 @@ import java.lang.annotation.Target;
 public @interface MappedPath
 {
    /**
-    * The value of the path variable used when defining a {@link ManagedPath}.
+    * The value of the path variable used when defining a path with {@link Managed}. For example if <code>@Mapped("{bar}")</code>
+    * defines the path, then <code>@MappedPath("bar")</code> can be used to retrieve that path variable.
     */
    String value();
 }

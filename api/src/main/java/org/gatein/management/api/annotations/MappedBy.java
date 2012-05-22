@@ -22,6 +22,9 @@
 
 package org.gatein.management.api.annotations;
 
+import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.operation.OperationAttributes;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -32,11 +35,23 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface Mapped
+public @interface MappedBy
 {
    /**
     * Points to the class used to map the parameter. The class should have a zero arg constructor.
     * See {@link Mapper} for more details.
     */
    Class<? extends Mapper> value();
+
+   public static interface Mapper<T>
+   {
+      /**
+       * Used as a custom mapper to resolve parameters annotated with {@link MappedBy}
+       *
+       * @param address used to resolve a <code>Managed</code> path value by calling {@link org.gatein.management.api.PathAddress#resolvePathTemplate(String)}
+       * @param attributes all operation attributes
+       * @return the object to be passed as the parameter annotated by {@link MappedBy}
+       */
+      public abstract T map(PathAddress address, OperationAttributes attributes);
+   }
 }

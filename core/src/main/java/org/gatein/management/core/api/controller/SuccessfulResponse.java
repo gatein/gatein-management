@@ -29,6 +29,7 @@ import org.gatein.management.api.controller.ManagedResponse;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -61,12 +62,20 @@ public class SuccessfulResponse<T> implements ManagedResponse
       return result;
    }
 
+   @SuppressWarnings("unchecked")
    public void writeResult(OutputStream outputStream, boolean pretty) throws IOException
    {
       if (bindingProvider == null) throw new IOException("Cannot write result because no binding provider was specified.");
 
-      @SuppressWarnings("unchecked")
       Class<T> type = (Class<T>) result.getClass();
+      if (Collection.class.isAssignableFrom(type))
+      {
+         Collection collection = (Collection) result;
+         if (!collection.isEmpty())
+         {
+            type = (Class<T>) collection.iterator().next().getClass();
+         }
+      }
 
       Marshaller<T> marshaller = bindingProvider.getMarshaller(type, contentType);
       if (marshaller == null) throw new IOException("Could not find marshaller for type " + type + " and content type " + contentType);

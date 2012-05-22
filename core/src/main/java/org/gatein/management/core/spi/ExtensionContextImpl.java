@@ -30,11 +30,9 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.annotations.Managed;
 import org.gatein.management.api.annotations.ManagedOperation;
-import org.gatein.management.api.annotations.ManagedPath;
-import org.gatein.management.api.annotations.Mapped;
 import org.gatein.management.api.annotations.MappedAttribute;
+import org.gatein.management.api.annotations.MappedBy;
 import org.gatein.management.api.annotations.MappedPath;
-import org.gatein.management.api.annotations.Mapper;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.exceptions.OperationException;
@@ -113,55 +111,64 @@ public class ExtensionContextImpl implements ExtensionContext
       Managed managed = component.getAnnotation(Managed.class);
       if (managed == null) throw new RuntimeException(Managed.class + " annotation not present on " + component);
 
-      ManagedPath componentPath = component.getAnnotation(ManagedPath.class);
-      if (componentPath == null) throw new RuntimeException(ManagedPath.class + " annotation must be present on " + component);
+      //ManagedPath componentPath = component.getAnnotation(ManagedPath.class);
+      String[] componentPath = managed.value();
+      if (componentPath == null || componentPath.length == 0) throw new RuntimeException(Managed.class + " annotation must have a value other then default on " + component);
 
       // Register component
-      PathAddress address = PathAddress.pathAddress(componentPath.value());
-      String componentName = address.iterator().next();
-      if (debug) log.debug("Registering managed component " + componentName);
-
-      ComponentRegistration registration = registerManagedComponent(componentName);
-      registration.registerManagedResource(description(managed.description()));
-
-      // Register operations
-      AbstractManagedResource resource = registerManagedPath(componentPath, managed, rootResource);
-      Method[] methods = component.getMethods();
-      for (Method method : methods)
+      ComponentRegistration registration = null;
+      for (String path : componentPath)
       {
-         Managed managedMethod = method.getAnnotation(Managed.class);
-         if (managedMethod != null)
+         PathAddress address = PathAddress.pathAddress(path);
+         String componentName = address.iterator().next();
+         if (debug) log.debug("Registering managed component " + componentName);
+
+         registration = registerManagedComponent(componentName);
+         registration.registerManagedResource(description(managed.description()));
+
+         // Register operations
+         AbstractManagedResource resource = registerManaged(managed, rootResource);
+         Method[] methods = component.getMethods();
+         for (Method method : methods)
          {
-            if (debug) log.debug("Processing managed method " + getMethodName(method));
-            registerManagedOperation(registerManagedPath(method.getAnnotation(ManagedPath.class), managedMethod, resource), method, component);
+            Managed managedMethod = method.getAnnotation(Managed.class);
+            if (managedMethod != null)
+            {
+               if (debug) log.debug("Processing managed method " + getMethodName(method));
+               registerManagedOperation(registerManaged(managedMethod, resource), method, component);
+            }
          }
       }
 
       return registration;
    }
 
-   private AbstractManagedResource registerManagedPath(ManagedPath managedPath, Managed managed, AbstractManagedResource resource)
+   private AbstractManagedResource registerManaged(Managed managed, AbstractManagedResource resource)
    {
-      if (managedPath != null)
+      String[] managedPaths = managed.value();
+      if (managedPaths != null && managedPaths.length != 0)
       {
-         PathAddress address = PathAddress.pathAddress(managedPath.value());
-         Iterator<String> iterator = address.iterator();
-         while (iterator.hasNext())
+         for (String managedPath : managedPaths)
          {
-            String path = iterator.next();
-            String description = "";
-            if (iterator.hasNext())
+            PathAddress address = PathAddress.pathAddress(managedPath);
+            Iterator<String> iterator = address.iterator();
+            while (iterator.hasNext())
             {
-               description = managed.description();
-            }
-            AbstractManagedResource child = (AbstractManagedResource) resource.getSubResource(path);
-            if (child == null)
-            {
-               if (log.isDebugEnabled()) log.debug("Registering sub resource " + path);
-               child = (AbstractManagedResource) resource.registerSubResource(path, description(description));
-            }
+               String path = iterator.next();
+               String description = "";
+               if (iterator.hasNext())
+               {
+                  description = managed.description();
+               }
+               AbstractManagedResource child = (AbstractManagedResource) resource.getSubResource(path);
+               if (child == null)
+               {
+                  if (log.isDebugEnabled()) log.debug("Registering sub resource " + path);
+                  child = (AbstractManagedResource) resource.registerSubResource(path, description(description));
+               }
 
-            resource = child;
+               resource = child;
+            }
          }
       }
       return resource;
@@ -194,7 +201,7 @@ public class ExtensionContextImpl implements ExtensionContext
             {
                MappedPath pathTemplate;
                MappedAttribute managedAttribute;
-               Mapped mapped;
+               MappedBy mappedBy;
                // Resolve path template and set as parameter to method
                if ((pathTemplate = getAnnotation(parameterAnnotations[i], MappedPath.class)) != null)
                {
@@ -220,16 +227,16 @@ public class ExtensionContextImpl implements ExtensionContext
                   if (debug) log.debug("Resolved attribute " + managedAttribute.value() + "=" + params[i]);
                }
                // Call custom mapper and set value as parameter to method
-               else if ((mapped = getAnnotation(parameterAnnotations[i], Mapped.class)) != null)
+               else if ((mappedBy = getAnnotation(parameterAnnotations[i], MappedBy.class)) != null)
                {
-                  Mapper<?> mapper = null;
+                  MappedBy.Mapper<?> mapper;
                   try
                   {
-                     mapper = mapped.value().newInstance();
+                     mapper = mappedBy.value().newInstance();
                   }
                   catch (Exception e)
                   {
-                     throw new RuntimeException("Could not create mapper class " + mapped.value() + " for parameter type " + method.getParameterTypes()[i], e);
+                     throw new RuntimeException("Could not create mapper class " + mappedBy.value() + " for parameter type " + method.getParameterTypes()[i], e);
                   }
 
                   params[i] = mapper.map(operationContext.getAddress(), operationContext.getAttributes());

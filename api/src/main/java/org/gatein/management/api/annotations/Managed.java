@@ -34,5 +34,13 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Managed
 {
+   /**
+    * The value of the path (address) of the resource/operation
+    */
+   String[] value() default "";
+
+   /**
+    * The description of the resource/operation
+    */
    String description() default "";
 }

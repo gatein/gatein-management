@@ -24,12 +24,16 @@ package org.gatein.management.core.api.binding.json;
 
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.core.api.model.DmrModelValue;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -45,14 +49,44 @@ public class ModelMapperMarshaller<T> implements Marshaller<T>
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public void marshal(T object, OutputStream outputStream, boolean pretty) throws BindingException
    {
-      marshaller.marshal(mapper.to(DmrModelValue.newModel(), object), outputStream, pretty);
+      if (Collection.class.isAssignableFrom(object.getClass()))
+      {
+         Collection<T> collection = (Collection<T>) object;
+         ModelList list = DmrModelValue.newModel().setEmptyList();
+         for (T t : collection)
+         {
+            mapper.to(list.add(), t);
+         }
+         marshaller.marshal(list, outputStream, pretty);
+      }
+      else
+      {
+         marshaller.marshal(mapper.to(DmrModelValue.newModel(), object), outputStream, pretty);
+      }
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public T unmarshal(InputStream inputStream) throws BindingException
    {
-      return mapper.from(marshaller.unmarshal(inputStream));
+      ModelValue value = marshaller.unmarshal(inputStream);
+      if (value.getValueType() == ModelValue.ModelValueType.LIST)
+      {
+         ModelList values = value.asValue(ModelList.class);
+         List<T> list = new ArrayList<T>(values.size());
+         for (ModelValue v : values)
+         {
+            list.add(mapper.from(v));
+         }
+
+         return (T) list;
+      }
+      else
+      {
+         return mapper.from(marshaller.unmarshal(inputStream));
+      }
    }
 }

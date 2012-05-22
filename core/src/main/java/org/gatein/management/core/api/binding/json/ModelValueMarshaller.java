@@ -27,7 +27,6 @@ import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.core.api.model.DmrModelValue;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,15 +44,10 @@ public class ModelValueMarshaller implements Marshaller<ModelValue>
       try
       {
          value.toJsonStream(outputStream, pretty);
-         outputStream.flush();
       }
       catch (IOException e)
       {
          throw new BindingException("Could not write ModelValue " + value + " to output stream.", e);
-      }
-      finally
-      {
-         close(outputStream);
       }
    }
 
@@ -67,17 +61,6 @@ public class ModelValueMarshaller implements Marshaller<ModelValue>
       catch (IOException e)
       {
          throw new BindingException("Could not read ModelValue from JSON stream.", e);
-      }
-   }
-
-   private void close(Closeable closeable)
-   {
-      try
-      {
-         closeable.close();
-      }
-      catch (IOException ignore)
-      {
       }
    }
 }

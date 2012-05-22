@@ -126,7 +126,9 @@ public abstract class DmrModelValue implements ModelValue
    @Override
    public void toJsonStream(OutputStream outputStream, boolean pretty)
    {
-      value.writeJSONString(new PrintWriter(outputStream), !pretty);
+      PrintWriter writer = new PrintWriter(outputStream);
+      value.writeJSONString(writer, !pretty);
+      writer.flush();
    }
 
    @Override

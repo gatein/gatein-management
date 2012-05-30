@@ -22,11 +22,13 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelBoolean;
 import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelObject;
+import org.gatein.management.api.model.ModelReference;
 import org.gatein.management.api.model.ModelString;
 import org.jboss.dmr.ModelNode;
 
@@ -101,5 +103,16 @@ class DmrModel extends DmrModelValue implements Model
    public ModelList setEmptyList()
    {
       return (ModelList) asValue(this.value.setEmptyList());
+   }
+
+   @Override
+   public ModelReference set(PathAddress value)
+   {
+      if (value == null) return asValue(ModelReference.class);
+
+      ModelNode dmr = this.value.setEmptyObject();
+      dmr.get("_ref").set(value.toString());
+
+      return (ModelReference) asValue(dmr);
    }
 }

@@ -22,6 +22,7 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelValue;
@@ -122,6 +123,13 @@ public class DmrModelTest
    {
       assertTrue(newModel().setEmptyList().isDefined());
       assertEquals(ModelValue.ModelValueType.LIST, newModel().setEmptyList().getValueType());
+   }
+
+   @Test
+   public void testReference()
+   {
+      assertTrue(newModel().set(PathAddress.pathAddress("foo", "bar")).isDefined());
+      assertEquals(ModelValue.ModelValueType.REFERENCE, newModel().set(PathAddress.pathAddress("foo", "bar")).getValueType());
    }
 
    private static Model newModel()

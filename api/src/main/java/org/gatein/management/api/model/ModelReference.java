@@ -24,33 +24,12 @@ package org.gatein.management.api.model;
 
 import org.gatein.management.api.PathAddress;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
 /**
- * A <code>ModelValue</code> representing the initial state of a value that can be set to anything.
- *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
-public interface Model extends ModelValue
+public interface ModelReference extends ModelObject
 {
-   ModelString set(String value);
-
-   ModelNumber set(int value);
-
-   ModelNumber set(long value);
-
-   ModelNumber set(double value);
-
-   ModelNumber set(BigInteger value);
-
-   ModelNumber set(BigDecimal value);
-
-   ModelBoolean set(boolean value);
-
-   ModelObject setEmptyObject();
-
-   ModelList setEmptyList();
-
    ModelReference set(PathAddress address);
+
+   PathAddress getValue();
 }

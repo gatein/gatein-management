@@ -22,6 +22,7 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelObject;
 import org.gatein.management.api.model.ModelValue;
@@ -107,6 +108,13 @@ class DmrModelObject extends DmrModelValue implements ModelObject
 
    @Override
    public ModelObject set(String name, boolean value)
+   {
+      get(name).set(value);
+      return this;
+   }
+
+   @Override
+   public ModelObject set(String name, PathAddress value)
    {
       get(name).set(value);
       return this;

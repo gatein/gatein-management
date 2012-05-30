@@ -27,6 +27,7 @@ import org.gatein.management.api.model.ModelBoolean;
 import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelObject;
+import org.gatein.management.api.model.ModelReference;
 import org.gatein.management.api.model.ModelString;
 import org.gatein.management.api.model.ModelValue;
 import org.jboss.dmr.ModelNode;
@@ -64,7 +65,11 @@ public abstract class DmrModelValue implements ModelValue
       else if (getValueType() == ModelValueType.UNDEFINED)
       {
          ModelValue mv;
-         if (ModelObject.class.isAssignableFrom(valueType))
+         if (ModelReference.class.isAssignableFrom(valueType))
+         {
+            mv = new DmrModelReference(value);
+         }
+         else if (ModelObject.class.isAssignableFrom(valueType))
          {
             mv = new DmrModelObject(value);
          }
@@ -145,7 +150,14 @@ public abstract class DmrModelValue implements ModelValue
 
    public static ModelValue readFromJsonStream(InputStream inputStream) throws IOException
    {
-      return asValue(ModelNode.fromJSONStream(inputStream));
+      try
+      {
+         return asValue(ModelNode.fromJSONStream(inputStream));
+      }
+      catch (IOException e)
+      {
+         throw new IOException(e.getMessage());
+      }
    }
 
    public static <T extends ModelValue> T readFromJsonStream(InputStream inputStream, Class<T> valueType) throws IOException
@@ -177,11 +189,13 @@ public abstract class DmrModelValue implements ModelValue
 
    static ModelValue asValue(ModelNode value)
    {
-      ModelValue.ModelValueType valueType = getValueType(value);
+      ModelValueType valueType = getValueType(value);
       switch (valueType)
       {
          case LIST:
             return new DmrModelList(value);
+         case REFERENCE:
+            return new DmrModelReference(value);
          case OBJECT:
             return new DmrModelObject(value);
          case BOOLEAN:
@@ -202,21 +216,23 @@ public abstract class DmrModelValue implements ModelValue
       switch (value.getType())
       {
          case LIST:
-            return ModelValue.ModelValueType.LIST;
+            return ModelValueType.LIST;
          case OBJECT:
-            return ModelValue.ModelValueType.OBJECT;
+            if (DmrModelReference.isReference(value)) return ModelValueType.REFERENCE;
+
+            return ModelValueType.OBJECT;
          case BOOLEAN:
-            return ModelValue.ModelValueType.BOOLEAN;
+            return ModelValueType.BOOLEAN;
          case BIG_DECIMAL:
          case BIG_INTEGER:
          case DOUBLE:
          case INT:
          case LONG:
-            return ModelValue.ModelValueType.NUMBER;
+            return ModelValueType.NUMBER;
          case STRING:
-            return ModelValue.ModelValueType.STRING;
+            return ModelValueType.STRING;
          case UNDEFINED:
-            return ModelValue.ModelValueType.UNDEFINED;
+            return ModelValueType.UNDEFINED;
          default:
             throw new IllegalStateException("No mapping for model type " + value.getType());
       }

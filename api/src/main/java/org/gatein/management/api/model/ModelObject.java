@@ -22,6 +22,8 @@
 
 package org.gatein.management.api.model;
 
+import org.gatein.management.api.PathAddress;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Set;
@@ -65,6 +67,8 @@ public interface ModelObject extends ModelValue
    ModelObject set(String name, BigDecimal value);
 
    ModelObject set(String name, boolean value);
+
+   ModelObject set(String name, PathAddress value);
 
    boolean has(String name);
 

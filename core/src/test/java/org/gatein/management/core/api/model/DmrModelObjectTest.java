@@ -22,10 +22,12 @@
 
 package org.gatein.management.core.api.model;
 
+import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.model.ModelBoolean;
 import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelObject;
+import org.gatein.management.api.model.ModelReference;
 import org.gatein.management.api.model.ModelString;
 import org.junit.Test;
 
@@ -62,8 +64,11 @@ public class DmrModelObjectTest
       // ModelObject
       assertTrue(modelObject().get("foo").setEmptyObject().getNames().isEmpty());
 
-      // ModelObject
+      // ModelList
       assertEquals(0, modelObject().get("foo").setEmptyList().size());
+
+      // ModelReference
+      assertEquals(PathAddress.pathAddress("foo", "bar"), modelObject().get("foo").set(PathAddress.pathAddress("foo", "bar")).getValue());
    }
 
    @Test
@@ -77,6 +82,9 @@ public class DmrModelObjectTest
 
       // BigDecimal
       assertNull(modelObject().get("foo").set((BigDecimal) null).getBigDecimal());
+
+      // Reference
+      assertNull(modelObject().get("foo").set((PathAddress) null).getValue());
    }
 
    @Test
@@ -95,6 +103,9 @@ public class DmrModelObjectTest
       // Boolean
       assertTrue(modelObject().set("foo", true).get("foo", ModelBoolean.class).getValue());
       assertFalse(modelObject().set("foo", false).get("foo", ModelBoolean.class).getValue());
+
+      // Reference
+      assertEquals(PathAddress.pathAddress("foo", "bar"), modelObject().set("foo", PathAddress.pathAddress("foo", "bar")).get("foo", ModelReference.class).getValue());
    }
 
    @Test
@@ -111,6 +122,10 @@ public class DmrModelObjectTest
       // BigDecimal
       assertFalse(modelObject().set("foo", (BigDecimal) null).get("foo").isDefined());
       assertNull(modelObject().set("foo", (BigDecimal) null).get("foo", ModelNumber.class).getBigDecimal());
+
+      // Reference
+      assertFalse(modelObject().set("foo", (PathAddress) null).get("foo").isDefined());
+      assertNull(modelObject().set("foo", (PathAddress) null).get("foo", ModelReference.class).getValue());
    }
 
    @Test
@@ -135,6 +150,9 @@ public class DmrModelObjectTest
 
       // ModelObject
       assertEquals(0, modelObject().get("foo").asValue(ModelList.class).size());
+
+      // ModelReference
+      assertEquals(PathAddress.pathAddress("bar"), modelObject().get("foo").asValue(ModelReference.class).set(PathAddress.pathAddress("bar")).getValue());
    }
 
    @Test
@@ -160,8 +178,11 @@ public class DmrModelObjectTest
       // ModelObject
       assertEquals(OBJECT, modelObject().get("foo").setEmptyObject().getValueType());
 
-      // ModelObject
+      // ModelList
       assertEquals(LIST, modelObject().get("foo").setEmptyList().getValueType());
+
+      // ModelReference
+      assertEquals(REFERENCE, modelObject().get("foo").set(PathAddress.pathAddress("foo")).getValueType());
    }
 
    @Test

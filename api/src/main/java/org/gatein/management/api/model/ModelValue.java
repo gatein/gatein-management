@@ -35,7 +35,7 @@ public interface ModelValue
 {
    public enum ModelValueType
    {
-      OBJECT, LIST, STRING, NUMBER, BOOLEAN, UNDEFINED
+      OBJECT, LIST, STRING, NUMBER, BOOLEAN, REFERENCE, UNDEFINED
    }
 
    /**

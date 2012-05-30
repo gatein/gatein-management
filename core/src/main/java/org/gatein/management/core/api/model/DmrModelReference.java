@@ -20,37 +20,44 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.model;
+package org.gatein.management.core.api.model;
 
 import org.gatein.management.api.PathAddress;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import org.gatein.management.api.model.ModelReference;
+import org.jboss.dmr.ModelNode;
 
 /**
- * A <code>ModelValue</code> representing the initial state of a value that can be set to anything.
- *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
-public interface Model extends ModelValue
+public class DmrModelReference extends DmrModelObject implements ModelReference
 {
-   ModelString set(String value);
+   DmrModelReference(ModelNode value)
+   {
+      super(value);
+   }
 
-   ModelNumber set(int value);
+   @Override
+   public PathAddress getValue()
+   {
+      if (value.hasDefined("_ref"))
+      {
+         return PathAddress.pathAddress(value.get("_ref").asString());
+      }
+      else
+      {
+         return null;
+      }
+   }
 
-   ModelNumber set(long value);
+   @Override
+   public ModelReference set(PathAddress address)
+   {
+      value.get("_ref").set(address.toString());
+      return this;
+   }
 
-   ModelNumber set(double value);
-
-   ModelNumber set(BigInteger value);
-
-   ModelNumber set(BigDecimal value);
-
-   ModelBoolean set(boolean value);
-
-   ModelObject setEmptyObject();
-
-   ModelList setEmptyList();
-
-   ModelReference set(PathAddress address);
+   static boolean isReference(ModelNode value)
+   {
+      return value.hasDefined("_ref");
+   }
 }

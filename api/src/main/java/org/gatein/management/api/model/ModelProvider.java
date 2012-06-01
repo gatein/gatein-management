@@ -28,14 +28,21 @@ package org.gatein.management.api.model;
 public interface ModelProvider
 {
    /**
-    * Retrieve the model mapper for the given class
+    * Retrieve the model mapper for the given class.
     *
     * @param type the class which can be mapped to a ModelValue
-    * @return the mapper
+    * @return the mapper responsible for mapping to a ModelValue and from the object itself.
     */
-   <T> Mapper<T> getModelMapper(Class<T> type);
+   <T> ModelMapper<T> getModelMapper(Class<T> type);
 
-   public static interface Mapper<T>
+   /**
+    * Used to retrieve a mapper by name for annotated mgmt operations using <code>@Model</code>
+    * @param modelName the name of the identifier used in the <code>@Model</code> annotations
+    * @return the mapper responsible for mapping to a ModelValue and from the object itself.
+    */
+   ModelMapper<?> getModelMapper(String modelName);
+
+   public static interface ModelMapper<T>
    {
       /**
        * Create the object from the given <code>ModelValue</code>

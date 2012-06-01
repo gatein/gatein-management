@@ -29,6 +29,7 @@ import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.annotations.Managed;
+import org.gatein.management.api.annotations.ManagedModel;
 import org.gatein.management.api.annotations.ManagedOperation;
 import org.gatein.management.api.annotations.MappedAttribute;
 import org.gatein.management.api.annotations.MappedBy;
@@ -135,7 +136,7 @@ public class ExtensionContextImpl implements ExtensionContext
             if (managedMethod != null)
             {
                if (debug) log.debug("Processing managed method " + getMethodName(method));
-               registerManagedOperation(registerManaged(managedMethod, resource), method, component);
+               registerManagedOperation(registerManaged(managedMethod, resource), method, component, componentName);
             }
          }
       }
@@ -174,7 +175,7 @@ public class ExtensionContextImpl implements ExtensionContext
       return resource;
    }
 
-   private void registerManagedOperation(AbstractManagedResource resource, final Method method, final Class<?> componentClass)
+   private void registerManagedOperation(AbstractManagedResource resource, final Method method, final Class<?> componentClass, final String componentName)
    {
       ManagedOperation mo = method.getAnnotation(ManagedOperation.class);
       String operationName = OperationNames.READ_RESOURCE;
@@ -288,7 +289,27 @@ public class ExtensionContextImpl implements ExtensionContext
                   }
                   else
                   {
-                     resultHandler.completed(result);
+                     ManagedModel managedModel = method.getAnnotation(ManagedModel.class);
+                     if (managedModel != null)
+                     {
+                        @SuppressWarnings("unchecked")
+                        ModelProvider.ModelMapper<Object> modelMapper = (ModelProvider.ModelMapper<Object>)
+                           providers.getModelProvider(componentName).getModelMapper(managedModel.value());
+
+                        if (modelMapper != null)
+                        {
+                           modelMapper.to(resultHandler.completed(), result);
+                        }
+                        else
+                        {
+                           throw new RuntimeException("Could not find a ModelMapper for model name " + managedModel.value() +
+                              " while trying to map method " + getMethodName(method) + " for component class " + componentClass);
+                        }
+                     }
+                     else
+                     {
+                        resultHandler.completed(result);
+                     }
                   }
                }
             }

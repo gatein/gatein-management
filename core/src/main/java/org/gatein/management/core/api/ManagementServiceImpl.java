@@ -85,7 +85,7 @@ public class ManagementServiceImpl implements ManagementService
                ModelProvider mp = providers.getModelProvider(componentName);
                if (mp != null)
                {
-                  ModelProvider.Mapper<T> mapper = mp.getModelMapper(type);
+                  ModelProvider.ModelMapper<T> mapper = mp.getModelMapper(type);
                   if (mapper != null)
                   {
                      return new ModelMapperMarshaller<T>(mapper);

@@ -40,10 +40,10 @@ import java.util.List;
  */
 public class ModelMapperMarshaller<T> implements Marshaller<T>
 {
-   private final ModelProvider.Mapper<T> mapper;
+   private final ModelProvider.ModelMapper<T> mapper;
    private final Marshaller<ModelValue> marshaller = ModelValueMarshaller.INSTANCE;
 
-   public ModelMapperMarshaller(ModelProvider.Mapper<T> mapper)
+   public ModelMapperMarshaller(ModelProvider.ModelMapper<T> mapper)
    {
       this.mapper = mapper;
    }

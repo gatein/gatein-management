@@ -23,8 +23,8 @@
 package org.gatein.management.core.api;
 
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.exceptions.ManagementException;
-import org.gatein.management.api.model.ModelProvider;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

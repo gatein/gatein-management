@@ -23,7 +23,7 @@
 package org.gatein.management.api;
 
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.model.ModelProvider;
+import org.gatein.management.api.binding.ModelProvider;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

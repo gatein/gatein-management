@@ -32,7 +32,7 @@ import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
-import org.gatein.management.api.model.ModelProvider;
+import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.core.api.binding.GlobalBindingProvider;
 import org.gatein.management.core.api.binding.json.ModelMapperMarshaller;

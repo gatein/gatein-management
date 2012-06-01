@@ -24,8 +24,8 @@ package org.gatein.management.core.api.binding.json;
 
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.model.ModelList;
-import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.core.api.model.DmrModelValue;
 

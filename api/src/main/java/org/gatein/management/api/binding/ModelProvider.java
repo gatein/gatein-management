@@ -20,7 +20,10 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.gatein.management.api.model;
+package org.gatein.management.api.binding;
+
+import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelValue;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>

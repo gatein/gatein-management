@@ -153,87 +153,6 @@ public class RestController
       return executeRequest(uriInfo, request);
    }
 
-   //----------------------------------------- XML Handlers -----------------------------------------//
-   @GET
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlGetRequest(@Context UriInfo uriInfo)
-   {
-      return xmlGetRequest(uriInfo, "");
-   }
-
-   @GET
-   @Path("/{path:.*}")
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
-   {
-      HttpManagedRequest request = get().path(path).parameters(uriInfo.getQueryParameters()).contentType(ContentType.XML).build();
-
-      return executeRequest(uriInfo, request);
-   }
-
-   @POST
-   @Consumes(MediaType.APPLICATION_XML)
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlPostRequest(@Context UriInfo uriInfo, InputStream data)
-   {
-      return xmlPostRequest(uriInfo, "", data);
-   }
-
-   @POST
-   @Path("/{path:.*}")
-   @Consumes(MediaType.APPLICATION_XML)
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlPostRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
-   {
-      HttpManagedRequest request = post(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
-
-      return executeRequest(uriInfo, request);
-   }
-
-   @PUT
-   @Consumes(MediaType.APPLICATION_XML)
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlPutRequest(@Context UriInfo uriInfo, InputStream data)
-   {
-      return xmlPutRequest(uriInfo, "", data);
-   }
-
-   @PUT
-   @Path("/{path:.*}")
-   @Consumes(MediaType.APPLICATION_XML)
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
-   {
-      HttpManagedRequest request = put(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
-
-      return executeRequest(uriInfo, request);
-   }
-
-   @DELETE
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlDeleteRequest(@Context UriInfo uriInfo)
-   {
-      return xmlDeleteRequest(uriInfo, "");
-   }
-
-   @DELETE
-   @Path("/{path:.*}")
-   @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
-   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
-   {
-      HttpManagedRequest request = delete().parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
-
-      return executeRequest(uriInfo, request);
-   }
-
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
@@ -311,6 +230,87 @@ public class RestController
    public Response jsonDeleteRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete().parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.JSON).build();
+
+      return executeRequest(uriInfo, request);
+   }
+
+   //----------------------------------------- XML Handlers -----------------------------------------//
+   @GET
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlGetRequest(@Context UriInfo uriInfo)
+   {
+      return xmlGetRequest(uriInfo, "");
+   }
+
+   @GET
+   @Path("/{path:.*}")
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   {
+      HttpManagedRequest request = get().path(path).parameters(uriInfo.getQueryParameters()).contentType(ContentType.XML).build();
+
+      return executeRequest(uriInfo, request);
+   }
+
+   @POST
+   @Consumes(MediaType.APPLICATION_XML)
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlPostRequest(@Context UriInfo uriInfo, InputStream data)
+   {
+      return xmlPostRequest(uriInfo, "", data);
+   }
+
+   @POST
+   @Path("/{path:.*}")
+   @Consumes(MediaType.APPLICATION_XML)
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlPostRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   {
+      HttpManagedRequest request = post(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
+
+      return executeRequest(uriInfo, request);
+   }
+
+   @PUT
+   @Consumes(MediaType.APPLICATION_XML)
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlPutRequest(@Context UriInfo uriInfo, InputStream data)
+   {
+      return xmlPutRequest(uriInfo, "", data);
+   }
+
+   @PUT
+   @Path("/{path:.*}")
+   @Consumes(MediaType.APPLICATION_XML)
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   {
+      HttpManagedRequest request = put(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
+
+      return executeRequest(uriInfo, request);
+   }
+
+   @DELETE
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlDeleteRequest(@Context UriInfo uriInfo)
+   {
+      return xmlDeleteRequest(uriInfo, "");
+   }
+
+   @DELETE
+   @Path("/{path:.*}")
+   @Produces(MediaType.APPLICATION_XML)
+   @RolesAllowed("administrators")
+   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   {
+      HttpManagedRequest request = delete().parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
 
       return executeRequest(uriInfo, request);
    }

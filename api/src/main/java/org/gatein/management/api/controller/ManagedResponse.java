@@ -49,7 +49,7 @@ public interface ManagedResponse
     * registered for an extension.
     *
     * @param outputStream the stream to write the result to.
-    * @parm pretty true if the result should be formatted pretty, including new lines and spaces.
+    * @param pretty true if the result should be formatted pretty, including new lines and spaces.
     * @throws IOException if an exception occurred writing to the stream.
     */
    void writeResult(OutputStream outputStream, boolean pretty) throws IOException;

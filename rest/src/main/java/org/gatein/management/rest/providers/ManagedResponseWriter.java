@@ -22,7 +22,14 @@
 
 package org.gatein.management.rest.providers;
 
+import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedResponse;
+import org.gatein.management.api.model.ModelList;
+import org.gatein.management.api.model.ModelObject;
+import org.gatein.management.api.model.ModelReference;
+import org.gatein.management.api.model.ModelValue;
+import org.gatein.management.rest.RestApplication;
+import org.gatein.management.rest.content.LinkBuilder;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -66,6 +73,11 @@ public class ManagedResponseWriter implements MessageBodyWriter<ManagedResponse>
    public void writeTo(ManagedResponse managedResponse, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> stringObjectMultivaluedMap, OutputStream outputStream) throws IOException, WebApplicationException
    {
       String pretty = uriInfo.getQueryParameters().getFirst("pretty");
+      if (managedResponse.getResult() instanceof ModelValue)
+      {
+         ModelValue value = (ModelValue) managedResponse.getResult();
+         resolveLinks(value, uriInfo);
+      }
       if ("false".equalsIgnoreCase(pretty))
       {
          managedResponse.writeResult(outputStream, false);
@@ -73,6 +85,36 @@ public class ManagedResponseWriter implements MessageBodyWriter<ManagedResponse>
       else
       {
          managedResponse.writeResult(outputStream, true);
+      }
+   }
+
+   private static void resolveLinks(ModelValue value, UriInfo uriInfo)
+   {
+      ModelValue.ModelValueType type = value.getValueType();
+      switch (type)
+      {
+         case OBJECT:
+            ModelObject mo = value.asValue(ModelObject.class);
+            for (String name : mo.getNames())
+            {
+               resolveLinks(mo.get(name), uriInfo);
+            }
+            break;
+         case REFERENCE:
+            ModelReference ref = value.asValue(ModelReference.class);
+            PathAddress address = ref.getValue();
+            ref.remove("_ref");
+            LinkBuilder linkBuilder = new LinkBuilder(uriInfo.getBaseUriBuilder());
+            linkBuilder.path(RestApplication.API_ENTRY_POINT).path(address.toString());
+            ref.get("url").set(linkBuilder.build().getHref());
+            break;
+         case LIST:
+            for (ModelValue mv : value.asValue(ModelList.class))
+            {
+               resolveLinks(mv, uriInfo);
+            }
+            break;
+         default:
       }
    }
 }

@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -125,14 +126,21 @@ public abstract class DmrModelValue implements ModelValue
    @Override
    public String toJsonString(boolean pretty)
    {
-      return value.toJSONString(!pretty);
+      StringWriter sw = new StringWriter();
+      toJson(new PrintWriter(sw), pretty);
+      return sw.toString();
    }
 
    @Override
    public void toJsonStream(OutputStream outputStream, boolean pretty)
    {
-      PrintWriter writer = new PrintWriter(outputStream);
+      toJson(new PrintWriter(outputStream), pretty);
+   }
+
+   private void toJson(PrintWriter writer, boolean pretty)
+   {
       value.writeJSONString(writer, !pretty);
+      if (pretty) writer.write('\n');
       writer.flush();
    }
 

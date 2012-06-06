@@ -319,6 +319,10 @@ public class ExtensionContextImpl implements ExtensionContext
             }
             catch (InvocationTargetException e)
             {
+               if (e.getCause() instanceof ResourceNotFoundException)
+               {
+                  throw (ResourceNotFoundException) e.getCause();
+               }
                throw new RuntimeException("Could not invoke method " + method + " on object " + component, e);
             }
          }

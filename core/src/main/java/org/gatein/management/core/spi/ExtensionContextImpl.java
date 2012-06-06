@@ -285,7 +285,7 @@ public class ExtensionContextImpl implements ExtensionContext
                {
                   if (result == null)
                   {
-                     throw new ResourceNotFoundException("");
+                     throw new ResourceNotFoundException("Resource not found.");
                   }
                   else
                   {
@@ -322,6 +322,10 @@ public class ExtensionContextImpl implements ExtensionContext
                if (e.getCause() instanceof ResourceNotFoundException)
                {
                   throw (ResourceNotFoundException) e.getCause();
+               }
+               else if (e.getCause() instanceof OperationException)
+               {
+                  throw (OperationException) e.getCause();
                }
                throw new RuntimeException("Could not invoke method " + method + " on object " + component, e);
             }

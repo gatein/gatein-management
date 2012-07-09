@@ -112,32 +112,23 @@ public class ExtensionContextImpl implements ExtensionContext
       Managed managed = component.getAnnotation(Managed.class);
       if (managed == null) throw new RuntimeException(Managed.class + " annotation not present on " + component);
 
-      //ManagedPath componentPath = component.getAnnotation(ManagedPath.class);
-      String[] componentPath = managed.value();
-      if (componentPath == null || componentPath.length == 0) throw new RuntimeException(Managed.class + " annotation must have a value other then default on " + component);
+      String componentName = managed.value();
+      if ("".equals(componentName)) throw new RuntimeException(Managed.class + " annotation must have a value (path) for component class " + component);
+      if (debug) log.debug("Registering managed component " + componentName);
 
-      // Register component
-      ComponentRegistration registration = null;
-      for (String path : componentPath)
+      ComponentRegistration registration = registerManagedComponent(componentName);
+      registration.registerManagedResource(description(managed.description()));
+
+      // Register operations
+      AbstractManagedResource resource = registerManaged(managed, rootResource);
+      Method[] methods = component.getMethods();
+      for (Method method : methods)
       {
-         PathAddress address = PathAddress.pathAddress(path);
-         String componentName = address.iterator().next();
-         if (debug) log.debug("Registering managed component " + componentName);
-
-         registration = registerManagedComponent(componentName);
-         registration.registerManagedResource(description(managed.description()));
-
-         // Register operations
-         AbstractManagedResource resource = registerManaged(managed, rootResource);
-         Method[] methods = component.getMethods();
-         for (Method method : methods)
+         Managed managedMethod = method.getAnnotation(Managed.class);
+         if (managedMethod != null)
          {
-            Managed managedMethod = method.getAnnotation(Managed.class);
-            if (managedMethod != null)
-            {
-               if (debug) log.debug("Processing managed method " + getMethodName(method));
-               registerManagedOperation(registerManaged(managedMethod, resource), method, component, componentName);
-            }
+            if (debug) log.debug("Processing managed method " + getMethodName(method));
+            registerManagedOperation(registerManaged(managedMethod, resource), method, component, componentName);
          }
       }
 
@@ -146,32 +137,25 @@ public class ExtensionContextImpl implements ExtensionContext
 
    private AbstractManagedResource registerManaged(Managed managed, AbstractManagedResource resource)
    {
-      String[] managedPaths = managed.value();
-      if (managedPaths != null && managedPaths.length != 0)
+      PathAddress address = PathAddress.pathAddress(managed.value());
+      for (Iterator<String> iterator = address.iterator(); iterator.hasNext();)
       {
-         for (String managedPath : managedPaths)
+         String path = iterator.next();
+         String description = "";
+         if (iterator.hasNext())
          {
-            PathAddress address = PathAddress.pathAddress(managedPath);
-            Iterator<String> iterator = address.iterator();
-            while (iterator.hasNext())
-            {
-               String path = iterator.next();
-               String description = "";
-               if (iterator.hasNext())
-               {
-                  description = managed.description();
-               }
-               AbstractManagedResource child = (AbstractManagedResource) resource.getSubResource(path);
-               if (child == null)
-               {
-                  if (log.isDebugEnabled()) log.debug("Registering sub resource " + path);
-                  child = (AbstractManagedResource) resource.registerSubResource(path, description(description));
-               }
-
-               resource = child;
-            }
+            description = managed.description();
          }
+         AbstractManagedResource child = (AbstractManagedResource) resource.getSubResource(path);
+         if (child == null)
+         {
+            if (log.isDebugEnabled()) log.debug("Registering sub resource " + path);
+            child = (AbstractManagedResource) resource.registerSubResource(path, description(description));
+         }
+
+         resource = child;
       }
+
       return resource;
    }
 

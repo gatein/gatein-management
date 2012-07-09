@@ -35,12 +35,13 @@ import java.lang.annotation.Target;
 public @interface Managed
 {
    /**
-    * The value of the path (address) of the resource/operation
+    * The value of the path of the managed resource. ie: '/foo/bar' will be registered at address
+    * <code>PathAddress.pathAddress("foo", "bar")</code>
     */
-   String[] value() default "";
+   String value() default "";
 
    /**
-    * The description of the resource/operation
+    * The description of the managed resource
     */
    String description() default "";
 }

@@ -23,25 +23,36 @@
 package org.gatein.management.core.spi;
 
 import org.gatein.management.api.ComponentRegistration;
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.annotations.Managed;
+import org.gatein.management.api.annotations.ManagedModel;
 import org.gatein.management.api.annotations.ManagedOperation;
 import org.gatein.management.api.annotations.MappedAttribute;
 import org.gatein.management.api.annotations.MappedBy;
 import org.gatein.management.api.annotations.MappedPath;
+import org.gatein.management.api.binding.ModelProvider;
+import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelValue;
+import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationAttributes;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.OperationNames;
+import org.gatein.management.api.operation.ResultHandler;
+import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.core.api.ManagementProviders;
 import org.gatein.management.core.api.SimpleManagedResource;
+import org.gatein.management.core.api.model.DmrModelValue;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.spi.ExtensionContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -178,6 +189,60 @@ public class AnnotationExtensionTest
    }
 
    @Test
+   @SuppressWarnings("unchecked")
+   public void testManagedModel() throws Exception
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(TestService.class);
+
+      PathAddress address = PathAddress.pathAddress("test-service", "model");
+      assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
+      assertNotNull(rootResource.getOperationHandler(address, OperationNames.UPDATE_RESOURCE));
+
+      ModelProvider mp = mock(ModelProvider.class);
+      ModelProvider.ModelMapper mapper = mock(ModelProvider.ModelMapper.class);
+      Model model = mock(Model.class);
+      // this really should be mocked by all tests instead of using BasicResultHandler in execute method.
+      ResultHandler rh = mock(ResultHandler.class);
+
+      FooModel fooModel = new FooModel("spring", "fever");
+
+      when(operationContext.getModelProvider()).thenReturn(mp);
+      when(testService.getModel()).thenReturn(new FooModel("spring", "fever"));
+      when(mp.getModelMapper("foo-model")).thenReturn(mapper);
+      when(rh.completed()).thenReturn(model);
+
+      rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE).execute(operationContext, rh);
+
+      verify(testService).getModel();
+      verify(rh).completed();
+      verify(mp).getModelMapper("foo-model");
+      verify(mapper).to(model, fooModel);
+
+      reset(testService, rh, mp, mapper);
+
+      // create data stream to be used (hard to mock this)
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      DmrModelValue.newModel().set("blah").toJsonStream(out, false);
+      ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+      when(operationContext.getContentType()).thenReturn(ContentType.JSON);
+      OperationAttachment attachment = mock(OperationAttachment.class);
+      when(operationContext.getAttachment(true)).thenReturn(attachment);
+      when(attachment.getStream()).thenReturn(in);
+      when(mp.getModelMapper("foo-model")).thenReturn(mapper);
+      when(mapper.from(any(ModelValue.class))).thenReturn(fooModel);
+
+      rootResource.getOperationHandler(address, OperationNames.UPDATE_RESOURCE).execute(operationContext, rh);
+
+      verify(mp).getModelMapper("foo-model");
+      verify(mapper).from(DmrModelValue.newModel().set("blah"));
+      verify(rh).completed(NoResultModel.INSTANCE);
+      verify(testService).updateModel(fooModel);
+   }
+
+   @Test
    public void testSubManagedResources()
    {
       SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
@@ -250,6 +315,13 @@ public class AnnotationExtensionTest
 
       @Managed("sub-service")
       public SubTestService subService();
+
+      @Managed("model")
+      public @ManagedModel("foo-model") FooModel getModel();
+
+      @Managed("model")
+      @ManagedOperation(name = OperationNames.UPDATE_RESOURCE, description = "Updates the foo model")
+      public void updateModel(@ManagedModel("foo-model") FooModel fooModel);
    }
 
    @Managed
@@ -276,6 +348,40 @@ public class AnnotationExtensionTest
          {
             throw new RuntimeException(e);
          }
+      }
+   }
+
+   private static class FooModel
+   {
+      private final String foo;
+      private final String bar;
+
+      public FooModel(String foo, String bar)
+      {
+         this.foo = foo;
+         this.bar = bar;
+      }
+
+      @Override
+      public boolean equals(Object o)
+      {
+         if (this == o) return true;
+         if (o == null || getClass() != o.getClass()) return false;
+
+         FooModel fooModel = (FooModel) o;
+
+         if (!bar.equals(fooModel.bar)) return false;
+         if (!foo.equals(fooModel.foo)) return false;
+
+         return true;
+      }
+
+      @Override
+      public int hashCode()
+      {
+         int result = foo.hashCode();
+         result = 31 * result + bar.hashCode();
+         return result;
       }
    }
 }

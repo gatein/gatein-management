@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.PARAMETER})
 public @interface ManagedModel
 {
    String value();

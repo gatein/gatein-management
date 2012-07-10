@@ -22,6 +22,7 @@
 
 package org.gatein.management.core.spi;
 
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.annotations.Managed;
 import org.gatein.management.api.annotations.ManagedModel;
 import org.gatein.management.api.annotations.ManagedOperation;
@@ -38,8 +39,11 @@ import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.core.api.AbstractManagedResource;
+import org.gatein.management.core.api.model.DmrModelValue;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -103,6 +107,8 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
       final boolean debug = log.isDebugEnabled();
       if (debug) log.debug("Executing operation handler for annotated method " + methodName + " for address " + operationContext.getAddress());
 
+      String operationName = operationContext.getOperationName();
+
       Annotation[][] parameterAnnotations = method.getParameterAnnotations();
       Object[] params = new Object[parameterAnnotations.length];
       for (int i = 0; i < parameterAnnotations.length; i++)
@@ -110,6 +116,7 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
          MappedPath pathTemplate;
          MappedAttribute managedAttribute;
          MappedBy mappedBy;
+         ManagedModel managedModel;
          // Resolve path template and set as parameter to method
          if ((pathTemplate = getAnnotation(parameterAnnotations[i], MappedPath.class)) != null)
          {
@@ -129,7 +136,8 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             }
             else
             {
-               throw new RuntimeException("The parameter type " + method.getParameterTypes()[i] + " cannot be annotated by @" + MappedAttribute.class.getName() + ". Only List<String> and String are allowed.");
+               throw new RuntimeException("The parameter type " + method.getParameterTypes()[i] +
+                  " cannot be annotated by @" + MappedAttribute.class.getName() + ". Only List<String> and String are allowed.");
             }
 
             if (debug) log.debug("Resolved attribute " + managedAttribute.value() + "=" + params[i]);
@@ -144,10 +152,38 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             }
             catch (Exception e)
             {
-               throw new RuntimeException("Could not create mapper class " + mappedBy.value() + " for parameter type " + method.getParameterTypes()[i], e);
+               throw new RuntimeException("Could not create mapper class " + mappedBy.value() +
+                  " for parameter type " + method.getParameterTypes()[i], e);
             }
 
             params[i] = mapper.map(operationContext.getAddress(), operationContext.getAttributes());
+         }
+         // Call model mapper
+         else if ((managedModel = getAnnotation(parameterAnnotations[i], ManagedModel.class)) != null)
+         {
+            if (operationContext.getContentType() != ContentType.JSON)
+            {
+               throw new OperationException(operationName, ContentType.JSON + " must be the content type for this operation");
+            }
+
+            ModelProvider modelProvider = operationContext.getModelProvider();
+            ModelProvider.ModelMapper<?> mapper = modelProvider.getModelMapper(managedModel.value());
+            if (mapper == null)
+            {
+               throw new RuntimeException("Could not find ModelMapper for @" +
+                  ManagedModel.class.getSimpleName() + " with value of " + managedModel.value() + " for method " + methodName);
+            }
+            InputStream dataStream = operationContext.getAttachment(true).getStream();
+            if (dataStream == null) throw new OperationException(operationName, "No input (data stream) available.");
+
+            try
+            {
+               params[i] = mapper.from(DmrModelValue.readFromJsonStream(dataStream));
+            }
+            catch (IOException e)
+            {
+               throw new OperationException(operationName, "Could not read JSON data.", e);
+            }
          }
          else
          {
@@ -180,7 +216,7 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
          op.execute(operationContext, brh);
 
          component = brh.getResult();
-         if (component == null) throw new OperationException(operationContext.getOperationName(), "Cannot return null for method " + op.method + " when result is annotated with " + Managed.class);
+         if (component == null) throw new OperationException(operationName, "Cannot return null for method " + op.method + " when result is annotated with " + Managed.class);
       }
       if (component == null)
       {

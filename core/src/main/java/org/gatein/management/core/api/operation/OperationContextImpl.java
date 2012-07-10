@@ -27,6 +27,7 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationAttributes;
@@ -46,11 +47,12 @@ public class OperationContextImpl implements OperationContext
    private final ManagedResource resource;
    private final RuntimeContext runtimeContext;
    private final BindingProvider bindingProvider;
+   private final ModelProvider modelProvider;
    private final Deque<OperationAttachment> attachments;
    private final OperationAttributes attributes;
 
 
-   public OperationContextImpl(final ManagedRequest request, final ManagedResource resource, final RuntimeContext runtimeContext, final BindingProvider bindingProvider)
+   public OperationContextImpl(final ManagedRequest request, final ManagedResource resource, final RuntimeContext runtimeContext, final BindingProvider bindingProvider, final ModelProvider modelProvider)
    {
       Deque<OperationAttachment> list = new ArrayDeque<OperationAttachment>();
 
@@ -67,6 +69,7 @@ public class OperationContextImpl implements OperationContext
       this.resource = resource;
       this.runtimeContext = runtimeContext;
       this.bindingProvider = bindingProvider;
+      this.modelProvider = modelProvider;
       this.attachments = list;
       this.attributes = new OperationAttributesImpl(request.getAttributes());
    }
@@ -118,6 +121,12 @@ public class OperationContextImpl implements OperationContext
    public BindingProvider getBindingProvider()
    {
       return bindingProvider;
+   }
+
+   @Override
+   public ModelProvider getModelProvider()
+   {
+      return modelProvider;
    }
 
    @Override

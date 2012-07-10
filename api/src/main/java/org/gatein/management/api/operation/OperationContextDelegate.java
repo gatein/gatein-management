@@ -27,6 +27,7 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.ModelProvider;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -81,6 +82,12 @@ public class OperationContextDelegate implements OperationContext
    public BindingProvider getBindingProvider()
    {
       return delegate.getBindingProvider();
+   }
+
+   @Override
+   public ModelProvider getModelProvider()
+   {
+      return delegate.getModelProvider();
    }
 
    @Override

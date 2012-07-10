@@ -99,6 +99,14 @@ public class ManagementServiceImpl implements ManagementService
    }
 
    @Override
+   public ModelProvider getModelProvider(String componentName)
+   {
+      if (componentName == null) return null;
+
+      return providers.getModelProvider(componentName);
+   }
+
+   @Override
    public void reloadExtensions()
    {
       unload();

@@ -56,6 +56,7 @@ public class AnnotationExtensionTest
 {
    private OperationContext operationContext;
    private TestService testService;
+   private SubTestService subTestService;
 
    @Before
    public void init()
@@ -63,6 +64,8 @@ public class AnnotationExtensionTest
       operationContext = mock(OperationContext.class);
       RuntimeContext rc = mock(RuntimeContext.class);
       testService = mock(TestService.class);
+      subTestService = mock(SubTestService.class);
+      when(testService.subService()).thenReturn(subTestService);
 
       when(operationContext.getRuntimeContext()).thenReturn(rc);
       when(rc.getRuntimeComponent(TestService.class)).thenReturn(testService);
@@ -174,6 +177,41 @@ public class AnnotationExtensionTest
       reset(testService);
    }
 
+   @Test
+   public void testSubManagedResources()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(TestService.class);
+
+      // resources
+      assertNotNull(rootResource.getSubResource(PathAddress.pathAddress("test-service", "sub-service")));
+      assertNotNull(rootResource.getSubResource(PathAddress.pathAddress("test-service", "sub-service", "some", "path")));
+      assertNull(   rootResource.getSubResource(PathAddress.pathAddress("test-service", "sub-service", "some", "paths")));
+      assertNotNull(rootResource.getSubResource(PathAddress.pathAddress("test-service", "sub-service", "123")));
+
+      // operation handlers
+      assertNull(   rootResource.getOperationHandler(PathAddress.pathAddress("test-service", "sub-service"), OperationNames.READ_RESOURCE));
+      assertNotNull(rootResource.getOperationHandler(PathAddress.pathAddress("test-service", "sub-service", "some", "path"), OperationNames.READ_RESOURCE));
+      assertNotNull(rootResource.getOperationHandler(PathAddress.pathAddress("test-service", "sub-service", "123"), OperationNames.READ_RESOURCE));
+
+      // read-resource -> somePath()
+      when(subTestService.somePath()).thenReturn("somePath called !");
+      BasicResultHandler resultHandler = execute(rootResource, OperationNames.READ_RESOURCE, "test-service", "sub-service", "some", "path");
+      verify(subTestService).somePath();
+      assertEquals("somePath called !", resultHandler.getResult());
+      reset(subTestService);
+
+      // read-resource -> mappedPath(123)
+      PathAddress address = PathAddress.pathAddress("test-service", "sub-service", "123");
+      when(operationContext.getAddress()).thenReturn(address);
+      when(subTestService.mappedPath(anyString())).thenReturn("mappedPath called !");
+      resultHandler = execute(rootResource, OperationNames.READ_RESOURCE, address);
+      verify(subTestService).mappedPath("123");
+      assertEquals("mappedPath called !", resultHandler.getResult());
+      reset(subTestService);
+   }
+
    private BasicResultHandler execute(ManagedResource resource, String opName, String...path)
    {
       return execute(resource, opName, PathAddress.pathAddress(path));
@@ -189,7 +227,7 @@ public class AnnotationExtensionTest
    }
 
    @Managed("/test-service")
-   public interface TestService
+   public static interface TestService
    {
       @Managed
       public String blah();
@@ -209,6 +247,20 @@ public class AnnotationExtensionTest
 
       @Managed("mapped/{date}")
       public void mapped(@MappedBy(MyMapper.class) Date date);
+
+      @Managed("sub-service")
+      public SubTestService subService();
+   }
+
+   @Managed
+   public static interface SubTestService
+   {
+      @Managed("some/path")
+      public String somePath();
+
+      @Managed("{abc}")
+      public String mappedPath(@MappedPath("abc") String abc);
+
    }
 
    public static class MyMapper implements MappedBy.Mapper<Date>

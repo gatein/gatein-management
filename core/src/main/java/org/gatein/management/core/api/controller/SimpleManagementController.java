@@ -30,6 +30,7 @@ import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
@@ -94,10 +95,11 @@ public class SimpleManagementController implements ManagementController
          // Obtain binding provider given managed component.
          String componentName = (address.size() >= 1) ? address.get(0) : null;
          BindingProvider bindingProvider = managementService.getBindingProvider(componentName);
+         ModelProvider modelProvider = managementService.getModelProvider(componentName);
 
          // Execute operation for given registered operation handler
          BasicResultHandler resultHandler = new BasicResultHandler();
-         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider), resultHandler);
+         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider, modelProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
          {

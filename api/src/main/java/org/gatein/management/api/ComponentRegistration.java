@@ -23,7 +23,6 @@
 package org.gatein.management.api;
 
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -44,10 +43,4 @@ public interface ComponentRegistration
     * the marshalling and unmarshalling of results from operations.
     */
    void registerBindingProvider(BindingProvider bindingProvider);
-
-   /**
-    * Registers a model provider that can be used to map an object to a {@link org.gatein.management.api.model.ModelValue}
-    * @param modelProvider the model provider
-    */
-   void registerModelProvider(ModelProvider modelProvider);
 }

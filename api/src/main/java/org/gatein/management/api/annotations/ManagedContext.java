@@ -28,14 +28,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation can be used to lookup the {@link org.gatein.management.api.binding.ModelProvider.ModelMapper} to use
- * based on the name.
- *
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.PARAMETER})
-public @interface ManagedModel
+@Target(ElementType.PARAMETER)
+public @interface ManagedContext
 {
-   String value();
 }

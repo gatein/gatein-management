@@ -22,17 +22,19 @@
 
 package org.gatein.management.core.spi;
 
-import org.gatein.management.api.ContentType;
+import org.gatein.management.api.PathAddress;
+import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.annotations.Managed;
-import org.gatein.management.api.annotations.ManagedModel;
+import org.gatein.management.api.annotations.ManagedContext;
 import org.gatein.management.api.annotations.ManagedOperation;
 import org.gatein.management.api.annotations.MappedAttribute;
-import org.gatein.management.api.annotations.MappedBy;
 import org.gatein.management.api.annotations.MappedPath;
 import org.gatein.management.api.binding.Marshaller;
-import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.model.ModelValue;
+import org.gatein.management.api.operation.OperationAttachment;
+import org.gatein.management.api.operation.OperationAttributes;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.OperationNames;
@@ -43,7 +45,6 @@ import org.gatein.management.core.api.model.DmrModelValue;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -111,12 +112,11 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
 
       Annotation[][] parameterAnnotations = method.getParameterAnnotations();
       Object[] params = new Object[parameterAnnotations.length];
+      OperationAttachment attachment = null;
       for (int i = 0; i < parameterAnnotations.length; i++)
       {
          MappedPath pathTemplate;
          MappedAttribute managedAttribute;
-         MappedBy mappedBy;
-         ManagedModel managedModel;
          // Resolve path template and set as parameter to method
          if ((pathTemplate = getAnnotation(parameterAnnotations[i], MappedPath.class)) != null)
          {
@@ -142,47 +142,48 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
 
             if (debug) log.debug("Resolved attribute " + managedAttribute.value() + "=" + params[i]);
          }
-         // Call custom mapper and set value as parameter to method
-         else if ((mappedBy = getAnnotation(parameterAnnotations[i], MappedBy.class)) != null)
+         // Method wants something from the OperationContext, or the entire OperationContext object.
+         else if ((getAnnotation(parameterAnnotations[i], ManagedContext.class)) != null)
          {
-            MappedBy.Mapper<?> mapper;
-            try
-            {
-               mapper = mappedBy.value().newInstance();
-            }
-            catch (Exception e)
-            {
-               throw new RuntimeException("Could not create mapper class " + mappedBy.value() +
-                  " for parameter type " + method.getParameterTypes()[i], e);
-            }
+            Class<?> parameterType = method.getParameterTypes()[i];
 
-            params[i] = mapper.map(operationContext.getAddress(), operationContext.getAttributes());
-         }
-         // Call model mapper
-         else if ((managedModel = getAnnotation(parameterAnnotations[i], ManagedModel.class)) != null)
-         {
-            if (operationContext.getContentType() != ContentType.JSON)
+            if (RuntimeContext.class == parameterType)
             {
-               throw new OperationException(operationName, ContentType.JSON + " must be the content type for this operation");
+               params[i] = operationContext.getRuntimeContext();
             }
-
-            ModelProvider modelProvider = operationContext.getModelProvider();
-            ModelProvider.ModelMapper<?> mapper = modelProvider.getModelMapper(managedModel.value());
-            if (mapper == null)
+            else if (PathAddress.class == parameterType)
             {
-               throw new RuntimeException("Could not find ModelMapper for @" +
-                  ManagedModel.class.getSimpleName() + " with value of " + managedModel.value() + " for method " + methodName);
+               params[i] = operationContext.getAddress();
             }
-            InputStream dataStream = operationContext.getAttachment(true).getStream();
-            if (dataStream == null) throw new OperationException(operationName, "No input (data stream) available.");
-
-            try
+            else if (OperationAttributes.class == parameterType)
             {
-               params[i] = mapper.from(DmrModelValue.readFromJsonStream(dataStream));
+               params[i] = operationContext.getAttributes();
             }
-            catch (IOException e)
+            else if (ModelValue.class.isAssignableFrom(parameterType))
             {
-               throw new OperationException(operationName, "Could not read JSON data.", e);
+               if (attachment == null)
+               {
+                  attachment = operationContext.getAttachment(true);
+                  try
+                  {
+                     params[i] = DmrModelValue.readFromJsonStream(attachment.getStream());
+                  }
+                  catch (IOException e)
+                  {
+                     log.error("IOException reading from JSON stream for detyped model.", e);
+                     throw new OperationException(operationName, "Could not properly read data stream. See log for more details.", e);
+                  }
+               }
+               else
+               {
+                  @SuppressWarnings("unchecked")
+                  Class<? extends ModelValue> type = (Class<? extends ModelValue>) parameterType;
+                  params[i] = DmrModelValue.newModel().asValue(type);
+               }
+            }
+            else if (OperationContext.class == parameterType)
+            {
+               params[i] = operationContext;
             }
          }
          else
@@ -190,10 +191,18 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             Class<?> marshalClass = method.getParameterTypes()[i];
             if (debug) log.debug("Encountered unannotated parameter. Will try and find marshaller for type " + marshalClass);
 
+            // Currently only one attachment is supported, and that's the data stream (input) of the management operation.
+            if (attachment != null)
+            {
+               throw new RuntimeException("Cannot unmarshal " + marshalClass + " for method " + methodName +
+                  " and component " + managedClass.getName() + ". This is because input stream was already consumed. " +
+                  "This can happen if the marshaled type is not declared before @ManagedContext for detyped ModelValue type.");
+            }
             Marshaller<?> marshaller = operationContext.getBindingProvider().getMarshaller(marshalClass, operationContext.getContentType());
             if (marshaller != null)
             {
-               params[i] = marshaller.unmarshal(operationContext.getAttachment(true).getStream());
+               attachment = operationContext.getAttachment(true);
+               params[i] = marshaller.unmarshal(attachment.getStream());
                if (debug) log.debug("Successfully unmarshaled object of type " + marshalClass);
             }
             else
@@ -241,30 +250,12 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
          {
             if (result == null)
             {
+               log.error("Result returned was null and method " + methodName + " for managed component " + managedClass + " is not void.");
                throw new ResourceNotFoundException("Resource not found.");
             }
             else
             {
-               ManagedModel managedModel = method.getAnnotation(ManagedModel.class);
-               if (managedModel != null)
-               {
-                  ModelProvider modelProvider = operationContext.getModelProvider();
-                  @SuppressWarnings("unchecked")
-                  ModelProvider.ModelMapper<Object> modelMapper  = (ModelProvider.ModelMapper<Object>) modelProvider.getModelMapper(managedModel.value());
-                  if (modelMapper != null)
-                  {
-                     modelMapper.to(resultHandler.completed(), result);
-                  }
-                  else
-                  {
-                     throw new RuntimeException("Could not find a ModelMapper for model name " + managedModel.value() +
-                        " while trying to map method " + methodName + " for component class " + managedClass.getName());
-                  }
-               }
-               else
-               {
-                  resultHandler.completed(result);
-               }
+               resultHandler.completed(result);
             }
          }
       }

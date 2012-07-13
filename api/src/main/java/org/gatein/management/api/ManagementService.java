@@ -23,7 +23,6 @@
 package org.gatein.management.api;
 
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
 
 /**
  * Low level service to obtain managed resources and information about the resources.  However,
@@ -38,8 +37,6 @@ public interface ManagementService extends Module
    ManagedResource getManagedResource(PathAddress address);
 
    BindingProvider getBindingProvider(String componentName);
-
-   ModelProvider getModelProvider(String componentName);
 
    void reloadExtensions();
 }

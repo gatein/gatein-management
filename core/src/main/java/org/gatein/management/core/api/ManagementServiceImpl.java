@@ -32,10 +32,8 @@ import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.binding.BindingException;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.binding.Marshaller;
-import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.core.api.binding.GlobalBindingProvider;
-import org.gatein.management.core.api.binding.json.ModelMapperMarshaller;
 import org.gatein.management.core.api.operation.global.GlobalOperationHandlers;
 import org.gatein.management.core.spi.ExtensionContextImpl;
 import org.gatein.management.spi.ExtensionContext;
@@ -80,30 +78,9 @@ public class ManagementServiceImpl implements ManagementService
                if (marshaller != null) return marshaller;
             }
 
-            if (contentType == ContentType.JSON)
-            {
-               ModelProvider mp = providers.getModelProvider(componentName);
-               if (mp != null)
-               {
-                  ModelProvider.ModelMapper<T> mapper = mp.getModelMapper(type);
-                  if (mapper != null)
-                  {
-                     return new ModelMapperMarshaller<T>(mapper);
-                  }
-               }
-            }
-
             return globalBindingProvider.getMarshaller(type, contentType);
          }
       };
-   }
-
-   @Override
-   public ModelProvider getModelProvider(String componentName)
-   {
-      if (componentName == null) return null;
-
-      return providers.getModelProvider(componentName);
    }
 
    @Override

@@ -27,7 +27,8 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
+import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelValue;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -67,6 +68,18 @@ public class OperationContextDelegate implements OperationContext
    }
 
    @Override
+   public Model newModel()
+   {
+      return delegate.newModel();
+   }
+
+   @Override
+   public <T extends ModelValue> T newModel(Class<T> modelType)
+   {
+      return delegate.newModel(modelType);
+   }
+
+   @Override
    public OperationAttributes getAttributes()
    {
       return delegate.getAttributes();
@@ -82,12 +95,6 @@ public class OperationContextDelegate implements OperationContext
    public BindingProvider getBindingProvider()
    {
       return delegate.getBindingProvider();
-   }
-
-   @Override
-   public ModelProvider getModelProvider()
-   {
-      return delegate.getModelProvider();
    }
 
    @Override

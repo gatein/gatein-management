@@ -22,8 +22,6 @@
 
 package org.gatein.management.api.operation;
 
-import org.gatein.management.api.model.Model;
-
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
@@ -37,22 +35,9 @@ public interface ResultHandler
    void completed(Object result);
 
    /**
-    * Used for creating a new model for the successful completion of an operation which can be automatically serialized.
-    *
-    * @return new model representing the result
-    */
-   Model completed();
-
-   /**
     * Handle an operation failure.
     *
     * @param failureDescription the failure description
     */
    void failed(String failureDescription);
-
-   /**
-    * Used for creating a new model for the failed operation execution which can be automatically serialized.
-    * @return new model representing the failure.
-    */
-   Model failed();
 }

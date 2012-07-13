@@ -23,7 +23,6 @@
 package org.gatein.management.core.api;
 
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.exceptions.ManagementException;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +34,6 @@ import java.util.concurrent.ConcurrentMap;
 public class ManagementProviders
 {
    private ConcurrentMap<String, BindingProvider> bindingProviders = new ConcurrentHashMap<String, BindingProvider>();
-   private ConcurrentMap<String, ModelProvider> modelProviders = new ConcurrentHashMap<String, ModelProvider>();
 
    public void register(String componentName, BindingProvider bindingProvider)
    {
@@ -49,19 +47,5 @@ public class ManagementProviders
    public BindingProvider getBindingProvider(String componentName)
    {
       return bindingProviders.get(componentName);
-   }
-
-   public void register(String componentName, ModelProvider modelProvider)
-   {
-      ModelProvider mp;
-      if ( (mp = modelProviders.putIfAbsent(componentName, modelProvider)) != null)
-      {
-         throw new ManagementException("Model provider " + mp + " already registered for component " + componentName);
-      }
-   }
-
-   public ModelProvider getModelProvider(String componentName)
-   {
-      return modelProviders.get(componentName);
    }
 }

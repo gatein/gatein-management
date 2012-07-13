@@ -30,7 +30,6 @@ import org.gatein.management.api.ManagementService;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
@@ -39,6 +38,7 @@ import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.core.api.model.DmrModelValue;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
 
@@ -95,15 +95,14 @@ public class SimpleManagementController implements ManagementController
          // Obtain binding provider given managed component.
          String componentName = (address.size() >= 1) ? address.get(0) : null;
          BindingProvider bindingProvider = managementService.getBindingProvider(componentName);
-         ModelProvider modelProvider = managementService.getModelProvider(componentName);
 
          // Execute operation for given registered operation handler
          BasicResultHandler resultHandler = new BasicResultHandler();
-         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider, modelProvider), resultHandler);
+         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
          {
-            return new FailureResponse(resultHandler.failed().set(resultHandler.getFailureDescription()));
+            return new FailureResponse(DmrModelValue.newModel().set(resultHandler.getFailureDescription()));
          }
          else if (resultHandler.getFailure() != null)
          {

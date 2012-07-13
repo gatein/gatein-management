@@ -27,7 +27,8 @@ import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
+import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelValue;
 
 /**
  * Information provided to an operation handler during operation execution.
@@ -62,6 +63,20 @@ public interface OperationContext
    RuntimeContext getRuntimeContext();
 
    /**
+    * Creates a new detyped model which can be automatically un/marshaled.
+    * @return the new model
+    */
+   Model newModel();
+
+   /**
+    * Creates a new detyped model can be automatically un/marshaled.
+    *
+    * @param modelType the type of model value, i.e. ModelString or ModelObject
+    * @return the new model value
+    */
+   <T extends ModelValue> T newModel(Class<T> modelType);
+
+   /**
     * Retrieves the current attachment available.
     *
     * @param remove removes the attribute, pointing to the next attribute if more are available.
@@ -79,13 +94,6 @@ public interface OperationContext
     * @return the binding provider registered by an extension.
     */
    BindingProvider getBindingProvider();
-
-   /**
-    * Returns the model provider for a given extension.
-    *
-    * @return the model provider registered by an extension
-    */
-   ModelProvider getModelProvider();
 
    /**
     * @return the content type of the operation.  This can indicate the content type of the response or request (or both)

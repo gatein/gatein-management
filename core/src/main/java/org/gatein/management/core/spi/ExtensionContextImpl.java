@@ -29,7 +29,6 @@ import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.annotations.Managed;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.binding.ModelProvider;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.core.api.AbstractManagedResource;
 import org.gatein.management.core.api.ManagementProviders;
@@ -74,12 +73,6 @@ public class ExtensionContextImpl implements ExtensionContext
          public void registerBindingProvider(BindingProvider bindingProvider)
          {
             providers.register(name, bindingProvider);
-         }
-
-         @Override
-         public void registerModelProvider(ModelProvider modelProvider)
-         {
-            providers.register(name, modelProvider);
          }
       };
    }

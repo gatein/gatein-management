@@ -161,9 +161,8 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             }
             else if (ModelValue.class.isAssignableFrom(parameterType))
             {
-               if (attachment == null)
+               if ( (attachment = operationContext.getAttachment(true)) != null)
                {
-                  attachment = operationContext.getAttachment(true);
                   try
                   {
                      params[i] = DmrModelValue.readFromJsonStream(attachment.getStream());
@@ -202,6 +201,8 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             if (marshaller != null)
             {
                attachment = operationContext.getAttachment(true);
+               if (attachment == null) throw new OperationException(operationName, "No attachment was found for this operation.");
+
                params[i] = marshaller.unmarshal(attachment.getStream());
                if (debug) log.debug("Successfully unmarshaled object of type " + marshalClass);
             }

@@ -161,6 +161,21 @@ public class AnnotationExtensionTest
    }
 
    @Test
+   public void testContext()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(TestService.class);
+
+      PathAddress address = PathAddress.pathAddress("test-service", "context");
+      assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
+
+      execute(rootResource, OperationNames.READ_RESOURCE, address);
+      verify(testService).context(operationContext);
+      reset(testService);
+   }
+
+   @Test
    public void testContext_RuntimeContext()
    {
       SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
@@ -321,6 +336,9 @@ public class AnnotationExtensionTest
 
       @Managed("foo-bar")
       public void foo_bar(@MappedAttribute("bar-attr") String barAttr);
+
+      @Managed("context")
+      public void context(@ManagedContext OperationContext context);
 
       @Managed("context/runtime")
       public void runtime(@ManagedContext RuntimeContext runtimeContext);

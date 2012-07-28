@@ -20,8 +20,11 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-
-import org.crsh.cmdline.annotations.*
+import org.crsh.cmdline.annotations.Argument
+import org.crsh.cmdline.annotations.Command
+import org.crsh.cmdline.annotations.Man
+import org.crsh.cmdline.annotations.Required
+import org.crsh.cmdline.annotations.Usage
 import org.crsh.command.InvocationContext
 import org.crsh.command.ScriptException
 import org.gatein.common.logging.LoggerFactory
@@ -31,7 +34,12 @@ import org.gatein.management.api.controller.ManagedResponse
 import org.gatein.management.api.controller.ManagementController
 import org.gatein.management.api.operation.OperationNames
 import org.gatein.management.api.operation.model.ReadResourceModel
-import org.gatein.management.cli.crash.arguments.*
+import org.gatein.management.cli.crash.arguments.AttributeOption
+import org.gatein.management.cli.crash.arguments.Container
+import org.gatein.management.cli.crash.arguments.ContentTypeOption
+import org.gatein.management.cli.crash.arguments.Input
+import org.gatein.management.cli.crash.arguments.OperationOption
+import org.gatein.management.cli.crash.arguments.Output
 import org.gatein.management.cli.crash.commands.ManagementCommand
 
 @Usage("gatein management commands")
@@ -109,18 +117,33 @@ Executes the read-resource operation of the current address (path) passing in at
 
 """)
   @Command
-  public Object exec(@ContentTypeOption String contentType, @FileOption String file, @AttributeOption List<String> attributes, @Required @OperationOption String operation, @Argument String path)
+  public Object exec(@ContentTypeOption String contentType, @Input String input, @Output String output, @AttributeOption List<String> attributes, @Required @OperationOption String operation, @Argument String path)
   {
     assertConnected()
     def ct = (contentType == null) ? ContentType.JSON : ContentType.forName(contentType);
     if (ct == null) return "Invalid content type '$contentType'.";
 
     InputStream inputStream = null;
-    if (file != null)
+    if (input != null)
     {
-      def actualFile = new File(file);
-      if (!actualFile.exists()) return "File $actualFile does not exist.";
+      def actualFile = new File(input);
+      if (!actualFile.exists()) return "Input file $actualFile does not exist.";
       inputStream = new FileInputStream(actualFile);
+    }
+
+    def outputFile = (output == null) ? null : new File(output);
+    if (outputFile != null)
+    {
+      if (outputFile.isDirectory())
+      {
+        if (!outputFile.exists()) return "Directory " + outputFile + " does not exist.";
+        outputFile = File.createTempFile("gatein-cli-", ".${ct.name}", outputFile);
+      }
+      else
+      {
+        if (!outputFile.getParentFile().exists()) return "Cannot write to " + outputFile.getParentFile() + " because it does not exist.";
+        if (outputFile.exists()) return "Output file $outputFile already exists.";
+      }
     }
 
     def before = address;
@@ -129,11 +152,37 @@ Executes the read-resource operation of the current address (path) passing in at
     execute(operation, addr, ct, parseAttributes(attributes),  inputStream, { result, error ->
       address = before;
       def resp = response as ManagedResponse;
-      def baos = new ByteArrayOutputStream();
-      resp.writeResult(baos, true);
 
-      String data = new String(baos.toByteArray());
-      return (data.length() == 0) ? "Operation '$operation' at address '$addr' was successful." : data;
+      if (outputFile == null)
+      {
+        def baos = new ByteArrayOutputStream();
+        resp.writeResult(baos, true);
+
+        String data = new String(baos.toByteArray());
+        return (data.length() == 0) ? "Operation '$operation' at address '$addr' was successful." : data;
+      }
+      else
+      {
+        def fos = new FileOutputStream(outputFile);
+        try
+        {
+          resp.writeResult(fos, true);
+          fos.flush();
+          return "Output successfully written to " + outputFile;
+        }
+        catch (Throwable t)
+        {
+          if (outputFile.exists())
+          {
+            outputFile.delete();
+          }
+          throw t;
+        }
+        finally
+        {
+          fos.close();
+        }
+      }
     });
   }
 }

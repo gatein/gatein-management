@@ -27,7 +27,7 @@
    <parent>
       <groupId>org.gatein</groupId>
       <artifactId>gatein-parent</artifactId>
-      <version>1.1.0-GA</version>
+      <version>1.2.0.Alpha04</version>
    </parent>
 
    <!-- ****************** -->
@@ -49,20 +49,14 @@
    </scm>
 
    <properties>
-      <org.gatein.common.version>2.0.4-GA</org.gatein.common.version>
+      <org.gatein.common.version>2.1.0.Alpha05</org.gatein.common.version>
+      <org.slf4j.version>1.6.1</org.slf4j.version>
+      <javax.jcr.version>1.0</javax.jcr.version>
+      <javax.servlet.version>3.0.1</javax.servlet.version>
    </properties>
 
    <dependencyManagement>
       <dependencies>
-         <!-- Import dependency management configuration -->
-         <dependency>
-            <groupId>org.gatein</groupId>
-            <artifactId>gatein-dep</artifactId>
-            <version>1.1.0-GA</version>
-            <type>pom</type>
-            <scope>import</scope>
-         </dependency>
-
          <!-- GateIn Management -->
          <dependency>
             <groupId>org.gatein.management</groupId>
@@ -105,7 +99,6 @@
          </dependency>
 
          <!-- json -->
-         <!-- json -->
          <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -117,6 +110,21 @@
             <groupId>javax.annotation</groupId>
             <artifactId>jsr250-api</artifactId>
             <version>1.0</version>
+         </dependency>
+
+         <!-- provided -->
+         <dependency>
+            <groupId>javax.jcr</groupId>
+            <artifactId>jcr</artifactId>
+            <version>${javax.jcr.version}</version>
+            <scope>provided</scope>
+         </dependency>
+
+         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet.version}</version>
+            <scope>provided</scope>
          </dependency>
 
          <!-- Testing -->
@@ -147,6 +155,7 @@
       <dependency>
          <groupId>org.slf4j</groupId>
          <artifactId>slf4j-log4j12</artifactId>
+         <version>${org.slf4j.version}</version>
          <scope>test</scope>
       </dependency>
       <dependency>

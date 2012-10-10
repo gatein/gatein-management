@@ -36,7 +36,7 @@
 
    <groupId>org.gatein.management</groupId>
    <artifactId>gatein-management-parent</artifactId>
-   <version>1.1.0.Final-SNAPSHOT</version>
+   <version>1.1.0.CR2</version>
    <packaging>pom</packaging>
 
    <name>GateIn Management - Parent Project</name>

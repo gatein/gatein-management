@@ -27,7 +27,7 @@
    <parent>
       <groupId>org.gatein</groupId>
       <artifactId>gatein-parent</artifactId>
-      <version>1.2.0.Alpha04</version>
+      <version>1.2.0.Beta01</version>
    </parent>
 
    <!-- ****************** -->
@@ -49,7 +49,7 @@
    </scm>
 
    <properties>
-      <org.gatein.common.version>2.1.0.Alpha05</org.gatein.common.version>
+      <org.gatein.common.version>2.1.0.Beta01</org.gatein.common.version>
       <org.slf4j.version>1.6.1</org.slf4j.version>
       <javax.jcr.version>1.0</javax.jcr.version>
       <javax.servlet.version>3.0.1</javax.servlet.version>

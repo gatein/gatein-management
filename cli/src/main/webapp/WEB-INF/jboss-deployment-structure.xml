@@ -3,6 +3,7 @@
    <deployment>
       <dependencies>
          <module name="org.gatein.lib" />
+         <module name="org.gatein.sso" />
          <module name="org.gatein.common" />
          <module name="org.gatein.wci" />
          <module name="javax.jcr.api"/>

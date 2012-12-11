@@ -145,6 +145,18 @@ public abstract class DmrModelValue implements ModelValue
    }
 
    @Override
+   public ModelValue fromJsonString(String json)
+   {
+      return readFromJsonString(json);
+   }
+
+   @Override
+   public <T extends ModelValue> T fromJsonString(String json, Class<T> valueType)
+   {
+      return readFromJsonString(json, valueType);
+   }
+
+   @Override
    public ModelValue fromJsonStream(InputStream inputStream) throws IOException
    {
       return readFromJsonStream(inputStream);
@@ -171,6 +183,16 @@ public abstract class DmrModelValue implements ModelValue
    public static <T extends ModelValue> T readFromJsonStream(InputStream inputStream, Class<T> valueType) throws IOException
    {
       return valueType.cast(readFromJsonStream(inputStream));
+   }
+
+   public static ModelValue readFromJsonString(String json)
+   {
+      return asValue(ModelNode.fromJSONString(json));
+   }
+
+   public static <T extends ModelValue> T readFromJsonString(String json, Class<T> valueType)
+   {
+      return valueType.cast(readFromJsonString(json));
    }
 
    public static Model newModel()

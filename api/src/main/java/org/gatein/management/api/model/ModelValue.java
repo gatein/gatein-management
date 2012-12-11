@@ -56,6 +56,10 @@ public interface ModelValue
 
    String toJsonString(boolean pretty);
 
+   ModelValue fromJsonString(String json);
+
+   <T extends ModelValue> T fromJsonString(String json, Class<T> valueType);
+
    void toJsonStream(OutputStream outputStream, boolean pretty) throws IOException;
 
    ModelValue fromJsonStream(InputStream inputStream) throws IOException;

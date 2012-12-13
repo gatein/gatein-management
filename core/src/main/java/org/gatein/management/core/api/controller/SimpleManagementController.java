@@ -35,10 +35,11 @@ import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
-import org.gatein.management.core.api.model.DmrModelValue;
+import org.gatein.management.core.api.model.DmrModelProvider;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
 
@@ -96,13 +97,16 @@ public class SimpleManagementController implements ManagementController
          String componentName = (address.size() >= 1) ? address.get(0) : null;
          BindingProvider bindingProvider = managementService.getBindingProvider(componentName);
 
+         // ModelProvider to use for de-typed models
+         ModelProvider modelProvider = DmrModelProvider.INSTANCE;
+
          // Execute operation for given registered operation handler
          BasicResultHandler resultHandler = new BasicResultHandler();
-         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider), resultHandler);
+         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider, modelProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
          {
-            return new FailureResponse(DmrModelValue.newModel().set(resultHandler.getFailureDescription()));
+            return new FailureResponse(modelProvider.newModel().set(resultHandler.getFailureDescription()));
          }
          else if (resultHandler.getFailure() != null)
          {

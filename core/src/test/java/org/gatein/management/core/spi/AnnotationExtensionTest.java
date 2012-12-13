@@ -31,10 +31,12 @@ import org.gatein.management.api.annotations.ManagedContext;
 import org.gatein.management.api.annotations.ManagedOperation;
 import org.gatein.management.api.annotations.MappedAttribute;
 import org.gatein.management.api.annotations.MappedPath;
-import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelList;
+import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelObject;
 import org.gatein.management.api.model.ModelString;
 import org.gatein.management.api.model.ModelValue;
+import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationAttributes;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.api.operation.OperationHandler;
@@ -46,6 +48,11 @@ import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.spi.ExtensionContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -56,6 +63,7 @@ import static org.mockito.Mockito.*;
 public class AnnotationExtensionTest
 {
    private OperationContext operationContext;
+   private OperationAttachment attachment;
    private RuntimeContext runtimeContext;
    private TestService testService;
    private SubTestService subTestService;
@@ -64,6 +72,7 @@ public class AnnotationExtensionTest
    public void init()
    {
       operationContext = mock(OperationContext.class);
+      attachment = mock(OperationAttachment.class);
       runtimeContext = mock(RuntimeContext.class);
       testService = mock(TestService.class);
       subTestService = mock(SubTestService.class);
@@ -71,6 +80,22 @@ public class AnnotationExtensionTest
 
       when(operationContext.getRuntimeContext()).thenReturn(runtimeContext);
       when(runtimeContext.getRuntimeComponent(TestService.class)).thenReturn(testService);
+
+      when(operationContext.getAttachment(true)).thenReturn(attachment);
+      when(attachment.getStream()).thenReturn(null);
+
+      @SuppressWarnings("unchecked")
+      Class<Class<? extends ModelValue>> clazz = (Class<Class<? extends ModelValue>>) ModelValue.class.getClass();
+      when(operationContext.newModel(any(clazz))).thenAnswer(new Answer<ModelValue>()
+      {
+         @Override
+         public ModelValue answer(InvocationOnMock invocation) throws Throwable
+         {
+            @SuppressWarnings("unchecked")
+            Class<? extends ModelValue> c = (Class<? extends ModelValue>) invocation.getArguments()[0];
+            return DmrModelValue.newModel().asValue(c);
+         }
+      });
    }
 
    @Test
@@ -232,40 +257,54 @@ public class AnnotationExtensionTest
       ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
       context.registerManagedComponent(TestService.class);
 
-      PathAddress address = PathAddress.pathAddress("test-service", "context", "model");
+      // ModelObject
+      PathAddress address = PathAddress.pathAddress("test-service", "context", "modelobject");
+      OperationAttributes attributes = mock(OperationAttributes.class);
       assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
-      when(operationContext.newModel()).thenReturn(DmrModelValue.newModel());
+      when(operationContext.getAttributes()).thenReturn(attributes);
+
+      ModelValue model = DmrModelValue.newModel().asValue(ModelObject.class).set("foo", "bar");
+      String data = model.toJsonString(false);
+      when(attachment.getStream()).thenReturn(new ByteArrayInputStream(data.getBytes()));
 
       execute(rootResource, OperationNames.READ_RESOURCE, address);
-
-      verify(testService).model(DmrModelValue.newModel());
+      verify(testService).modelObject((ModelObject) model);
       reset(testService);
 
-      address = PathAddress.pathAddress("test-service", "context", "modelvalue");
+      // ModelList
+      address = PathAddress.pathAddress("test-service", "context", "modellist");
       assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
-      when(operationContext.newModel(ModelValue.class)).thenReturn(DmrModelValue.newModel().asValue(ModelValue.class));
+
+      model = DmrModelValue.newModel().asValue(ModelList.class).add("foo");
+      data = model.toJsonString(false);
+      when(attachment.getStream()).thenReturn(new ByteArrayInputStream(data.getBytes()));
 
       execute(rootResource, OperationNames.READ_RESOURCE, address);
-
-      verify(testService).modelvalue(DmrModelValue.newModel().asValue(ModelValue.class));
+      verify(testService).modelList((ModelList) model);
       reset(testService);
 
+      // ModelString
       address = PathAddress.pathAddress("test-service", "context", "modelstring");
       assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
-      when(operationContext.newModel(ModelString.class)).thenReturn(DmrModelValue.newModel().asValue(ModelString.class));
+
+      model = DmrModelValue.newModel().asValue(ModelString.class).set("foo");
+      data = model.toJsonString(false);
+      when(attachment.getStream()).thenReturn(new ByteArrayInputStream(data.getBytes()));
 
       execute(rootResource, OperationNames.READ_RESOURCE, address);
-
-      verify(testService).modelstring(DmrModelValue.newModel().asValue(ModelString.class));
+      verify(testService).modelString((ModelString) model);
       reset(testService);
 
-      address = PathAddress.pathAddress("test-service", "context", "modelobject");
+      // ModelNumber
+      address = PathAddress.pathAddress("test-service", "context", "modelnumber");
       assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
-      when(operationContext.newModel(ModelObject.class)).thenReturn(DmrModelValue.newModel().asValue(ModelObject.class));
+
+      model = DmrModelValue.newModel().asValue(ModelNumber.class).set(new BigInteger("3"));
+      data = model.toJsonString(false);
+      when(attachment.getStream()).thenReturn(new ByteArrayInputStream(data.getBytes()));
 
       execute(rootResource, OperationNames.READ_RESOURCE, address);
-
-      verify(testService).modelobject(DmrModelValue.newModel().asValue(ModelObject.class));
+      verify(testService).modelNumber((ModelNumber) model);
       reset(testService);
    }
 
@@ -349,17 +388,17 @@ public class AnnotationExtensionTest
       @Managed("context/attributes")
       public void attributes(@ManagedContext OperationAttributes attributes);
 
-      @Managed("context/model")
-      public void model(@ManagedContext Model model);
+      @Managed("context/modelobject")
+      public void modelObject(@ManagedContext ModelObject model);
 
-      @Managed("context/modelvalue")
-      public void modelvalue(@ManagedContext ModelValue model);
+      @Managed("context/modellist")
+      public void modelList(@ManagedContext ModelList model);
 
       @Managed("context/modelstring")
-      public void modelstring(@ManagedContext ModelString model);
+      public void modelString(@ManagedContext ModelString model);
 
-      @Managed("context/modelobject")
-      public void modelobject(@ManagedContext ModelObject model);
+      @Managed("context/modelnumber")
+      public void modelNumber(@ManagedContext ModelNumber model);
 
       @Managed("sub-service")
       public SubTestService subService();

@@ -32,6 +32,7 @@ import org.gatein.management.api.annotations.MappedPath;
 import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
+import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationAttributes;
@@ -41,11 +42,13 @@ import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.core.api.AbstractManagedResource;
+import org.gatein.management.core.api.model.DmrModelProvider;
 import org.gatein.management.core.api.model.DmrModelValue;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -175,10 +178,14 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
                }
                else
                {
-                  @SuppressWarnings("unchecked")
-                  Class<? extends ModelValue> type = (Class<? extends ModelValue>) parameterType;
-                  params[i] = DmrModelValue.newModel().asValue(type);
+                  throw new OperationException(operationName, "Data stream not available.");
                }
+            }
+            else if (ModelProvider.class.isAssignableFrom(parameterType))
+            {
+               @SuppressWarnings("unchecked")
+               Class<? extends ModelValue> type = (Class<? extends ModelValue>) parameterType;
+               params[i] = operationContext.newModel(type);
             }
             else if (OperationContext.class == parameterType)
             {
@@ -242,6 +249,9 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
       }
       try
       {
+         // Set the model provider if a field is annotated with @ManagedContext
+         setModelProvider(managedClass, component); //TODO: We should only do this once.
+
          Object result = method.invoke(component, params);
          if (method.getReturnType() == void.class)
          {
@@ -305,5 +315,35 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
       }
 
       return null;
+   }
+
+   private static void setModelProvider(Class<?> managedClass, Object instance)
+   {
+      Field[] fields = managedClass.getDeclaredFields();
+      for (Field field : fields)
+      {
+         if (field.isAnnotationPresent(ManagedContext.class))
+         {
+            if (field.getType() == ModelProvider.class)
+            {
+               if (!field.isAccessible())
+               {
+                  field.setAccessible(true);
+               }
+               try
+               {
+                  field.set(instance, DmrModelProvider.INSTANCE);
+               }
+               catch (IllegalAccessException e)
+               {
+                  throw new RuntimeException("Unable to set ModelProvider for managed class " + managedClass, e);
+               }
+            }
+            else
+            {
+               throw new RuntimeException("Field " + field + " is annotated with @ManagedContext, however it has an unknown type " + field.getType() + ". Only ModelProvider is allowed as the type for this field.");
+            }
+         }
+      }
    }
 }

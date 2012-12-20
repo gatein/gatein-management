@@ -41,11 +41,13 @@ The ls command displays the content of a managed resource. By default it lists t
   {
     assertConnected()
 
+    def before = address;
     def pathAddress = getAddress(address, path);
 
     execute(OperationNames.READ_RESOURCE, pathAddress, null, null, null, { ReadResourceModel result, error ->
-      def builder = new UIBuilder();
+      address = before;
 
+      def builder = new UIBuilder();
       for (def child : result.children)
       {
         if (child.charAt(0) == '/') child = child.substring(1);

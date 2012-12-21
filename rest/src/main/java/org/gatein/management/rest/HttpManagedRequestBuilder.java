@@ -23,14 +23,18 @@
 package org.gatein.management.rest;
 
 import org.gatein.management.api.ContentType;
+import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.operation.OperationNames;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -39,11 +43,13 @@ import java.util.Map;
  */
 class HttpManagedRequestBuilder
 {
+   private String user;
    private String path;
    private String operationName;
    private ContentType contentType;
    private InputStream inputStream;
    private MultivaluedMap<String, String> parameters;
+   private Locale locale;
    private String httpMethod;
 
    public static HttpManagedRequestBuilder get()
@@ -109,6 +115,26 @@ class HttpManagedRequestBuilder
       return this;
    }
 
+   public HttpManagedRequestBuilder user(Principal principal)
+   {
+      this.user = (principal == null) ? null : principal.getName();
+      return this;
+   }
+
+   public HttpManagedRequestBuilder locale(HttpHeaders headers)
+   {
+      if (headers != null)
+      {
+         List<Locale> locales = headers.getAcceptableLanguages();
+         if (locales != null && !locales.isEmpty())
+         {
+            this.locale = locales.get(0); // just get the first one
+         }
+      }
+
+      return this;
+   }
+
    public HttpManagedRequest build()
    {
       String op = parameters.getFirst("op");
@@ -151,18 +177,37 @@ class HttpManagedRequestBuilder
       }
 
       ManagedRequest request = ManagedRequest.Factory.create(operationName, address, parameters, inputStream, contentType);
-      return new HttpManagedRequestDelegate(request, httpMethod);
+      request.setLocale(locale);
+      return new HttpManagedRequestDelegate(request, user, httpMethod);
    }
 
    private static class HttpManagedRequestDelegate implements HttpManagedRequest
    {
       private ManagedRequest delegate;
       private String httpMethod;
+      private ManagedUser user;
 
-      private HttpManagedRequestDelegate(ManagedRequest delegate, String httpMethod)
+      private HttpManagedRequestDelegate(ManagedRequest delegate, final String user, String httpMethod)
       {
          this.delegate = delegate;
          this.httpMethod = httpMethod;
+         if (user != null)
+         {
+            this.user = new ManagedUser()
+            {
+               @Override
+               public String getUserName()
+               {
+                  return user;
+               }
+            };
+         }
+      }
+
+      @Override
+      public ManagedUser getUser()
+      {
+         return user;
       }
 
       @Override
@@ -181,6 +226,18 @@ class HttpManagedRequestBuilder
       public Map<String, List<String>> getAttributes()
       {
          return delegate.getAttributes();
+      }
+
+      @Override
+      public Locale getLocale()
+      {
+         return delegate.getLocale();
+      }
+
+      @Override
+      public void setLocale(Locale locale)
+      {
+         delegate.setLocale(locale);
       }
 
       @Override

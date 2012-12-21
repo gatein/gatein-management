@@ -20,11 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import org.crsh.cmdline.annotations.Argument
-import org.crsh.cmdline.annotations.Command
-import org.crsh.cmdline.annotations.Man
-import org.crsh.cmdline.annotations.Required
-import org.crsh.cmdline.annotations.Usage
+
+import org.crsh.cmdline.annotations.*
 import org.crsh.command.InvocationContext
 import org.crsh.command.ScriptException
 import org.gatein.common.logging.LoggerFactory
@@ -34,13 +31,7 @@ import org.gatein.management.api.controller.ManagedResponse
 import org.gatein.management.api.controller.ManagementController
 import org.gatein.management.api.operation.OperationNames
 import org.gatein.management.api.operation.model.ReadResourceModel
-import org.gatein.management.cli.crash.arguments.AttributeOption
-import org.gatein.management.cli.crash.arguments.Container
-import org.gatein.management.cli.crash.arguments.ContentTypeOption
-import org.gatein.management.cli.crash.arguments.FileOption
-import org.gatein.management.cli.crash.arguments.OperationOption
-import org.gatein.management.cli.crash.arguments.Password
-import org.gatein.management.cli.crash.arguments.UserName
+import org.gatein.management.cli.crash.arguments.*
 import org.gatein.management.cli.crash.commands.ManagementCommand
 
 @Usage("gatein management commands")
@@ -83,6 +74,7 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
     if (containerName == null) containerName = "portal";
 
     session = login(userName, password, containerName);
+    user = userName;
     controller = getComponent(containerName, ManagementController.class);
     logger = LoggerFactory.getLogger("org.gatein.management.cli");
 

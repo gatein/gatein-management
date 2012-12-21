@@ -24,11 +24,14 @@ package org.gatein.management.api.operation;
 
 import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelValue;
+
+import java.util.Locale;
 
 /**
  * Information provided to an operation handler during operation execution.
@@ -38,6 +41,12 @@ import org.gatein.management.api.model.ModelValue;
  */
 public interface OperationContext
 {
+   /**
+    *
+    * @return the user if one is associated with the request
+    */
+   ManagedUser getUser();
+
    /**
     *
     * @return Path of the current operation.
@@ -88,6 +97,12 @@ public interface OperationContext
     * @return the operation attributes
     */
    OperationAttributes getAttributes();
+
+   /**
+    *
+    * @return the local of the operation (can be null)
+    */
+   Locale getLocale();
 
    /**
     *

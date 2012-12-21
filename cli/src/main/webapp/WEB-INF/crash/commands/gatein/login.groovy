@@ -20,12 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
+
 import org.crsh.command.ScriptException
 import org.gatein.management.api.ContentType
 import org.gatein.management.api.PathAddress
 import org.gatein.management.api.controller.ManagedRequest
 import org.gatein.management.api.exceptions.OperationException
 import org.gatein.management.api.exceptions.ResourceNotFoundException
+import org.gatein.management.cli.crash.commands.CliRequest
 
 assertConnected = {
   if (session == null) throw new ScriptException("Not connected !");
@@ -40,7 +42,8 @@ execute = { String operationName, PathAddress pathAddress, ContentType contentTy
 
   try
   {
-    response = controller.execute(ManagedRequest.Factory.create(operationName, pathAddress, attributes, data, contentType));
+    ManagedRequest req = ManagedRequest.Factory.create(operationName, pathAddress, attributes, data, contentType);
+    response = controller.execute(new CliRequest(user, req));
     if (response == null) return "No response for path $address";
 
     if (response.outcome.isSuccess())

@@ -24,9 +24,11 @@ package org.gatein.management.core.api.operation;
 
 import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
+import org.gatein.management.api.controller.AuthenticatedManagedRequest;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelProvider;
@@ -34,11 +36,11 @@ import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.OperationAttachment;
 import org.gatein.management.api.operation.OperationAttributes;
 import org.gatein.management.api.operation.OperationContext;
-import org.gatein.management.core.api.model.DmrModelValue;
 
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Locale;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -52,6 +54,7 @@ public class OperationContextImpl implements OperationContext
    private final BindingProvider bindingProvider;
    private final Deque<OperationAttachment> attachments;
    private final OperationAttributes attributes;
+   private final Locale locale;
    private final ModelProvider modelProvider;
 
 
@@ -75,6 +78,18 @@ public class OperationContextImpl implements OperationContext
       this.modelProvider = modelProvider;
       this.attachments = list;
       this.attributes = new OperationAttributesImpl(request.getAttributes());
+      this.locale = request.getLocale();
+   }
+
+   @Override
+   public ManagedUser getUser()
+   {
+      if (request instanceof AuthenticatedManagedRequest)
+      {
+         return ((AuthenticatedManagedRequest) request).getUser();
+      }
+
+      return null;
    }
 
    @Override
@@ -117,6 +132,12 @@ public class OperationContextImpl implements OperationContext
    public OperationAttributes getAttributes()
    {
       return attributes;
+   }
+
+   @Override
+   public Locale getLocale()
+   {
+      return locale;
    }
 
    @Override

@@ -28,6 +28,7 @@ import org.gatein.management.api.PathAddress;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -45,6 +46,10 @@ public interface ManagedRequest
    InputStream getDataStream();
 
    ContentType getContentType();
+
+   Locale getLocale();
+
+   void setLocale(Locale locale);
 
    //TODO: Add request builder instead of continually adding methods to factory
 
@@ -69,6 +74,8 @@ public interface ManagedRequest
       {
          return new ManagedRequest()
          {
+            private Locale locale;
+
             @Override
             public String getOperationName()
             {
@@ -98,6 +105,18 @@ public interface ManagedRequest
             public ContentType getContentType()
             {
                return contentType;
+            }
+
+            @Override
+            public Locale getLocale()
+            {
+               return locale;
+            }
+
+            @Override
+            public void setLocale(Locale locale)
+            {
+               this.locale = locale;
             }
          };
       }

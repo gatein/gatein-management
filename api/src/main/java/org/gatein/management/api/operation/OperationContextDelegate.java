@@ -24,11 +24,14 @@ package org.gatein.management.api.operation;
 
 import org.gatein.management.api.ContentType;
 import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelValue;
+
+import java.util.Locale;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -41,6 +44,12 @@ public class OperationContextDelegate implements OperationContext
    public OperationContextDelegate(OperationContext delegate)
    {
       this.delegate = delegate;
+   }
+
+   @Override
+   public ManagedUser getUser()
+   {
+      return delegate.getUser();
    }
 
    @Override
@@ -83,6 +92,12 @@ public class OperationContextDelegate implements OperationContext
    public OperationAttributes getAttributes()
    {
       return delegate.getAttributes();
+   }
+
+   @Override
+   public Locale getLocale()
+   {
+      return delegate.getLocale();
    }
 
    @Override

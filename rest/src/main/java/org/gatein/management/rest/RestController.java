@@ -46,8 +46,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Variant;
 import java.io.InputStream;
@@ -76,18 +78,23 @@ public class RestController
    @GET
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlGetRequest(@Context UriInfo uriInfo)
+   public Response htmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
-      return htmlGetRequest(uriInfo, "");
+      return htmlGetRequest(uriInfo, securityContext, httpHeaders, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response htmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = get().parameters(uriInfo.getQueryParameters()).path(path).build();
+      HttpManagedRequest request = get()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -96,9 +103,9 @@ public class RestController
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlPostRequest(@Context UriInfo uriInfo, InputStream data)
+   public Response htmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return htmlPostRequest(uriInfo, "", data);
+      return htmlPostRequest(uriInfo, securityContext, httpHeaders, "", data);
    }
 
    @POST
@@ -106,9 +113,14 @@ public class RestController
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlPostRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response htmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = post(data).parameters(uriInfo.getQueryParameters()).path(path).build();
+      HttpManagedRequest request = post(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -117,9 +129,9 @@ public class RestController
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlPutRequest(@Context UriInfo uriInfo, InputStream data)
+   public Response htmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return htmlPutRequest(uriInfo, "", data);
+      return htmlPutRequest(uriInfo, securityContext, httpHeaders, "", data);
    }
 
    @PUT
@@ -127,9 +139,14 @@ public class RestController
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response htmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = put(data).parameters(uriInfo.getQueryParameters()).path(path).build();
+      HttpManagedRequest request = put(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -137,18 +154,23 @@ public class RestController
    @DELETE
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlDeleteRequest(@Context UriInfo uriInfo)
+   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
-      return htmlDeleteRequest(uriInfo, "");
+      return htmlDeleteRequest(uriInfo, securityContext, httpHeaders);
    }
 
    @DELETE
    @Path("/{path:.*}")
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
    @RolesAllowed("administrators")
-   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = delete().parameters(uriInfo.getQueryParameters()).path(path).build();
+      HttpManagedRequest request = delete()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -157,18 +179,24 @@ public class RestController
    @GET
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonGetRequest(@Context UriInfo uriInfo)
+   public Response jsonGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
-      return jsonGetRequest(uriInfo, "");
+      return jsonGetRequest(uriInfo, securityContext, httpHeaders, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response jsonGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = get().path(path).parameters(uriInfo.getQueryParameters()).contentType(ContentType.JSON).build();
+      HttpManagedRequest request = get()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.JSON)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -177,9 +205,9 @@ public class RestController
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonPostRequest(@Context UriInfo uriInfo, InputStream data)
+   public Response jsonPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return jsonPostRequest(uriInfo, "", data);
+      return jsonPostRequest(uriInfo, securityContext, httpHeaders, "", data);
    }
 
    @POST
@@ -187,9 +215,15 @@ public class RestController
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonPostRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response jsonPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = post(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.JSON).build();
+      HttpManagedRequest request = post(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.JSON)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -198,9 +232,9 @@ public class RestController
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonPutRequest(@Context UriInfo uriInfo, InputStream data)
+   public Response jsonPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return jsonPutRequest(uriInfo, "", data);
+      return jsonPutRequest(uriInfo, securityContext, httpHeaders, "", data);
    }
 
    @PUT
@@ -208,9 +242,15 @@ public class RestController
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response jsonPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = put(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.JSON).build();
+      HttpManagedRequest request = put(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.JSON)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -218,18 +258,24 @@ public class RestController
    @DELETE
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonDeleteRequest(@Context UriInfo uriInfo)
+   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
-      return jsonDeleteRequest(uriInfo, "");
+      return jsonDeleteRequest(uriInfo, securityContext, httpHeaders, "");
    }
 
    @DELETE
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
    @RolesAllowed("administrators")
-   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = delete().parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.JSON).build();
+      HttpManagedRequest request = delete()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.JSON)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -238,18 +284,24 @@ public class RestController
    @GET
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlGetRequest(@Context UriInfo uriInfo)
+   public Response xmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
-      return xmlGetRequest(uriInfo, "");
+      return xmlGetRequest(uriInfo, securityContext, httpHeaders, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response xmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = get().path(path).parameters(uriInfo.getQueryParameters()).contentType(ContentType.XML).build();
+      HttpManagedRequest request = get()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.XML)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -258,9 +310,9 @@ public class RestController
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlPostRequest(@Context UriInfo uriInfo, InputStream data)
+   public Response xmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return xmlPostRequest(uriInfo, "", data);
+      return xmlPostRequest(uriInfo, securityContext, httpHeaders, "", data);
    }
 
    @POST
@@ -268,9 +320,15 @@ public class RestController
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlPostRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response xmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = post(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
+      HttpManagedRequest request = post(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.XML)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -279,9 +337,9 @@ public class RestController
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlPutRequest(@Context UriInfo uriInfo, InputStream data)
+   public Response xmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return xmlPutRequest(uriInfo, "", data);
+      return xmlPutRequest(uriInfo, securityContext, httpHeaders, "", data);
    }
 
    @PUT
@@ -289,9 +347,15 @@ public class RestController
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response xmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = put(data).parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
+      HttpManagedRequest request = put(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.XML)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -299,18 +363,24 @@ public class RestController
    @DELETE
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlDeleteRequest(@Context UriInfo uriInfo)
+   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
-      return xmlDeleteRequest(uriInfo, "");
+      return xmlDeleteRequest(uriInfo, securityContext, httpHeaders, "");
    }
 
    @DELETE
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
    @RolesAllowed("administrators")
-   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = delete().parameters(uriInfo.getQueryParameters()).path(path).contentType(ContentType.XML).build();
+      HttpManagedRequest request = delete()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .contentType(ContentType.XML)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -320,10 +390,16 @@ public class RestController
    @Path("/{path:.*}")
    @Produces("application/zip")
    @RolesAllowed("administrators")
-   public Response zipGetRequest(@Context UriInfo uriInfo, @PathParam("path") String path)
+   public Response zipGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
-      HttpManagedRequest request = get().path(path).parameters(uriInfo.getQueryParameters())
-         .operationName(OperationNames.EXPORT_RESOURCE).contentType(ContentType.ZIP).build();
+      HttpManagedRequest request = get()
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .operationName(OperationNames.EXPORT_RESOURCE)
+         .contentType(ContentType.ZIP)
+         .build();
 
       return executeRequest(uriInfo, request);
    }
@@ -333,10 +409,16 @@ public class RestController
    @Consumes("application/zip")
    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
    @RolesAllowed("administrators")
-   public Response zipPutRequest(@Context UriInfo uriInfo, @PathParam("path") String path, InputStream data)
+   public Response zipPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
-      HttpManagedRequest request = put(data).path(path).parameters(uriInfo.getQueryParameters())
-         .operationName(OperationNames.IMPORT_RESOURCE).contentType(ContentType.ZIP).build();
+      HttpManagedRequest request = put(data)
+         .path(path)
+         .user(securityContext.getUserPrincipal())
+         .locale(httpHeaders)
+         .parameters(uriInfo.getQueryParameters())
+         .operationName(OperationNames.IMPORT_RESOURCE)
+         .contentType(ContentType.ZIP)
+         .build();
 
       return executeRequest(uriInfo, request);
    }

@@ -25,6 +25,7 @@ if (session != null)
   session.logout();
 }
 session = null;
+user = null;
 controller = null;
 address = null;
 container = null;

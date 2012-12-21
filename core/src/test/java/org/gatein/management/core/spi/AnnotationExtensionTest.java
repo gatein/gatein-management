@@ -24,9 +24,12 @@ package org.gatein.management.core.spi;
 
 import org.gatein.management.api.ComponentRegistration;
 import org.gatein.management.api.ManagedResource;
+import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.annotations.Managed;
+import org.gatein.management.api.annotations.ManagedAfter;
+import org.gatein.management.api.annotations.ManagedBefore;
 import org.gatein.management.api.annotations.ManagedContext;
 import org.gatein.management.api.annotations.ManagedOperation;
 import org.gatein.management.api.annotations.MappedAttribute;
@@ -48,6 +51,7 @@ import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.spi.ExtensionContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -251,6 +255,24 @@ public class AnnotationExtensionTest
    }
 
    @Test
+   public void testContext_User() throws Exception
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(TestService.class);
+
+      PathAddress address = PathAddress.pathAddress("test-service", "context", "user");
+
+      ManagedUser user = mock(ManagedUser.class);
+      assertNotNull(rootResource.getOperationHandler(address, OperationNames.READ_RESOURCE));
+      when(operationContext.getUser()).thenReturn(user);
+
+      execute(rootResource, OperationNames.READ_RESOURCE, address);
+      verify(testService).user(user);
+      reset(testService);
+   }
+
+   @Test
    public void testContext_Model() throws Exception
    {
       SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
@@ -343,6 +365,58 @@ public class AnnotationExtensionTest
       reset(subTestService);
    }
 
+   @Test
+   public void testBeforeAfter()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(TestService.class);
+
+      when(testService.blah()).thenReturn("blah called !");
+      BasicResultHandler resultHandler = execute(rootResource, OperationNames.READ_RESOURCE, "test-service");
+      InOrder inOrder = inOrder(testService);
+      inOrder.verify(testService).before();
+      inOrder.verify(testService).blah();
+      assertEquals("blah called !", resultHandler.getResult());
+      inOrder.verify(testService).after();
+      reset(testService);
+
+      when(testService.subService()).thenReturn(subTestService);
+      when(subTestService.somePath()).thenReturn("somePath called !");
+      resultHandler = execute(rootResource, OperationNames.READ_RESOURCE, "test-service", "sub-service", "some", "path");
+      inOrder = inOrder(testService, subTestService);
+      inOrder.verify(testService).before();
+      inOrder.verify(subTestService).subBefore();
+      //
+      inOrder.verify(subTestService).somePath();
+      assertEquals("somePath called !", resultHandler.getResult());
+      //
+      inOrder.verify(subTestService).subAfter();
+      inOrder.verify(testService).after();
+
+      reset(testService, subTestService);
+   }
+
+   @Test
+   public void testPlainService()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(TestService.class);
+
+      SimpleTestService simpleTestService = mock(SimpleTestService.class);
+      when(testService.simpleService()).thenReturn(simpleTestService);
+      when(simpleTestService.foo()).thenReturn("foo called !");
+
+      BasicResultHandler resultHandler = execute(rootResource, OperationNames.READ_RESOURCE, "test-service", "simple-service");
+      InOrder inOrder = inOrder(testService, simpleTestService);
+      inOrder.verify(testService).before();
+      inOrder.verify(simpleTestService).foo();
+      assertEquals("foo called !", resultHandler.getResult());
+      inOrder.verify(testService).after();
+      reset(testService, simpleTestService);
+   }
+
    private BasicResultHandler execute(ManagedResource resource, String opName, String...path)
    {
       return execute(resource, opName, PathAddress.pathAddress(path));
@@ -350,9 +424,9 @@ public class AnnotationExtensionTest
 
    private BasicResultHandler execute(ManagedResource resource, String opName, PathAddress address)
    {
-      OperationHandler fooHandler = resource.getOperationHandler(address, opName);
+      OperationHandler handler = resource.getOperationHandler(address, opName);
       BasicResultHandler resultHandler = new BasicResultHandler();
-      fooHandler.execute(operationContext, resultHandler);
+      handler.execute(operationContext, resultHandler);
 
       return resultHandler;
    }
@@ -360,6 +434,12 @@ public class AnnotationExtensionTest
    @Managed("/test-service")
    public static interface TestService
    {
+      @ManagedBefore
+      public void before();
+
+      @ManagedAfter
+      public void after();
+
       @Managed
       public String blah();
 
@@ -388,6 +468,9 @@ public class AnnotationExtensionTest
       @Managed("context/attributes")
       public void attributes(@ManagedContext OperationAttributes attributes);
 
+      @Managed("context/user")
+      public void user(@ManagedContext ManagedUser user);
+
       @Managed("context/modelobject")
       public void modelObject(@ManagedContext ModelObject model);
 
@@ -402,15 +485,31 @@ public class AnnotationExtensionTest
 
       @Managed("sub-service")
       public SubTestService subService();
+
+      @Managed("simple-service")
+      public SimpleTestService simpleService();
    }
 
    @Managed
    public static interface SubTestService
    {
+      @ManagedBefore
+      public void subBefore();
+
+      @ManagedAfter
+      public void subAfter();
+
       @Managed("some/path")
       public String somePath();
 
       @Managed("{abc}")
       public String mappedPath(@MappedPath("abc") String abc);
+   }
+
+   @Managed
+   public static interface SimpleTestService
+   {
+      @Managed
+      public String foo();
    }
 }

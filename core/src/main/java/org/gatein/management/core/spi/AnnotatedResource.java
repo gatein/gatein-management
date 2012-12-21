@@ -27,8 +27,16 @@ import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.annotations.Managed;
+import org.gatein.management.api.annotations.ManagedAfter;
+import org.gatein.management.api.annotations.ManagedBefore;
+import org.gatein.management.api.annotations.ManagedContext;
+import org.gatein.management.api.model.ModelProvider;
+import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.core.api.AbstractManagedResource;
+import org.gatein.management.core.api.model.DmrModelProvider;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -39,33 +47,87 @@ import java.util.List;
  */
 class AnnotatedResource
 {
-   static final Logger log = LoggerFactory.getLogger("org.gatein.management.core.spi");
+   private static final Logger log = LoggerFactory.getLogger("org.gatein.management.core.spi");
 
    //
    private List<AnnotatedOperation> methods;
+   private Object instance;
+   private boolean component;
 
    //
    final Class<?> managedClass;
+   final Method beforeMethod;
+   final Method afterMethod;
    final AnnotatedResource parent;
+   final AnnotatedOperation operation; // sub operation
 
    AnnotatedResource(Class<?> managedClass)
    {
-      this(managedClass, null);
+      this(managedClass, null, null);
    }
 
-   AnnotatedResource(Class<?> managedClass, AnnotatedResource parent)
+   AnnotatedResource(Class<?> managedClass, AnnotatedResource parent, AnnotatedOperation operation)
    {
       this.managedClass = managedClass;
       this.parent = parent;
+      this.operation = operation;
+
+      // Save before and after methods
+      Method[] methods = managedClass.getDeclaredMethods();
+      this.beforeMethod = getMethod(methods, ManagedBefore.class);
+      this.afterMethod = getMethod(methods, ManagedAfter.class);
    }
 
    public void register(AbstractManagedResource resource)
    {
-      AbstractManagedResource amr = register(resource, managedClass.getAnnotation(Managed.class));
-      for (AnnotatedOperation method : getAnnotatedMethods())
+      AbstractManagedResource amr = registerOrGetResource(resource, managedClass.getAnnotation(Managed.class));
+      for (AnnotatedOperation operation : getAnnotatedMethods())
       {
-         method.register(amr);
+         operation.registerOperation(amr);
       }
+   }
+
+   Object getInstance(OperationContext context)
+   {
+      if (instance != null) return instance;
+
+      if (parent == null)
+      {
+         instance = context.getRuntimeContext().getRuntimeComponent(managedClass);
+         if (instance != null)
+         {
+            component = true;
+            setModelProvider(managedClass, instance);
+         }
+      }
+      else if (operation != null)
+      {
+         instance = operation.invokeOperation(context);
+      }
+
+      if (instance == null)
+      {
+         try
+         {
+            instance = managedClass.newInstance();
+         }
+         catch (Exception e)
+         {
+            throw new RuntimeException("Could not create new instance of class " + managedClass.getName(), e);
+         }
+      }
+
+      if (instance != null && !component)
+      {
+         setModelProvider(managedClass, instance);
+      }
+
+      return instance;
+   }
+
+   void discardInstance()
+   {
+      if (!component) instance = null;
    }
 
    public List<AnnotatedOperation> getAnnotatedMethods()
@@ -86,7 +148,7 @@ class AnnotatedResource
       return methods;
    }
 
-   static AbstractManagedResource register(AbstractManagedResource resource, Managed managed)
+   static AbstractManagedResource registerOrGetResource(AbstractManagedResource resource, Managed managed)
    {
       PathAddress address = PathAddress.pathAddress(managed.value());
       for (Iterator<String> iterator = address.iterator(); iterator.hasNext();)
@@ -120,5 +182,47 @@ class AnnotatedResource
             return description;
          }
       };
+   }
+
+   private static Method getMethod(Method[] methods, Class<? extends Annotation> annotation)
+   {
+      for (Method method : methods)
+      {
+         if (method.isAnnotationPresent(annotation)) return method;
+      }
+
+      return null;
+   }
+
+   private static void setModelProvider(Class<?> managedClass, Object instance)
+   {
+      if (instance == null) return;
+
+      Field[] fields = managedClass.getDeclaredFields();
+      for (Field field : fields)
+      {
+         if (field.isAnnotationPresent(ManagedContext.class))
+         {
+            if (field.getType() == ModelProvider.class)
+            {
+               if (!field.isAccessible())
+               {
+                  field.setAccessible(true);
+               }
+               try
+               {
+                  field.set(instance, DmrModelProvider.INSTANCE);
+               }
+               catch (IllegalAccessException e)
+               {
+                  throw new RuntimeException("Unable to set ModelProvider for managed class " + managedClass, e);
+               }
+            }
+            else
+            {
+               throw new RuntimeException("Field " + field + " is annotated with @ManagedContext, however it has an unknown type " + field.getType() + ". Only ModelProvider is allowed as the type for this field.");
+            }
+         }
+      }
    }
 }

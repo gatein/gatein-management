@@ -22,6 +22,9 @@
 
 package org.gatein.management.core.spi;
 
+import org.gatein.common.logging.Logger;
+import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.annotations.Managed;
@@ -42,36 +45,37 @@ import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.ResultHandler;
 import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.core.api.AbstractManagedResource;
-import org.gatein.management.core.api.model.DmrModelProvider;
 import org.gatein.management.core.api.model.DmrModelValue;
-import org.gatein.management.core.api.operation.BasicResultHandler;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import static org.gatein.management.core.spi.AnnotatedResource.*;
+
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
-class AnnotatedOperation extends AnnotatedResource implements OperationHandler
+class AnnotatedOperation implements OperationHandler
 {
-   private final Method method;
+   private static final Logger log = LoggerFactory.getLogger("org.gatein.management.core.spi");
+
+   private final AnnotatedResource owner;
+   final Method method;
    private final String methodName;
 
    public AnnotatedOperation(AnnotatedResource owner, Method method)
    {
-      super(method.getDeclaringClass(), owner.parent);
+      this.owner = owner;
       this.method = method;
       this.methodName = getName();
    }
 
-   @Override
-   public void register(AbstractManagedResource managedResource)
+   public void registerOperation(AbstractManagedResource managedResource)
    {
-      final AbstractManagedResource resource = register(managedResource, method.getAnnotation(Managed.class));
+      final AbstractManagedResource resource = registerOrGetResource(managedResource, method.getAnnotation(Managed.class));
       ManagedOperation mo = method.getAnnotation(ManagedOperation.class);
       String operationName = OperationNames.READ_RESOURCE;
       String desc = "";
@@ -86,16 +90,16 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
 
       Class<?> returnType = method.getReturnType();
       Managed subManaged = returnType.getAnnotation(Managed.class);
-      if (returnType.isAnnotationPresent(Managed.class))
+      if (subManaged != null)
       {
          if ("".equals(subManaged.value()))
          {
-            AnnotatedResource ar = new AnnotatedResource(returnType, this);
+            AnnotatedResource ar = new AnnotatedResource(returnType, owner, this);
             ar.register(resource);
          }
          else
          {
-            throw new RuntimeException("Cannot register method " + methodName + " for class " + managedClass.getName()
+            throw new RuntimeException("Cannot register method " + methodName + " for class " + owner.managedClass.getName()
                + " because return type " + returnType.getName() + " is annotated with a value for the @" + Managed.class.getSimpleName() + " annotation.");
          }
       }
@@ -108,11 +112,103 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
    @Override
    public void execute(OperationContext operationContext, ResultHandler resultHandler) throws ResourceNotFoundException, OperationException
    {
-      final boolean debug = log.isDebugEnabled();
-      if (debug) log.debug("Executing operation handler for annotated method " + methodName + " for address " + operationContext.getAddress());
+      if (log.isDebugEnabled())
+      {
+         log.debug(String.format("Executing operation handler for annotated method %s for address %s", methodName, operationContext.getAddress()));
+      }
 
+      invokeBefore(operationContext);
+      try
+      {
+         Object result = invokeOperation(operationContext);
+         if (method.getReturnType() == void.class)
+         {
+            resultHandler.completed(NoResultModel.INSTANCE);
+         }
+         else
+         {
+            if (result == null)
+            {
+               log.error("Result returned was null and method " + methodName + " for managed component " + owner.managedClass + " is not void.");
+               throw new ResourceNotFoundException("Resource not found.");
+            }
+            else
+            {
+               resultHandler.completed(result);
+            }
+         }
+      }
+      finally
+      {
+         invokeAfter(operationContext);
+      }
+   }
+
+   Object invokeOperation(OperationContext context)
+   {
+      return invokeMethod(context, owner.getInstance(context),  method);
+   }
+
+   private void invokeBefore(OperationContext context)
+   {
+      if (owner.parent != null && owner.operation != null)
+      {
+         owner.operation.invokeBefore(context);
+      }
+
+      Object instance = owner.getInstance(context);
+      if (owner.beforeMethod != null && instance != null)
+      {
+         invokeMethod(context, instance, owner.beforeMethod);
+      }
+   }
+
+   private void invokeAfter(OperationContext context)
+   {
+      Object instance = owner.getInstance(context);
+      if (owner.afterMethod != null && instance != null)
+      {
+         invokeMethod(context, instance, owner.afterMethod);
+      }
+      owner.discardInstance();
+
+      if (owner.parent != null && owner.operation != null)
+      {
+         owner.operation.invokeAfter(context);
+      }
+   }
+
+   private Object invokeMethod(OperationContext context, Object instance, Method method)
+   {
+      if (method == null || instance == null) return null;
+
+      Object[] params = getParameters(context, method, getName(method), owner.managedClass);
+      try
+      {
+         return method.invoke(instance, params);
+      }
+      catch (IllegalAccessException e)
+      {
+         throw new RuntimeException("Cannot access method " + this.method + " on object " + instance, e);
+      }
+      catch (InvocationTargetException e)
+      {
+         if (e.getCause() instanceof ResourceNotFoundException)
+         {
+            throw (ResourceNotFoundException) e.getCause();
+         }
+         else if (e.getCause() instanceof OperationException)
+         {
+            throw (OperationException) e.getCause();
+         }
+         throw new RuntimeException("Could not invoke method " + this.method + " on object " + instance, e);
+      }
+   }
+
+   private static Object[] getParameters(OperationContext operationContext, Method method, String methodName, Class<?> managedClass)
+   {
+      boolean debug = log.isDebugEnabled();
       String operationName = operationContext.getOperationName();
-
       Annotation[][] parameterAnnotations = method.getParameterAnnotations();
       Object[] params = new Object[parameterAnnotations.length];
       OperationAttachment attachment = null;
@@ -161,6 +257,10 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             else if (OperationAttributes.class == parameterType)
             {
                params[i] = operationContext.getAttributes();
+            }
+            else if (ManagedUser.class == parameterType)
+            {
+               params[i] = operationContext.getUser();
             }
             else if (ModelValue.class.isAssignableFrom(parameterType))
             {
@@ -220,75 +320,15 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
             }
          }
       }
-
-      Object component = null;
-      if (parent == null)
-      {
-         component = operationContext.getRuntimeContext().getRuntimeComponent(managedClass);
-      }
-      else if (parent instanceof AnnotatedOperation)
-      {
-         AnnotatedOperation op = (AnnotatedOperation) parent;
-         BasicResultHandler brh = new BasicResultHandler();
-         op.execute(operationContext, brh);
-
-         component = brh.getResult();
-         if (component == null) throw new OperationException(operationName, "Cannot return null for method " + op.method + " when result is annotated with " + Managed.class);
-      }
-      if (component == null)
-      {
-         // try and invoke it ourselves...
-         try
-         {
-            component = managedClass.newInstance();
-         }
-         catch (Exception e)
-         {
-            throw new RuntimeException("Could not create new instance of class " + managedClass.getName(), e);
-         }
-      }
-      try
-      {
-         // Set the model provider if a field is annotated with @ManagedContext
-         setModelProvider(managedClass, component); //TODO: We should only do this once.
-
-         Object result = method.invoke(component, params);
-         if (method.getReturnType() == void.class)
-         {
-            resultHandler.completed(NoResultModel.INSTANCE);
-         }
-         else
-         {
-            if (result == null)
-            {
-               log.error("Result returned was null and method " + methodName + " for managed component " + managedClass + " is not void.");
-               throw new ResourceNotFoundException("Resource not found.");
-            }
-            else
-            {
-               resultHandler.completed(result);
-            }
-         }
-      }
-      catch (IllegalAccessException e)
-      {
-         throw new RuntimeException("Cannot access method " + method + " on object " + component, e);
-      }
-      catch (InvocationTargetException e)
-      {
-         if (e.getCause() instanceof ResourceNotFoundException)
-         {
-            throw (ResourceNotFoundException) e.getCause();
-         }
-         else if (e.getCause() instanceof OperationException)
-         {
-            throw (OperationException) e.getCause();
-         }
-         throw new RuntimeException("Could not invoke method " + method + " on object " + component, e);
-      }
+      return params;
    }
 
    private String getName()
+   {
+      return getName(method);
+   }
+
+   private static String getName(Method method)
    {
       String name = method.getName();
       StringBuilder sb = new StringBuilder();
@@ -315,35 +355,5 @@ class AnnotatedOperation extends AnnotatedResource implements OperationHandler
       }
 
       return null;
-   }
-
-   private static void setModelProvider(Class<?> managedClass, Object instance)
-   {
-      Field[] fields = managedClass.getDeclaredFields();
-      for (Field field : fields)
-      {
-         if (field.isAnnotationPresent(ManagedContext.class))
-         {
-            if (field.getType() == ModelProvider.class)
-            {
-               if (!field.isAccessible())
-               {
-                  field.setAccessible(true);
-               }
-               try
-               {
-                  field.set(instance, DmrModelProvider.INSTANCE);
-               }
-               catch (IllegalAccessException e)
-               {
-                  throw new RuntimeException("Unable to set ModelProvider for managed class " + managedClass, e);
-               }
-            }
-            else
-            {
-               throw new RuntimeException("Field " + field + " is annotated with @ManagedContext, however it has an unknown type " + field.getType() + ". Only ModelProvider is allowed as the type for this field.");
-            }
-         }
-      }
    }
 }

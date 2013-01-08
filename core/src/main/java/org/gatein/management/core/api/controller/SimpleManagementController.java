@@ -37,6 +37,7 @@ import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.operation.OperationHandler;
+import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.core.api.model.DmrModelProvider;
@@ -73,6 +74,13 @@ public class SimpleManagementController implements ManagementController
       {
          managementService.reloadExtensions();
          rootResource = managementService.getManagedResource(PathAddress.empty());
+      }
+
+      // TODO: Remove once READ_CONFIG_AS_XML is completely removed.
+      if (OperationNames.READ_CONFIG_AS_XML.equals(request.getOperationName()))
+      {
+         log.warn(OperationNames.READ_CONFIG_AS_XML + " is deprecated. Please use " + OperationNames.READ_CONFIG + " instead with proper content type.");
+         request = new DeprecatedManagedRequest(request);
       }
 
       PathAddress address = request.getAddress();

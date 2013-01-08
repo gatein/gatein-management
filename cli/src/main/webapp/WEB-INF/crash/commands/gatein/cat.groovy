@@ -35,7 +35,7 @@ class cat extends ManagementCommand
 {
   @Usage("reads current resource as xml")
   @Man("""\
-The cat command invokes the 'read-config-as-xml' operation on the given resource.
+The cat command invokes the 'read-config' operation on the given resource.
 """)
   @Command
   public Object main(@ContentTypeOption ContentType ct,  @Argument String path) throws ScriptException

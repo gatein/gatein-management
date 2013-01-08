@@ -141,7 +141,7 @@ class HttpManagedRequestBuilder
       if (op != null)
       {
          operationName = op;
-         if (operationName.equals(OperationNames.READ_CONFIG))
+         if (operationName.equals(OperationNames.READ_CONFIG) || operationName.equals(OperationNames.READ_CONFIG_AS_XML))
          {
             contentType = ContentType.XML;
          }

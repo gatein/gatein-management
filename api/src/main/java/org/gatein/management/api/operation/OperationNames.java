@@ -37,7 +37,10 @@ public class OperationNames
    public static final String UPDATE_RESOURCE = "update-resource";
    public static final String REMOVE_RESOURCE = "remove-resource";
 
+   @Deprecated
+   public static final String READ_CONFIG_AS_XML = "read-config-as-xml";
    public static final String READ_CONFIG = "read-config";
+
    public static final String EXPORT_RESOURCE = "export-resource";
    public static final String IMPORT_RESOURCE = "import-resource";
 }

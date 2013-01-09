@@ -28,6 +28,7 @@ import org.gatein.management.api.ContentType;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
+import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationNames;
@@ -35,7 +36,6 @@ import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.rest.content.Resource;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -77,7 +77,6 @@ public class RestController
    // Note we add text/html here so we can handle browsers, even though we don't produce text/html
    @GET
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
       return htmlGetRequest(uriInfo, securityContext, httpHeaders, "");
@@ -86,7 +85,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
@@ -102,7 +100,6 @@ public class RestController
    @POST
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
       return htmlPostRequest(uriInfo, securityContext, httpHeaders, "", data);
@@ -112,7 +109,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = post(data)
@@ -128,7 +124,6 @@ public class RestController
    @PUT
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
       return htmlPutRequest(uriInfo, securityContext, httpHeaders, "", data);
@@ -138,7 +133,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
@@ -153,7 +147,6 @@ public class RestController
 
    @DELETE
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
       return htmlDeleteRequest(uriInfo, securityContext, httpHeaders);
@@ -162,7 +155,6 @@ public class RestController
    @DELETE
    @Path("/{path:.*}")
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   @RolesAllowed("administrators")
    public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete()
@@ -178,7 +170,6 @@ public class RestController
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
       return jsonGetRequest(uriInfo, securityContext, httpHeaders, "");
@@ -187,7 +178,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
@@ -204,7 +194,6 @@ public class RestController
    @POST
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
       return jsonPostRequest(uriInfo, securityContext, httpHeaders, "", data);
@@ -214,7 +203,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = post(data)
@@ -231,7 +219,6 @@ public class RestController
    @PUT
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
       return jsonPutRequest(uriInfo, securityContext, httpHeaders, "", data);
@@ -241,7 +228,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
@@ -257,7 +243,6 @@ public class RestController
 
    @DELETE
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
       return jsonDeleteRequest(uriInfo, securityContext, httpHeaders, "");
@@ -266,7 +251,6 @@ public class RestController
    @DELETE
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
-   @RolesAllowed("administrators")
    public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete()
@@ -283,7 +267,6 @@ public class RestController
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
       return xmlGetRequest(uriInfo, securityContext, httpHeaders, "");
@@ -292,7 +275,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
@@ -309,7 +291,6 @@ public class RestController
    @POST
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
       return xmlPostRequest(uriInfo, securityContext, httpHeaders, "", data);
@@ -319,7 +300,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = post(data)
@@ -336,7 +316,6 @@ public class RestController
    @PUT
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
    {
       return xmlPutRequest(uriInfo, securityContext, httpHeaders, "", data);
@@ -346,7 +325,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
@@ -362,7 +340,6 @@ public class RestController
 
    @DELETE
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
    {
       return xmlDeleteRequest(uriInfo, securityContext, httpHeaders, "");
@@ -371,7 +348,6 @@ public class RestController
    @DELETE
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   @RolesAllowed("administrators")
    public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete()
@@ -389,7 +365,6 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
-   @RolesAllowed("administrators")
    public Response zipGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
@@ -408,7 +383,6 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes("application/zip")
    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-   @RolesAllowed("administrators")
    public Response zipPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
@@ -459,7 +433,14 @@ public class RestController
       catch (OperationException e)
       {
          log.error("Operation exception for operation: " + operationName + ", address: " + address + ", content-type: " + contentType, e);
-         return failure(e.getMessage(), operationName, Status.INTERNAL_SERVER_ERROR, contentType);
+         if (e instanceof NotAuthorizedException)
+         {
+            return failure(e.getMessage(), operationName, Status.UNAUTHORIZED, contentType);
+         }
+         else
+         {
+            return failure(e.getMessage(), operationName, Status.INTERNAL_SERVER_ERROR, contentType);
+         }
       }
       catch (Exception e)
       {

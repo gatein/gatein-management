@@ -30,11 +30,10 @@ import org.gatein.management.api.exceptions.ResourceNotFoundException
 import org.gatein.management.cli.crash.commands.CliRequest
 
 assertConnected = {
-  if (session == null) throw new ScriptException("Not connected !");
+  if (container == null) throw new ScriptException("Not connected to a portal container, try executing mgmt connect first.");
 };
 
 execute = { String operationName, PathAddress pathAddress, ContentType contentType, Map<String, List<String>> attributes, InputStream data, Closure printResult ->
-  assertConnected();
 
   if (controller == null) throw new ScriptException("Management controller not available.");
 

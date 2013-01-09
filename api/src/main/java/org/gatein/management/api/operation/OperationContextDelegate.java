@@ -53,6 +53,12 @@ public class OperationContextDelegate implements OperationContext
    }
 
    @Override
+   public boolean isUserInRole(String role)
+   {
+      return delegate.isUserInRole(role);
+   }
+
+   @Override
    public PathAddress getAddress()
    {
       return delegate.getAddress();

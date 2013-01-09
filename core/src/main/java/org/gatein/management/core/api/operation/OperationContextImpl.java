@@ -93,6 +93,12 @@ public class OperationContextImpl implements OperationContext
    }
 
    @Override
+   public boolean isUserInRole(String role)
+   {
+      return runtimeContext.isUserInRole(role);
+   }
+
+   @Override
    public ManagedResource getManagedResource()
    {
       return resource;

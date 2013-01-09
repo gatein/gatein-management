@@ -26,6 +26,7 @@ import groovy.lang.Closure;
 import org.crsh.cmdline.IntrospectionException;
 import org.crsh.cmdline.ParameterDescriptor;
 import org.crsh.cmdline.spi.Completer;
+import org.crsh.command.InvocationContext;
 import org.crsh.command.ScriptException;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;

@@ -40,46 +40,34 @@ class mgmt extends ManagementCommand
   @Usage("connect to the gatein management system")
   @Man("""
 This command connects you into the gatein management system, allowing you to execute management operations. The default
-container is 'portal' if no container option is specified. The default user is the username used to connect to CRaSH.
+container is 'portal' if no container option is specified.
 
 % mgmt connect -c portal
 Connect to portal container 'portal'. This is default behavior.
 
-% mgmt connect -c sample-portal -u root -p gtn
-Connect to portal container 'sample-portal' using the username 'root' and password 'gtn'.
+% mgmt connect -c sample-portal
+Connect to portal container 'sample-portal'
 
 """)
   @Command
-  public Object connect(@UserName String userName,
-                        @Password String password,
-                        @Container String containerName, InvocationContext<Void, Void> ctx) throws ScriptException
+  public Object connect(@Container String containerName, InvocationContext<Void, Void> ctx) throws ScriptException
   {
-    if (session != null) return "Currently connected: $connectionInfo"
-
+    def userName = ctx.getProperty("USER");
     if (userName == null)
     {
-      userName = ctx.getProperty("USER");
+      throw new ScriptException("User not found, something went wrong during authentication.");
     }
 
-    if (userName == null)
+    if (containerName == null)
     {
-      return "Username is required, and wasn't found while authenticating into CRaSH.";
-    }
-    
-    if (userName != null && password == null)
-    {
-      password = readLine("Password: ", false);
+      containerName = "portal";
     }
 
-    if (containerName == null) containerName = "portal";
-
-    session = login(userName, password, containerName);
-    user = userName;
     controller = getComponent(containerName, ManagementController.class);
     logger = LoggerFactory.getLogger("org.gatein.management.cli");
 
     begin = {
-      start(containerName);
+      start(userName, containerName);
     }
 
     end = {
@@ -87,6 +75,8 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
     }
 
     connectionInfo = "[user=$userName, container='$containerName', host='$hostName']";
+    container = containerName;
+    user = userName;
 
     execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result, error ->
       return "Successfully connected to gatein management system: $connectionInfo"
@@ -99,11 +89,10 @@ Connect to portal container 'sample-portal' using the username 'root' and passwo
   public Object disconnect() throws ScriptException
   {
     assertConnected();
-    session.logout();
-    session = null;
+    container = null;
+    user = null;
     controller = null;
     address = null;
-    container = null;
     connectionInfo = null;
     return "Disconnected from management system.";
   }

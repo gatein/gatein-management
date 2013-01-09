@@ -32,8 +32,10 @@ import org.gatein.management.api.annotations.ManagedAfter;
 import org.gatein.management.api.annotations.ManagedBefore;
 import org.gatein.management.api.annotations.ManagedContext;
 import org.gatein.management.api.annotations.ManagedOperation;
+import org.gatein.management.api.annotations.ManagedRole;
 import org.gatein.management.api.annotations.MappedAttribute;
 import org.gatein.management.api.annotations.MappedPath;
+import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.model.ModelList;
 import org.gatein.management.api.model.ModelNumber;
 import org.gatein.management.api.model.ModelObject;
@@ -417,6 +419,96 @@ public class AnnotationExtensionTest
       reset(testService, simpleTestService);
    }
 
+   @Test
+   public void testSecureService()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(SecureService.class);
+
+      // Test secured resources & operations
+      SecureService secureService = mock(SecureService.class);
+      SubSecureService subSecureService = mock(SubSecureService.class);
+      when(secureService.subServiceSecuredByRoleA()).thenReturn(subSecureService);
+      when(runtimeContext.getRuntimeComponent(SecureService.class)).thenReturn(secureService);
+      when(operationContext.isUserInRole("roleA")).thenReturn(true);
+      when(operationContext.isUserInRole("roleB")).thenReturn(false);
+      execute(rootResource, OperationNames.READ_RESOURCE, "secure-service");
+
+      verify(operationContext).isUserInRole("roleA");
+      verify(secureService).securedByRoleA();
+
+      try
+      {
+         execute(rootResource, OperationNames.READ_RESOURCE, "secure-service", "secured-by-role-b");
+         fail("Should fail because user doesn't belong to roleB");
+      }
+      catch (NotAuthorizedException e)
+      {
+      }
+      verify(operationContext).isUserInRole("roleB");
+      verify(secureService, never()).securedByRoleB();
+   }
+
+   public void testSecureService_SubService()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(SecureService.class);
+
+      // Test secured resources & operations
+      SecureService secureService = mock(SecureService.class);
+      SubSecureService subSecureService = mock(SubSecureService.class);
+      when(secureService.subServiceSecuredByRoleA()).thenReturn(subSecureService);
+      when(runtimeContext.getRuntimeComponent(SecureService.class)).thenReturn(secureService);
+      when(operationContext.isUserInRole("roleA")).thenReturn(true);
+      when(operationContext.isUserInRole("roleB")).thenReturn(false);
+
+      execute(rootResource, OperationNames.READ_RESOURCE, "secure-service", "sub-service");
+      verify(operationContext).isUserInRole("roleA");
+      verify(secureService).subServiceSecuredByRoleA();
+
+      try
+      {
+         execute(rootResource, OperationNames.READ_RESOURCE, "secure-service", "sub-service", "sub-service-secured-by-role-b");
+         fail("Should fail because user doesn't belong to roleB");
+      }
+      catch (NotAuthorizedException e)
+      {
+      }
+      verify(operationContext).isUserInRole("roleB");
+      verify(subSecureService, never()).securedByRoleB();
+   }
+
+   public void testUnSecureService()
+   {
+      SimpleManagedResource rootResource = new SimpleManagedResource(null, null, null);
+      ExtensionContext context = new ExtensionContextImpl(rootResource, new ManagementProviders());
+      context.registerManagedComponent(SecureService.class);
+      context.registerManagedComponent(UnSecureService.class);
+
+      // Test secured operations
+      UnSecureService unSecureService = mock(UnSecureService.class);
+      when(operationContext.isUserInRole("roleA")).thenReturn(true);
+      when(operationContext.isUserInRole("roleB")).thenReturn(false);
+      when(runtimeContext.getRuntimeComponent(UnSecureService.class)).thenReturn(unSecureService);
+
+      execute(rootResource, OperationNames.READ_RESOURCE, "un-secure", "secured-by-role-a");
+      verify(operationContext).isUserInRole("roleA");
+      verify(unSecureService).securedByRoleA();
+
+      try
+      {
+         execute(rootResource, OperationNames.READ_RESOURCE, "un-secure", "secured-by-role-b");
+         fail("Should fail because user doesn't belong to roleB");
+      }
+      catch (NotAuthorizedException e)
+      {
+      }
+      verify(operationContext).isUserInRole("roleB");
+      verify(unSecureService, never()).securedByRoleB();
+   }
+
    private BasicResultHandler execute(ManagedResource resource, String opName, String...path)
    {
       return execute(resource, opName, PathAddress.pathAddress(path));
@@ -511,5 +603,46 @@ public class AnnotationExtensionTest
    {
       @Managed
       public String foo();
+   }
+
+   @Managed("secure-service")
+   @ManagedRole("roleA")
+   public static interface SecureService
+   {
+      @Managed
+      public void securedByRoleA();
+
+      @Managed("secured-by-role-b")
+      @ManagedRole("roleB")
+      public void securedByRoleB();
+
+      @Managed("sub-service")
+      public SubSecureService subServiceSecuredByRoleA();
+   }
+
+   @Managed
+   public static interface SubSecureService
+   {
+      @Managed
+      public void securedByRoleA();
+
+      @Managed("sub-service-secured-by-role-b")
+      @ManagedRole("roleB")
+      public void securedByRoleB();
+   }
+
+   @Managed("un-secure")
+   public static interface UnSecureService
+   {
+      @Managed
+      public void unsecure();
+
+      @Managed("secured-by-role-a")
+      @ManagedRole("roleA")
+      public void securedByRoleA();
+
+      @Managed("secured-by-role-b")
+      @ManagedRole("roleB")
+      public void securedByRoleB();
    }
 }

@@ -30,6 +30,7 @@ import org.gatein.management.api.annotations.Managed;
 import org.gatein.management.api.annotations.ManagedAfter;
 import org.gatein.management.api.annotations.ManagedBefore;
 import org.gatein.management.api.annotations.ManagedContext;
+import org.gatein.management.api.annotations.ManagedRole;
 import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.operation.OperationContext;
 import org.gatein.management.core.api.AbstractManagedResource;
@@ -60,6 +61,7 @@ class AnnotatedResource
    final Method afterMethod;
    final AnnotatedResource parent;
    final AnnotatedOperation operation; // sub operation
+   final String managedRole;
 
    AnnotatedResource(Class<?> managedClass)
    {
@@ -76,6 +78,8 @@ class AnnotatedResource
       Method[] methods = managedClass.getDeclaredMethods();
       this.beforeMethod = getMethod(methods, ManagedBefore.class);
       this.afterMethod = getMethod(methods, ManagedAfter.class);
+      ManagedRole role = managedClass.getAnnotation(ManagedRole.class);
+      managedRole = (role == null) ? null : role.value();
    }
 
    public void register(AbstractManagedResource resource)

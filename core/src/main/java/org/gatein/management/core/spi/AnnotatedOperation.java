@@ -30,9 +30,11 @@ import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.annotations.Managed;
 import org.gatein.management.api.annotations.ManagedContext;
 import org.gatein.management.api.annotations.ManagedOperation;
+import org.gatein.management.api.annotations.ManagedRole;
 import org.gatein.management.api.annotations.MappedAttribute;
 import org.gatein.management.api.annotations.MappedPath;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.model.ModelProvider;
@@ -65,12 +67,15 @@ class AnnotatedOperation implements OperationHandler
    private final AnnotatedResource owner;
    final Method method;
    private final String methodName;
+   private final String managedRole;
 
    public AnnotatedOperation(AnnotatedResource owner, Method method)
    {
       this.owner = owner;
       this.method = method;
       this.methodName = getName();
+      ManagedRole role = method.getAnnotation(ManagedRole.class);
+      managedRole = (role == null) ? null : role.value();
    }
 
    public void registerOperation(AbstractManagedResource managedResource)
@@ -115,6 +120,12 @@ class AnnotatedOperation implements OperationHandler
       if (log.isDebugEnabled())
       {
          log.debug(String.format("Executing operation handler for annotated method %s for address %s", methodName, operationContext.getAddress()));
+      }
+
+      // Make sure user is authorized to invoke operation
+      if (!isAuthorized(operationContext, managedRole, owner.managedRole))
+      {
+         throw new NotAuthorizedException(operationContext.getUser(), operationContext.getOperationName());
       }
 
       invokeBefore(operationContext);
@@ -203,6 +214,16 @@ class AnnotatedOperation implements OperationHandler
          }
          throw new RuntimeException("Could not invoke method " + this.method + " on object " + instance, e);
       }
+   }
+
+   private static boolean isAuthorized(OperationContext context, String operationRole, String resourceRole)
+   {
+      if (operationRole != null)
+      {
+         return context.isUserInRole(operationRole);
+      }
+
+      return resourceRole == null || context.isUserInRole(resourceRole);
    }
 
    private static Object[] getParameters(OperationContext operationContext, Method method, String methodName, Class<?> managedClass)

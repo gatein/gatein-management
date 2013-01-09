@@ -28,7 +28,7 @@
    <display-name>CRaSH</display-name>
 
    <listener>
-      <listener-class>org.crsh.plugin.WebPluginLifeCycle</listener-class>
+      <listener-class>org.gatein.management.cli.crash.plugins.CustomWebPluginLifecycle</listener-class>
    </listener>
 
 </web-app>

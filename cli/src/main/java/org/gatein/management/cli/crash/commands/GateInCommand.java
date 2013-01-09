@@ -28,9 +28,7 @@ import org.crsh.command.ScriptException;
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 
-import javax.jcr.Repository;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 /**
@@ -40,6 +38,8 @@ import java.lang.reflect.Method;
 public class GateInCommand extends CRaSHCommand
 {
    private static final Logger log = LoggerFactory.getLogger(GateInCommand.class);
+
+   private Object conversationState;
 
    protected GateInCommand() throws IntrospectionException
    {
@@ -60,62 +60,21 @@ public class GateInCommand extends CRaSHCommand
       }
    }
 
-   protected Session login(String userName, String password, String containerName) throws ScriptException
+   protected void start(String userName, String containerName)
    {
-      Object container = getContainer(containerName);
-
-      // TODO: Find better way to "authenticate"
-      try
+      if (conversationState == null)
       {
-         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-         Method getComponentInstanceOfTypeMethod = container.getClass().getMethod("getComponentInstanceOfType", Class.class);
-
-         // Set current identity (similar to SetCurrentIdentityFilter behavior)
-         Class<?> authenticatorClass = tccl.loadClass("org.exoplatform.services.security.Authenticator");
-         Object authenticator = getComponentInstanceOfTypeMethod.invoke(container, authenticatorClass);
-         Method createIdentityMethod = authenticatorClass.getMethod("createIdentity", String.class);
-         Object identity = createIdentityMethod.invoke(authenticator, userName);
-         Class<?> identityRegistryClass = tccl.loadClass("org.exoplatform.services.security.IdentityRegistry");
-         Class<?> identityClass = tccl.loadClass("org.exoplatform.services.security.Identity");
-         Object identityRegistry = getComponentInstanceOfTypeMethod.invoke(container, identityRegistryClass);
-         Method registerIdentityMethod = identityRegistryClass.getMethod("register", identityClass);
-         registerIdentityMethod.invoke(identityRegistry, identity);
-
-         // Log into the JCR to determine authorization
-         Class<?> repositoryServiceClass = tccl.loadClass("org.exoplatform.services.jcr.RepositoryService");
-         Object repositoryService = getComponentInstanceOfTypeMethod.invoke(container, repositoryServiceClass);
-         if (repositoryService != null)
-         {
-            Method getCurrentRepositoryMethod = repositoryService.getClass().getMethod("getCurrentRepository");
-            Repository repository = (Repository) getCurrentRepositoryMethod.invoke(repositoryService);
-            SimpleCredentials credentials = new SimpleCredentials(userName, password.toCharArray());
-            Session session = repository.login(credentials, "portal-system");
-            if (session == null)
-            {
-               throw new Exception("JCR Session was null.");
-            }
-
-            // This verifies the user has access to the JCR.
-            session.getRootNode();
-
-            return session;
-         }
-         else
-         {
-            throw new Exception("Repository service was null.");
-         }
+         conversationState = getConversationState(userName, containerName);
       }
-      catch (Exception e)
-      {
-         throw new ScriptException("Could not authenticate for user '" + userName + "'", e);
-      }
-   }
 
-   protected void start(String containerName)
-   {
       try
       {
          ClassLoader cl = Thread.currentThread().getContextClassLoader();
+
+         // Set current conversation state
+         Class<?> conversationStateClass = cl.loadClass("org.exoplatform.services.security.ConversationState");
+         Method setCurrent = conversationStateClass.getMethod("setCurrent", conversationStateClass);
+         setCurrent.invoke(null, conversationState);
 
          // Set the current container
          Class<?> eXoContainerContextClass = cl.loadClass("org.exoplatform.container.ExoContainerContext");
@@ -191,5 +150,39 @@ public class GateInCommand extends CRaSHCommand
       if (container == null) throw new ScriptException("Could not obtain portal container for container name " + containerName);
 
       return container;
+   }
+
+   private Object getConversationState(String userName, String containerName) throws ScriptException
+   {
+      Object container = getContainer(containerName);
+
+      try
+      {
+         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+         Method getComponentInstanceOfTypeMethod = container.getClass().getMethod("getComponentInstanceOfType", Class.class);
+
+         // Set current identity (similar to SetCurrentIdentityFilter behavior)
+         Class<?> identityRegistryClass = tccl.loadClass("org.exoplatform.services.security.IdentityRegistry");
+         Method getIdentityMethod = identityRegistryClass.getMethod("getIdentity", String.class);
+         Class<?> identityClass = tccl.loadClass("org.exoplatform.services.security.Identity");
+         Object identityRegistry = getComponentInstanceOfTypeMethod.invoke(container, identityRegistryClass);
+         Object identity = getIdentityMethod.invoke(identityRegistry, userName);
+         if (identity == null)
+         {
+            Class<?> authenticatorClass = tccl.loadClass("org.exoplatform.services.security.Authenticator");
+            Object authenticator = getComponentInstanceOfTypeMethod.invoke(container, authenticatorClass);
+            Method createIdentityMethod = authenticatorClass.getMethod("createIdentity", String.class);
+            identity = createIdentityMethod.invoke(authenticator, userName);
+            Method registerIdentityMethod = identityRegistryClass.getMethod("register", identityClass);
+            registerIdentityMethod.invoke(identityRegistry, identity);
+         }
+         Class<?> conversationStateClass = tccl.loadClass("org.exoplatform.services.security.ConversationState");
+         Constructor<?> conversationStateConstructor = conversationStateClass.getConstructor(identityClass);
+         return conversationStateConstructor.newInstance(identity);
+      }
+      catch (Exception e)
+      {
+         throw new ScriptException("Could not authenticate for user '" + userName + "'", e);
+      }
    }
 }

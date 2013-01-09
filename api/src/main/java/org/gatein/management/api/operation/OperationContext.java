@@ -43,9 +43,18 @@ public interface OperationContext
 {
    /**
     *
-    * @return the user if one is associated with the request
+    * @return the user if one is associated with the request. Returns null if user it not authenticated.
     */
    ManagedUser getUser();
+
+   /**
+    * Returns a boolean indicating whether the user is included in the specified logical "role". If user is not
+    * authenticated this returns false.
+    *
+    * @param role the name of the role
+    * @return true if the user belongs to a given role or false if user is not authenticated
+    */
+   boolean isUserInRole(String role);
 
    /**
     *

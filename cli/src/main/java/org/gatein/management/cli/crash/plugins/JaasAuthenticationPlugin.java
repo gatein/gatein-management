@@ -35,6 +35,7 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +76,11 @@ public class JaasAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugin> 
    public boolean authenticate(final String username, final String password) throws Exception
    {
       String domain = getContext().getProperty(JAAS_DOMAIN);
+      return login(username, password, domain);
+   }
+
+   public boolean login(final String username, final String password, final String domain) throws LoginException
+   {
       if (domain != null)
       {
          log.debug("Will use the JAAS domain '" + domain + "' for authenticating user " + username +" into CRaSH.");

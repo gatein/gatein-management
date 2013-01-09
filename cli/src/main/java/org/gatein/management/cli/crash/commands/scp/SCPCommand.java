@@ -33,6 +33,8 @@ import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
 import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.cli.crash.commands.ManagementCommand;
+import org.gatein.management.cli.crash.plugins.CustomWebPluginLifecycle;
+import org.gatein.management.cli.crash.plugins.JaasAuthenticationPlugin;
 
 import javax.jcr.Session;
 import java.io.ByteArrayOutputStream;
@@ -54,6 +56,7 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
 
    private String path;
    private String containerName;
+   private String jaasDomain;
 
    private SCPManagementCommand scpManagementCommand;
    private Thread thread;
@@ -69,6 +72,7 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       try
       {
          scpManagementCommand = new SCPManagementCommand();
+         jaasDomain = CustomWebPluginLifecycle.getCrashProperties().getProperty("crash.jaas.domain", "gatein-domain");
       }
       catch (IntrospectionException e)
       {
@@ -108,16 +112,20 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
 
    private void execute() throws Exception
    {
-      // Log in
       String userName = session.getAttribute(SSHLifeCycle.USERNAME);
       String password = session.getAttribute(SSHLifeCycle.PASSWORD);
 
+      // Log in
       log.debug("Attempting to authenticate user " + userName);
+      JaasAuthenticationPlugin jaas = new JaasAuthenticationPlugin();
+      boolean authenticated = jaas.login(userName, password, jaasDomain);
 
-      Session jcrSession = scpManagementCommand.login(userName, password, containerName);
-      if (jcrSession == null) throw new Exception("JCR session was null.");
+      if (!authenticated)
+      {
+         throw new Exception("Could not authenticate for user " + userName);
+      }
 
-      scpManagementCommand.start(containerName);
+      scpManagementCommand.start(userName, containerName);
       try
       {
          // Parse attributes
@@ -153,10 +161,6 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       finally
       {
          scpManagementCommand.end();
-         if (jcrSession.isLive())
-         {
-            jcrSession.logout();
-         }
       }
    }
 
@@ -246,15 +250,9 @@ public abstract class SCPCommand extends AbstractCommand implements Runnable
       }
 
       @Override
-      protected Session login(String userName, String password, String containerName) throws ScriptException
+      protected void start(String userName, String containerName)
       {
-         return super.login(userName, password, containerName);
-      }
-
-      @Override
-      protected void start(String containerName)
-      {
-         super.start(containerName);
+         super.start(userName, containerName);
       }
 
       @Override

@@ -135,6 +135,7 @@ class HttpManagedRequestBuilder
       return this;
    }
 
+   @SuppressWarnings("deprecation")
    public HttpManagedRequest build()
    {
       String op = parameters.getFirst("op");

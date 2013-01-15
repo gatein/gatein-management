@@ -67,6 +67,7 @@ public class SimpleManagementController implements ManagementController
    }
 
    @Override
+   @SuppressWarnings("deprecation")
    public ManagedResponse execute(ManagedRequest request) throws ResourceNotFoundException, OperationException
    {
       // Simple way to reload extensions. NOTE: ManagementServiceImpl is not thread safe, so this should be used with caution.

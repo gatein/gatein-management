@@ -23,6 +23,7 @@
 package org.gatein.management.api.operation;
 
 import org.gatein.management.api.ContentType;
+import org.gatein.management.api.ExternalContext;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
@@ -48,15 +49,6 @@ public interface OperationContext
    ManagedUser getUser();
 
    /**
-    * Returns a boolean indicating whether the user is included in the specified logical "role". If user is not
-    * authenticated this returns false.
-    *
-    * @param role the name of the role
-    * @return true if the user belongs to a given role or false if user is not authenticated
-    */
-   boolean isUserInRole(String role);
-
-   /**
     *
     * @return Path of the current operation.
     */
@@ -79,6 +71,12 @@ public interface OperationContext
     * @return the runtime context
     */
    RuntimeContext getRuntimeContext();
+
+   /**
+    *
+    * @return the external context
+    */
+   ExternalContext getExternalContext();
 
    /**
     * Creates a new detyped model which can be automatically un/marshaled.

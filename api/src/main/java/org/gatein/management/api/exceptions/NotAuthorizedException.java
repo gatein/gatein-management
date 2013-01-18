@@ -7,23 +7,24 @@ import org.gatein.management.api.ManagedUser;
  */
 public class NotAuthorizedException extends OperationException
 {
-   private final ManagedUser user;
+   public NotAuthorizedException(final String operationName, final String message)
+   {
+      super(operationName, message);
+   }
 
-   public NotAuthorizedException(ManagedUser user, String operationName)
+   public NotAuthorizedException(final String operationName, final String message, final Throwable cause)
+   {
+      super(operationName, message, cause);
+   }
+
+   public NotAuthorizedException(final ManagedUser user, final String operationName)
    {
       super(operationName, createMessage(user, operationName));
-      this.user = user;
    }
 
-   public NotAuthorizedException(ManagedUser user, String operationName, Throwable cause)
+   public NotAuthorizedException(final ManagedUser user, final String operationName, final Throwable cause)
    {
       super(operationName, createMessage(user, operationName), cause);
-      this.user = user;
-   }
-
-   public ManagedUser getUser()
-   {
-      return user;
    }
 
    private static String createMessage(ManagedUser user, String operationName)

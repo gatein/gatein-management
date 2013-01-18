@@ -23,6 +23,7 @@
 package org.gatein.management.core.spi;
 
 import org.gatein.management.api.ComponentRegistration;
+import org.gatein.management.api.ExternalContext;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
@@ -71,6 +72,7 @@ public class AnnotationExtensionTest
    private OperationContext operationContext;
    private OperationAttachment attachment;
    private RuntimeContext runtimeContext;
+   private ExternalContext externalContext;
    private TestService testService;
    private SubTestService subTestService;
 
@@ -80,11 +82,13 @@ public class AnnotationExtensionTest
       operationContext = mock(OperationContext.class);
       attachment = mock(OperationAttachment.class);
       runtimeContext = mock(RuntimeContext.class);
+      externalContext = mock(ExternalContext.class);
       testService = mock(TestService.class);
       subTestService = mock(SubTestService.class);
       when(testService.subService()).thenReturn(subTestService);
 
       when(operationContext.getRuntimeContext()).thenReturn(runtimeContext);
+      when(operationContext.getExternalContext()).thenReturn(externalContext);
       when(runtimeContext.getRuntimeComponent(TestService.class)).thenReturn(testService);
 
       when(operationContext.getAttachment(true)).thenReturn(attachment);
@@ -431,11 +435,12 @@ public class AnnotationExtensionTest
       SubSecureService subSecureService = mock(SubSecureService.class);
       when(secureService.subServiceSecuredByRoleA()).thenReturn(subSecureService);
       when(runtimeContext.getRuntimeComponent(SecureService.class)).thenReturn(secureService);
-      when(operationContext.isUserInRole("roleA")).thenReturn(true);
-      when(operationContext.isUserInRole("roleB")).thenReturn(false);
+
+      when(externalContext.isUserInRole("roleA")).thenReturn(true);
+      when(externalContext.isUserInRole("roleB")).thenReturn(false);
       execute(rootResource, OperationNames.READ_RESOURCE, "secure-service");
 
-      verify(operationContext).isUserInRole("roleA");
+      verify(externalContext).isUserInRole("roleA");
       verify(secureService).securedByRoleA();
 
       try
@@ -446,7 +451,7 @@ public class AnnotationExtensionTest
       catch (NotAuthorizedException e)
       {
       }
-      verify(operationContext).isUserInRole("roleB");
+      verify(externalContext).isUserInRole("roleB");
       verify(secureService, never()).securedByRoleB();
    }
 
@@ -461,11 +466,11 @@ public class AnnotationExtensionTest
       SubSecureService subSecureService = mock(SubSecureService.class);
       when(secureService.subServiceSecuredByRoleA()).thenReturn(subSecureService);
       when(runtimeContext.getRuntimeComponent(SecureService.class)).thenReturn(secureService);
-      when(operationContext.isUserInRole("roleA")).thenReturn(true);
-      when(operationContext.isUserInRole("roleB")).thenReturn(false);
+      when(externalContext.isUserInRole("roleA")).thenReturn(true);
+      when(externalContext.isUserInRole("roleB")).thenReturn(false);
 
       execute(rootResource, OperationNames.READ_RESOURCE, "secure-service", "sub-service");
-      verify(operationContext).isUserInRole("roleA");
+      verify(externalContext).isUserInRole("roleA");
       verify(secureService).subServiceSecuredByRoleA();
 
       try
@@ -476,7 +481,7 @@ public class AnnotationExtensionTest
       catch (NotAuthorizedException e)
       {
       }
-      verify(operationContext).isUserInRole("roleB");
+      verify(externalContext).isUserInRole("roleB");
       verify(subSecureService, never()).securedByRoleB();
    }
 
@@ -489,12 +494,12 @@ public class AnnotationExtensionTest
 
       // Test secured operations
       UnSecureService unSecureService = mock(UnSecureService.class);
-      when(operationContext.isUserInRole("roleA")).thenReturn(true);
-      when(operationContext.isUserInRole("roleB")).thenReturn(false);
+      when(externalContext.isUserInRole("roleA")).thenReturn(true);
+      when(externalContext.isUserInRole("roleB")).thenReturn(false);
       when(runtimeContext.getRuntimeComponent(UnSecureService.class)).thenReturn(unSecureService);
 
       execute(rootResource, OperationNames.READ_RESOURCE, "un-secure", "secured-by-role-a");
-      verify(operationContext).isUserInRole("roleA");
+      verify(externalContext).isUserInRole("roleA");
       verify(unSecureService).securedByRoleA();
 
       try
@@ -505,7 +510,7 @@ public class AnnotationExtensionTest
       catch (NotAuthorizedException e)
       {
       }
-      verify(operationContext).isUserInRole("roleB");
+      verify(externalContext).isUserInRole("roleB");
       verify(unSecureService, never()).securedByRoleB();
    }
 

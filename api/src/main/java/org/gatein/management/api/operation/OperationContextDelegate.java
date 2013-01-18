@@ -23,6 +23,7 @@
 package org.gatein.management.api.operation;
 
 import org.gatein.management.api.ContentType;
+import org.gatein.management.api.ExternalContext;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
@@ -53,12 +54,6 @@ public class OperationContextDelegate implements OperationContext
    }
 
    @Override
-   public boolean isUserInRole(String role)
-   {
-      return delegate.isUserInRole(role);
-   }
-
-   @Override
    public PathAddress getAddress()
    {
       return delegate.getAddress();
@@ -80,6 +75,12 @@ public class OperationContextDelegate implements OperationContext
    public RuntimeContext getRuntimeContext()
    {
       return delegate.getRuntimeContext();
+   }
+
+   @Override
+   public ExternalContext getExternalContext()
+   {
+      return delegate.getExternalContext();
    }
 
    @Override

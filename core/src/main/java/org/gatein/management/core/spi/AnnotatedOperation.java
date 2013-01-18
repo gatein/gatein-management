@@ -24,6 +24,7 @@ package org.gatein.management.core.spi;
 
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.api.ExternalContext;
 import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
@@ -123,7 +124,7 @@ class AnnotatedOperation implements OperationHandler
       }
 
       // Make sure user is authorized to invoke operation
-      if (!isAuthorized(operationContext, managedRole, owner.managedRole))
+      if (!isAuthorized(operationContext.getExternalContext(), managedRole, owner.managedRole))
       {
          throw new NotAuthorizedException(operationContext.getUser(), operationContext.getOperationName());
       }
@@ -216,7 +217,7 @@ class AnnotatedOperation implements OperationHandler
       }
    }
 
-   private static boolean isAuthorized(OperationContext context, String operationRole, String resourceRole)
+   private static boolean isAuthorized(ExternalContext context, String operationRole, String resourceRole)
    {
       if (operationRole != null)
       {

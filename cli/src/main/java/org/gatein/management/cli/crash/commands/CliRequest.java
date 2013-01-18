@@ -1,9 +1,8 @@
 package org.gatein.management.cli.crash.commands;
 
 import org.gatein.management.api.ContentType;
-import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
-import org.gatein.management.api.controller.AuthenticatedManagedRequest;
+import org.gatein.management.api.controller.ExternalManagedRequest;
 import org.gatein.management.api.controller.ManagedRequest;
 
 import java.io.InputStream;
@@ -14,31 +13,35 @@ import java.util.Map;
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  */
-public class CliRequest implements AuthenticatedManagedRequest
+public class CliRequest implements ExternalManagedRequest
 {
-   private final ManagedUser user;
+   private final String  user;
    private final ManagedRequest request;
    private Locale locale;
 
    public CliRequest(final String user, ManagedRequest request)
    {
-      this.user = new ManagedUser()
-      {
-         @Override
-         public String getUserName()
-         {
-            return user;
-         }
-      };
-
+      this.user =user;
       this.request = request;
       this.locale = Locale.getDefault();
    }
 
    @Override
-   public ManagedUser getUser()
+   public String getRemoteUser()
    {
       return user;
+   }
+
+   @Override
+   public Object getRequest()
+   {
+      return null;
+   }
+
+   @Override
+   public RoleResolver getRoleResolver()
+   {
+      return null;
    }
 
    @Override

@@ -23,11 +23,11 @@
 package org.gatein.management.rest;
 
 import org.gatein.management.api.ContentType;
-import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.operation.OperationNames;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -43,7 +43,7 @@ import java.util.Map;
  */
 class HttpManagedRequestBuilder
 {
-   private String user;
+   private HttpServletRequest servletRequest;
    private String path;
    private String operationName;
    private ContentType contentType;
@@ -115,9 +115,9 @@ class HttpManagedRequestBuilder
       return this;
    }
 
-   public HttpManagedRequestBuilder user(Principal principal)
+   public HttpManagedRequestBuilder servlet(HttpServletRequest request)
    {
-      this.user = (principal == null) ? null : principal.getName();
+      this.servletRequest = request;
       return this;
    }
 
@@ -179,36 +179,45 @@ class HttpManagedRequestBuilder
 
       ManagedRequest request = ManagedRequest.Factory.create(operationName, address, parameters, inputStream, contentType);
       request.setLocale(locale);
-      return new HttpManagedRequestDelegate(request, user, httpMethod);
+      return new HttpManagedRequestDelegate(request, servletRequest, httpMethod);
    }
 
    private static class HttpManagedRequestDelegate implements HttpManagedRequest
    {
-      private ManagedRequest delegate;
-      private String httpMethod;
-      private ManagedUser user;
+      private final ManagedRequest delegate;
+      private final String httpMethod;
+      private final HttpServletRequest servletRequest;
 
-      private HttpManagedRequestDelegate(ManagedRequest delegate, final String user, String httpMethod)
+      private HttpManagedRequestDelegate(ManagedRequest delegate, HttpServletRequest servletRequest, String httpMethod)
       {
          this.delegate = delegate;
          this.httpMethod = httpMethod;
-         if (user != null)
-         {
-            this.user = new ManagedUser()
-            {
-               @Override
-               public String getUserName()
-               {
-                  return user;
-               }
-            };
-         }
+         this.servletRequest = servletRequest;
       }
 
       @Override
-      public ManagedUser getUser()
+      public Object getRequest()
       {
-         return user;
+         return servletRequest;
+      }
+
+      @Override
+      public RoleResolver getRoleResolver()
+      {
+         return new RoleResolver()
+         {
+            @Override
+            public boolean isUserInRole(String role)
+            {
+               return servletRequest.isUserInRole(role);
+            }
+         };
+      }
+
+      @Override
+      public String  getRemoteUser()
+      {
+         return servletRequest.getRemoteUser();
       }
 
       @Override

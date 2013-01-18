@@ -36,6 +36,7 @@ import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 import org.gatein.management.rest.content.Resource;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -49,7 +50,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Variant;
 import java.io.InputStream;
@@ -77,19 +77,19 @@ public class RestController
    // Note we add text/html here so we can handle browsers, even though we don't produce text/html
    @GET
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
+   public Response htmlGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders)
    {
-      return htmlGetRequest(uriInfo, securityContext, httpHeaders, "");
+      return htmlGetRequest(uriInfo, servletRequest, httpHeaders, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response htmlGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .build();
@@ -100,20 +100,20 @@ public class RestController
    @POST
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
+   public Response htmlPostRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return htmlPostRequest(uriInfo, securityContext, httpHeaders, "", data);
+      return htmlPostRequest(uriInfo, servletRequest, httpHeaders, "", data);
    }
 
    @POST
    @Path("/{path:.*}")
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response htmlPostRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = post(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .build();
@@ -124,20 +124,20 @@ public class RestController
    @PUT
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
+   public Response htmlPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return htmlPutRequest(uriInfo, securityContext, httpHeaders, "", data);
+      return htmlPutRequest(uriInfo, servletRequest, httpHeaders, "", data);
    }
 
    @PUT
    @Path("/{path:.*}")
    @Consumes(MediaType.TEXT_HTML)
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response htmlPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .build();
@@ -147,19 +147,19 @@ public class RestController
 
    @DELETE
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
+   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders)
    {
-      return htmlDeleteRequest(uriInfo, securityContext, httpHeaders);
+      return htmlDeleteRequest(uriInfo, servletRequest, httpHeaders, "");
    }
 
    @DELETE
    @Path("/{path:.*}")
    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response htmlDeleteRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .build();
@@ -170,19 +170,19 @@ public class RestController
    //----------------------------------------- JSON Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
+   public Response jsonGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders)
    {
-      return jsonGetRequest(uriInfo, securityContext, httpHeaders, "");
+      return jsonGetRequest(uriInfo, servletRequest, httpHeaders, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response jsonGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.JSON)
@@ -194,20 +194,20 @@ public class RestController
    @POST
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
+   public Response jsonPostRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return jsonPostRequest(uriInfo, securityContext, httpHeaders, "", data);
+      return jsonPostRequest(uriInfo, servletRequest, httpHeaders, "", data);
    }
 
    @POST
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response jsonPostRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = post(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.JSON)
@@ -219,20 +219,20 @@ public class RestController
    @PUT
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
+   public Response jsonPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return jsonPutRequest(uriInfo, securityContext, httpHeaders, "", data);
+      return jsonPutRequest(uriInfo, servletRequest, httpHeaders, "", data);
    }
 
    @PUT
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response jsonPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.JSON)
@@ -243,19 +243,19 @@ public class RestController
 
    @DELETE
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
+   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders)
    {
-      return jsonDeleteRequest(uriInfo, securityContext, httpHeaders, "");
+      return jsonDeleteRequest(uriInfo, servletRequest, httpHeaders, "");
    }
 
    @DELETE
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_JSON)
-   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response jsonDeleteRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.JSON)
@@ -267,19 +267,19 @@ public class RestController
    //----------------------------------------- XML Handlers -----------------------------------------//
    @GET
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
+   public Response xmlGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders)
    {
-      return xmlGetRequest(uriInfo, securityContext, httpHeaders, "");
+      return xmlGetRequest(uriInfo, servletRequest, httpHeaders, "");
    }
 
    @GET
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response xmlGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.XML)
@@ -291,20 +291,20 @@ public class RestController
    @POST
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
+   public Response xmlPostRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return xmlPostRequest(uriInfo, securityContext, httpHeaders, "", data);
+      return xmlPostRequest(uriInfo, servletRequest, httpHeaders, "", data);
    }
 
    @POST
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlPostRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response xmlPostRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = post(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.XML)
@@ -316,20 +316,20 @@ public class RestController
    @PUT
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, InputStream data)
+   public Response xmlPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, InputStream data)
    {
-      return xmlPutRequest(uriInfo, securityContext, httpHeaders, "", data);
+      return xmlPutRequest(uriInfo, servletRequest, httpHeaders, "", data);
    }
 
    @PUT
    @Path("/{path:.*}")
    @Consumes(MediaType.APPLICATION_XML)
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response xmlPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.XML)
@@ -340,19 +340,19 @@ public class RestController
 
    @DELETE
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders)
+   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders)
    {
-      return xmlDeleteRequest(uriInfo, securityContext, httpHeaders, "");
+      return xmlDeleteRequest(uriInfo, servletRequest, httpHeaders, "");
    }
 
    @DELETE
    @Path("/{path:.*}")
    @Produces(MediaType.APPLICATION_XML)
-   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response xmlDeleteRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = delete()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .contentType(ContentType.XML)
@@ -365,11 +365,11 @@ public class RestController
    @GET
    @Path("/{path:.*}")
    @Produces("application/zip")
-   public Response zipGetRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
+   public Response zipGetRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path)
    {
       HttpManagedRequest request = get()
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .operationName(OperationNames.EXPORT_RESOURCE)
@@ -383,11 +383,11 @@ public class RestController
    @Path("/{path:.*}")
    @Consumes("application/zip")
    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-   public Response zipPutRequest(@Context UriInfo uriInfo, @Context SecurityContext securityContext, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
+   public Response zipPutRequest(@Context UriInfo uriInfo, @Context HttpServletRequest servletRequest, @Context HttpHeaders httpHeaders, @PathParam("path") String path, InputStream data)
    {
       HttpManagedRequest request = put(data)
          .path(path)
-         .user(securityContext.getUserPrincipal())
+         .servlet(servletRequest)
          .locale(httpHeaders)
          .parameters(uriInfo.getQueryParameters())
          .operationName(OperationNames.IMPORT_RESOURCE)

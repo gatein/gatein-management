@@ -24,6 +24,7 @@ package org.gatein.management.core.api.controller;
 
 import org.gatein.common.logging.Logger;
 import org.gatein.common.logging.LoggerFactory;
+import org.gatein.management.api.ExternalContext;
 import org.gatein.management.api.ManagedDescription;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagementService;
@@ -40,6 +41,7 @@ import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
+import org.gatein.management.core.api.ExternalContextImpl;
 import org.gatein.management.core.api.model.DmrModelProvider;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
@@ -111,7 +113,7 @@ public class SimpleManagementController implements ManagementController
 
          // Execute operation for given registered operation handler
          BasicResultHandler resultHandler = new BasicResultHandler();
-         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, bindingProvider, modelProvider), resultHandler);
+         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, new ExternalContextImpl(request), bindingProvider, modelProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
          {

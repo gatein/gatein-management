@@ -23,12 +23,12 @@
 package org.gatein.management.core.api.operation;
 
 import org.gatein.management.api.ContentType;
+import org.gatein.management.api.ExternalContext;
 import org.gatein.management.api.ManagedResource;
 import org.gatein.management.api.ManagedUser;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.RuntimeContext;
 import org.gatein.management.api.binding.BindingProvider;
-import org.gatein.management.api.controller.AuthenticatedManagedRequest;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.model.Model;
 import org.gatein.management.api.model.ModelProvider;
@@ -51,6 +51,7 @@ public class OperationContextImpl implements OperationContext
    private final ManagedRequest request;
    private final ManagedResource resource;
    private final RuntimeContext runtimeContext;
+   private final ExternalContext externalContext;
    private final BindingProvider bindingProvider;
    private final Deque<OperationAttachment> attachments;
    private final OperationAttributes attributes;
@@ -58,7 +59,7 @@ public class OperationContextImpl implements OperationContext
    private final ModelProvider modelProvider;
 
 
-   public OperationContextImpl(final ManagedRequest request, final ManagedResource resource, final RuntimeContext runtimeContext, final BindingProvider bindingProvider, final ModelProvider modelProvider)
+   public OperationContextImpl(final ManagedRequest request, final ManagedResource resource, final RuntimeContext runtimeContext, final ExternalContext externalContext, final BindingProvider bindingProvider, final ModelProvider modelProvider)
    {
       Deque<OperationAttachment> list = new ArrayDeque<OperationAttachment>();
 
@@ -74,6 +75,7 @@ public class OperationContextImpl implements OperationContext
       this.request = request;
       this.resource = resource;
       this.runtimeContext = runtimeContext;
+      this.externalContext = externalContext;
       this.bindingProvider = bindingProvider;
       this.modelProvider = modelProvider;
       this.attachments = list;
@@ -84,18 +86,20 @@ public class OperationContextImpl implements OperationContext
    @Override
    public ManagedUser getUser()
    {
-      if (request instanceof AuthenticatedManagedRequest)
+      final String user = externalContext.getRemoteUser();
+      if (user != null)
       {
-         return ((AuthenticatedManagedRequest) request).getUser();
+         return new ManagedUser()
+         {
+            @Override
+            public String getUserName()
+            {
+               return user;
+            }
+         };
       }
 
       return null;
-   }
-
-   @Override
-   public boolean isUserInRole(String role)
-   {
-      return runtimeContext.isUserInRole(role);
    }
 
    @Override
@@ -120,6 +124,12 @@ public class OperationContextImpl implements OperationContext
    public RuntimeContext getRuntimeContext()
    {
       return runtimeContext;
+   }
+
+   @Override
+   public ExternalContext getExternalContext()
+   {
+      return externalContext;
    }
 
    @Override

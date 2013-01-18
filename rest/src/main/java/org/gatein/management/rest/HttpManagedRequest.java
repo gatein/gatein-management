@@ -22,13 +22,13 @@
 
 package org.gatein.management.rest;
 
-import org.gatein.management.api.controller.AuthenticatedManagedRequest;
+import org.gatein.management.api.controller.ExternalManagedRequest;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
-interface HttpManagedRequest extends AuthenticatedManagedRequest
+interface HttpManagedRequest extends ExternalManagedRequest
 {
    String getHttpMethod();
 }

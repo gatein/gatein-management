@@ -32,12 +32,19 @@ import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
+import org.gatein.management.api.model.Model;
+import org.gatein.management.api.model.ModelList;
+import org.gatein.management.api.model.ModelObject;
+import org.gatein.management.api.model.ModelReference;
+import org.gatein.management.api.model.ModelString;
+import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -168,7 +175,9 @@ public class ManagementCommand extends GateInCommand implements Completer
 
    protected Set<String> getChildren(ManagementController controller, PathAddress address)
    {
-      ManagedResponse response = controller.execute(ManagedRequest.Factory.create(OperationNames.READ_RESOURCE, address, null));
+      ManagedRequest request = ManagedRequest.Factory.create(OperationNames.READ_RESOURCE, address, null);
+      request = new CliRequest((String) getProperty("user"), request);
+      ManagedResponse response = controller.execute(request);
       if (response != null && response.getOutcome().isSuccess() && response.getResult() instanceof ReadResourceModel)
       {
          ReadResourceModel readResource = (ReadResourceModel) response.getResult();

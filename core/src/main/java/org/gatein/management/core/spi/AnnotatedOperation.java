@@ -35,6 +35,7 @@ import org.gatein.management.api.annotations.ManagedRole;
 import org.gatein.management.api.annotations.MappedAttribute;
 import org.gatein.management.api.annotations.MappedPath;
 import org.gatein.management.api.binding.Marshaller;
+import org.gatein.management.api.exceptions.InvalidDataException;
 import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
@@ -212,6 +213,10 @@ class AnnotatedOperation implements OperationHandler
          else if (e.getCause() instanceof OperationException)
          {
             throw (OperationException) e.getCause();
+         }
+         else if (e.getCause() instanceof InvalidDataException)
+         {
+            throw (InvalidDataException) e.getCause();
          }
          throw new RuntimeException("Could not invoke method " + this.method + " on object " + instance, e);
       }

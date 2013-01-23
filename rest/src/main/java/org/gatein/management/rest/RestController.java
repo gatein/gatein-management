@@ -28,6 +28,7 @@ import org.gatein.management.api.ContentType;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
+import org.gatein.management.api.exceptions.InvalidDataException;
 import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.exceptions.OperationException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
@@ -441,6 +442,13 @@ public class RestController
          {
             return failure(e.getMessage(), operationName, Status.INTERNAL_SERVER_ERROR, contentType);
          }
+      }
+      catch (InvalidDataException e)
+      {
+         if (log.isDebugEnabled()) {
+            log.error("Bad request for address " + address + " and operation " + operationName, e);
+         }
+         return failure(e.getMessage(), operationName, Status.BAD_REQUEST, contentType);
       }
       catch (Exception e)
       {

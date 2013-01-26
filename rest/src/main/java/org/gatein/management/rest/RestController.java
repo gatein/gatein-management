@@ -31,6 +31,7 @@ import org.gatein.management.api.controller.ManagementController;
 import org.gatein.management.api.exceptions.InvalidDataException;
 import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceExistsException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.NoResultModel;
@@ -430,6 +431,11 @@ public class RestController
             log.error("Resource not found for address " + address, nfe);
          }
          return failure(nfe.getMessage(), operationName, Status.NOT_FOUND, contentType);
+      }
+      catch (ResourceExistsException e)
+      {
+         log.error("Resource already exists for address " + address, e);
+         return failure(e.getMessage(), operationName, Status.CONFLICT, contentType);
       }
       catch (OperationException e)
       {

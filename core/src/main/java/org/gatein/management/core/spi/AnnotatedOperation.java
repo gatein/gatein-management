@@ -38,6 +38,7 @@ import org.gatein.management.api.binding.Marshaller;
 import org.gatein.management.api.exceptions.InvalidDataException;
 import org.gatein.management.api.exceptions.NotAuthorizedException;
 import org.gatein.management.api.exceptions.OperationException;
+import org.gatein.management.api.exceptions.ResourceExistsException;
 import org.gatein.management.api.exceptions.ResourceNotFoundException;
 import org.gatein.management.api.model.ModelProvider;
 import org.gatein.management.api.model.ModelValue;
@@ -209,6 +210,10 @@ class AnnotatedOperation implements OperationHandler
          if (e.getCause() instanceof ResourceNotFoundException)
          {
             throw (ResourceNotFoundException) e.getCause();
+         }
+         else if (e.getCause() instanceof ResourceExistsException)
+         {
+            throw (ResourceExistsException) e.getCause();
          }
          else if (e.getCause() instanceof OperationException)
          {

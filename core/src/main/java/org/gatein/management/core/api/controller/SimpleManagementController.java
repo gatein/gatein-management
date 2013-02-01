@@ -41,7 +41,6 @@ import org.gatein.management.api.operation.OperationHandler;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.NamedDescription;
 import org.gatein.management.api.operation.model.ReadResourceModel;
-import org.gatein.management.core.api.ExternalContextImpl;
 import org.gatein.management.core.api.model.DmrModelProvider;
 import org.gatein.management.core.api.operation.BasicResultHandler;
 import org.gatein.management.core.api.operation.OperationContextImpl;
@@ -60,12 +59,14 @@ public class SimpleManagementController implements ManagementController
 
    private final ManagementService managementService;
    private final RuntimeContext runtimeContext;
+   private final ExternalContext externalContext;
    private ManagedResource rootResource;
 
-   public SimpleManagementController(ManagementService managementService, RuntimeContext runtimeContext)
+   public SimpleManagementController(ManagementService managementService, RuntimeContext runtimeContext, ExternalContext externalContext)
    {
       this.managementService = managementService;
       this.runtimeContext = runtimeContext;
+      this.externalContext = externalContext;
    }
 
    @Override
@@ -113,7 +114,7 @@ public class SimpleManagementController implements ManagementController
 
          // Execute operation for given registered operation handler
          BasicResultHandler resultHandler = new BasicResultHandler();
-         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, new ExternalContextImpl(request), bindingProvider, modelProvider), resultHandler);
+         operationHandler.execute(new OperationContextImpl(request, root, runtimeContext, externalContext, bindingProvider, modelProvider), resultHandler);
 
          if (resultHandler.getFailureDescription() != null)
          {

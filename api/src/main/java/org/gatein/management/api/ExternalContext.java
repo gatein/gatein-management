@@ -6,13 +6,6 @@ package org.gatein.management.api;
 public interface ExternalContext
 {
    /**
-    * Returns the the external environment-specific request, i.e. a servlet request
-    *
-    * @return the external request
-    */
-   Object getRequest();
-
-   /**
     * Returns the remote user of the external environment-specific request
     *
     * @return the remote user of the request
@@ -24,7 +17,7 @@ public interface ExternalContext
     * authenticated this returns false.
     *
     * @param role the name of the role
-    * @return true if the user belongs to a given role or false if user is not authenticated
+    * @return true if the user belongs to a given role
     */
    boolean isUserInRole(String role);
 }

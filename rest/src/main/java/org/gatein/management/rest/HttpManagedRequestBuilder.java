@@ -27,12 +27,10 @@ import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.operation.OperationNames;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.InputStream;
-import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -43,7 +41,6 @@ import java.util.Map;
  */
 class HttpManagedRequestBuilder
 {
-   private HttpServletRequest servletRequest;
    private String path;
    private String operationName;
    private ContentType contentType;
@@ -115,12 +112,6 @@ class HttpManagedRequestBuilder
       return this;
    }
 
-   public HttpManagedRequestBuilder servlet(HttpServletRequest request)
-   {
-      this.servletRequest = request;
-      return this;
-   }
-
    public HttpManagedRequestBuilder locale(HttpHeaders headers)
    {
       if (headers != null)
@@ -179,45 +170,18 @@ class HttpManagedRequestBuilder
 
       ManagedRequest request = ManagedRequest.Factory.create(operationName, address, parameters, inputStream, contentType);
       request.setLocale(locale);
-      return new HttpManagedRequestDelegate(request, servletRequest, httpMethod);
+      return new HttpManagedRequestDelegate(request, httpMethod);
    }
 
    private static class HttpManagedRequestDelegate implements HttpManagedRequest
    {
       private final ManagedRequest delegate;
       private final String httpMethod;
-      private final HttpServletRequest servletRequest;
 
-      private HttpManagedRequestDelegate(ManagedRequest delegate, HttpServletRequest servletRequest, String httpMethod)
+      private HttpManagedRequestDelegate(ManagedRequest delegate, String httpMethod)
       {
          this.delegate = delegate;
          this.httpMethod = httpMethod;
-         this.servletRequest = servletRequest;
-      }
-
-      @Override
-      public Object getRequest()
-      {
-         return servletRequest;
-      }
-
-      @Override
-      public RoleResolver getRoleResolver()
-      {
-         return new RoleResolver()
-         {
-            @Override
-            public boolean isUserInRole(String role)
-            {
-               return servletRequest.isUserInRole(role);
-            }
-         };
-      }
-
-      @Override
-      public String  getRemoteUser()
-      {
-         return servletRequest.getRemoteUser();
       }
 
       @Override

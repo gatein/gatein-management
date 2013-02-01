@@ -26,26 +26,16 @@ import groovy.lang.Closure;
 import org.crsh.cmdline.IntrospectionException;
 import org.crsh.cmdline.ParameterDescriptor;
 import org.crsh.cmdline.spi.Completer;
-import org.crsh.command.InvocationContext;
 import org.crsh.command.ScriptException;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
-import org.gatein.management.api.model.Model;
-import org.gatein.management.api.model.ModelList;
-import org.gatein.management.api.model.ModelObject;
-import org.gatein.management.api.model.ModelReference;
-import org.gatein.management.api.model.ModelString;
-import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -100,11 +90,11 @@ public class ManagementCommand extends GateInCommand implements Completer
             int index = prefix.lastIndexOf("/");
             if (index != -1)
             {
-               prefix = prefix.substring(index+1);
+               prefix = prefix.substring(index + 1);
             }
 
             // If prefix is not empty, then remove last element of address, since that is the prefix
-            if (prefix.length() > 0 && address.size() > 0 && prefix.charAt(prefix.length()-1) != '/')
+            if (prefix.length() > 0 && address.size() > 0 && prefix.charAt(prefix.length() - 1) != '/')
             {
                address = address.subAddress(0, address.size() - 1);
             }
@@ -114,7 +104,7 @@ public class ManagementCommand extends GateInCommand implements Completer
             for (String child : children)
             {
                if (child.charAt(0) == '/') child = child.substring(1);
-               
+
                // Look ahead to see if there are more children
                PathAddress nextAddress = address.append(child);
                boolean more = getChildren(controller, nextAddress).size() > 0;
@@ -176,7 +166,6 @@ public class ManagementCommand extends GateInCommand implements Completer
    protected Set<String> getChildren(ManagementController controller, PathAddress address)
    {
       ManagedRequest request = ManagedRequest.Factory.create(OperationNames.READ_RESOURCE, address, null);
-      request = new CliRequest((String) getProperty("user"), request);
       ManagedResponse response = controller.execute(request);
       if (response != null && response.getOutcome().isSuccess() && response.getResult() instanceof ReadResourceModel)
       {

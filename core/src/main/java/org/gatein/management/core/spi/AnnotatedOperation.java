@@ -52,10 +52,13 @@ import org.gatein.management.api.operation.model.NoResultModel;
 import org.gatein.management.core.api.AbstractManagedResource;
 import org.gatein.management.core.api.model.DmrModelValue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static org.gatein.management.core.spi.AnnotatedResource.*;
@@ -300,6 +303,15 @@ class AnnotatedOperation implements OperationHandler
                {
                   try
                   {
+//                     StringBuilder sb = new StringBuilder();
+//                     InputStream in = attachment.getStream();
+//                     byte[] buf = new byte[2048];
+//                     while ( (in.read(buf)) != -1) {
+//                        sb.append(new String(buf, Charset.forName("US-ASCII")));
+//                     }
+//                     String json = sb.toString();
+//                     ByteArrayInputStream bais = new ByteArrayInputStream(json.getBytes());
+//                     System.out.println("[\n"+json+"\n]");
                      params[i] = DmrModelValue.readFromJsonStream(attachment.getStream());
                   }
                   catch (IOException e)

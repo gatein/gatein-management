@@ -462,7 +462,7 @@ public class RestController
       }
 
       MediaType mediaType = ContentTypeUtils.getMediaType(contentType);
-      return Response.status(status).entity(new FailureResult(failureDescription, operationName)).type(mediaType).build();
+      return Response.status(status).entity(new FailureResponse(failureDescription, operationName, contentType)).type(mediaType).build();
    }
 
    private Response success(UriInfo uriInfo, ManagedResponse response, ContentType contentType)
@@ -526,6 +526,6 @@ public class RestController
 
    private Response badRequest(String reason, String operationName, MediaType mediaType)
    {
-      return Response.status(Status.BAD_REQUEST).entity(new FailureResult(reason, operationName)).type(mediaType).build();
+      return Response.status(Status.BAD_REQUEST).entity(new FailureResponse(reason, operationName, ContentTypeUtils.getContentType(mediaType))).type(mediaType).build();
    }
 }

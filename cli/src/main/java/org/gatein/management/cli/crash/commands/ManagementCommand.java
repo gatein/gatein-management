@@ -27,15 +27,21 @@ import org.crsh.cmdline.IntrospectionException;
 import org.crsh.cmdline.ParameterDescriptor;
 import org.crsh.cmdline.spi.Completer;
 import org.crsh.command.ScriptException;
+import org.gatein.management.api.ContentType;
 import org.gatein.management.api.PathAddress;
 import org.gatein.management.api.controller.ManagedRequest;
 import org.gatein.management.api.controller.ManagedResponse;
 import org.gatein.management.api.controller.ManagementController;
+import org.gatein.management.api.model.ModelList;
+import org.gatein.management.api.model.ModelObject;
+import org.gatein.management.api.model.ModelReference;
+import org.gatein.management.api.model.ModelValue;
 import org.gatein.management.api.operation.OperationNames;
 import org.gatein.management.api.operation.model.ReadResourceModel;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -165,14 +171,80 @@ public class ManagementCommand extends GateInCommand implements Completer
 
    protected Set<String> getChildren(ManagementController controller, PathAddress address)
    {
-      ManagedRequest request = ManagedRequest.Factory.create(OperationNames.READ_RESOURCE, address, null);
+      ManagedRequest request = ManagedRequest.Factory.create(OperationNames.READ_RESOURCE, address, ContentType.JSON);
       ManagedResponse response = controller.execute(request);
-      if (response != null && response.getOutcome().isSuccess() && response.getResult() instanceof ReadResourceModel)
+      if (response != null && response.getOutcome().isSuccess())
       {
-         ReadResourceModel readResource = (ReadResourceModel) response.getResult();
-         return readResource.getChildren();
+         return getChildren(response.getResult(), address);
       }
 
       return Collections.emptySet();
+   }
+
+   protected Set<String> getChildren(Object result, PathAddress address)
+   {
+      if (result instanceof ReadResourceModel)
+      {
+         return ((ReadResourceModel) result).getChildren();
+      }
+      else if (result instanceof ModelValue)
+      {
+         Set<String> children = new LinkedHashSet<String>();
+         if (result instanceof ModelList)
+         {
+            for (ModelValue mv : (ModelList) result)
+            {
+               addChildren(children, mv, address);
+            }
+         }
+         else if (result instanceof ModelObject)
+         {
+            Set<String> names = ((ModelObject) result).getNames();
+            for (String name : names)
+            {
+               addChildren(children, ((ModelObject) result).get(name), address);
+            }
+         }
+
+         return children;
+      }
+
+      return Collections.emptySet();
+   }
+
+   private static void addChildren(Set<String> children, ModelValue value, PathAddress address)
+   {
+      if (value.getValueType() == ModelValue.ModelValueType.REFERENCE)
+      {
+         ModelReference modelRef = value.asValue(ModelReference.class);
+         PathAddress ref = modelRef.getValue();
+         if (ref.size() > 1 && ref.subAddress(0, ref.size() - 1).equals(address))
+         {
+            children.add(ref.getLastElement());
+         }
+      }
+      else if (value.getValueType() == ModelValue.ModelValueType.LIST)
+      {
+         ModelList list = value.asValue(ModelList.class);
+         Set<String> names = new LinkedHashSet<String>(list.size());
+         // If the list is a direct child and all items in the list are model references, then we can conclude that
+         // these should be added to the children
+         for (ModelValue mv : list)
+         {
+            if (mv.getValueType() == ModelValue.ModelValueType.REFERENCE)
+            {
+               addChildren(names, mv, address);
+            }
+            else
+            {
+               names.clear();
+               break;
+            }
+         }
+         if (!names.isEmpty())
+         {
+            children.addAll(names);
+         }
+      }
    }
 }

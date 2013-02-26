@@ -45,7 +45,7 @@ The cd command changes the current resource address the content of a managed res
 
     def pathAddress = getAddress(address, path);
 
-    execute(OperationNames.READ_RESOURCE, pathAddress, ContentType.JSON, null, null, { ReadResourceModel result, error ->
+    execute(OperationNames.READ_RESOURCE, pathAddress, ContentType.JSON, null, null, { result, error ->
       if (result == null) return "$path: no such path"
 
       return "";

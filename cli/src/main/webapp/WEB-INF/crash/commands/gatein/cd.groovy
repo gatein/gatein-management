@@ -43,12 +43,13 @@ The cd command changes the current resource address the content of a managed res
 
     if ("..".equals(path) && address.size() == 0) return "";
 
-    def pathAddress = getAddress(address, path);
+    address = getAddress(address, path);
 
-    execute(OperationNames.READ_RESOURCE, pathAddress, ContentType.JSON, null, null, { result, error ->
+    return "";
+    /*execute(OperationNames.READ_RESOURCE, pathAddress, ContentType.JSON, null, null, { result, error ->
       if (result == null) return "$path: no such path"
 
       return "";
-    });
+    });*/
   }
 }

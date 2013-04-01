@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -22,34 +22,39 @@
 
 package org.gatein.management.cli.crash.arguments;
 
-import org.crsh.cmdline.annotations.Man;
-import org.crsh.cmdline.annotations.Option;
-import org.crsh.cmdline.annotations.Usage;
+import org.crsh.cmdline.ParameterDescriptor;
 import org.crsh.cmdline.spi.Completer;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
- * @version $Revision$
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Option(names = {"m", "importMode"}, completer = ImportModeOption.ImportModeCompleter.class)
-@Usage("The import mode for an import operation")
-@Man("The import mode for an import operation. Valid values are: conserve, insert, merge, and overwrite.")
-public @interface ImportModeOption
+public class StringCollectionCompleter implements Completer
 {
-   public static class ImportModeCompleter extends StringCollectionCompleter implements Completer
-   {
-      public static final Set<String> modes = new HashSet<String>(Arrays.asList("conserve", "insert", "merge", "overwrite"));
+   private final Collection<String> collection;
 
-      public ImportModeCompleter()
-      {
-         super(modes);
+   public StringCollectionCompleter(Collection<String> collection)
+   {
+      this.collection = collection;
+   }
+
+   @Override
+   public Map<String, Boolean> complete(ParameterDescriptor<?> parameter, String prefix) throws Exception
+   {
+      Map<String, Boolean> completions = Collections.emptyMap();
+      for (String value : collection) {
+         if (value.startsWith(prefix)) {
+            if (completions.isEmpty()) {
+               completions = new LinkedHashMap<String, Boolean>();
+            }
+            completions.put(value.substring(prefix.length()), true);
+         }
       }
+
+      return completions;
    }
 }

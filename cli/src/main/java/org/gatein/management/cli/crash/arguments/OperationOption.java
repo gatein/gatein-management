@@ -25,18 +25,43 @@ package org.gatein.management.cli.crash.arguments;
 import org.crsh.cmdline.annotations.Man;
 import org.crsh.cmdline.annotations.Option;
 import org.crsh.cmdline.annotations.Usage;
+import org.crsh.cmdline.spi.Completer;
+import org.gatein.management.api.operation.OperationNames;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @version $Revision$
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Option(names = {"o", "operation"})
+@Option(names = {"o", "operation"}, completer = OperationOption.OperationOptionCompleter.class)
 @Usage("Operation name")
 @Man("Specifies the name of the operation of the management request.")
 public @interface OperationOption
 {
+   public static class OperationOptionCompleter extends StringCollectionCompleter implements Completer
+   {
+      public OperationOptionCompleter()
+      {
+         super(operationNames);
+      }
+
+      private static final Set<String> operationNames;
+      static
+      {
+         Set<String> names = new LinkedHashSet<String>(4);
+
+         // Just add the CRUD operations for now
+         names.add(OperationNames.READ_RESOURCE);
+         names.add(OperationNames.UPDATE_RESOURCE);
+         names.add(OperationNames.ADD_RESOURCE);
+         names.add(OperationNames.REMOVE_RESOURCE);
+
+         operationNames = names;
+      }
+   }
 }

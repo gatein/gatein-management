@@ -20,6 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
+
 import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Man
@@ -40,7 +41,10 @@ import org.gatein.management.cli.crash.arguments.ContentTypeOption
 import org.gatein.management.cli.crash.arguments.Input
 import org.gatein.management.cli.crash.arguments.OperationOption
 import org.gatein.management.cli.crash.arguments.Output
+import org.gatein.management.cli.crash.arguments.Password
+import org.gatein.management.cli.crash.arguments.UserName
 import org.gatein.management.cli.crash.commands.ManagementCommand
+import org.gatein.management.cli.crash.plugins.JaasAuthenticationPlugin
 
 @Usage("gatein management commands")
 class mgmt extends ManagementCommand
@@ -58,21 +62,54 @@ Connect to portal container 'sample-portal'
 
 """)
   @Command
-  public Object connect(@Container String containerName, InvocationContext<Void, Void> ctx) throws ScriptException
+  public Object connect(@UserName String userName, @Password String password, @Container String containerName, InvocationContext<Void, Void> ctx) throws ScriptException
   {
-    def userName = ctx.getProperty("USER");
-    if (userName == null)
-    {
-      throw new ScriptException("User not found, something went wrong during authentication.");
+    if (userName != null && userName.trim().length() == 0) {
+      return "User name cannot be empty"
     }
 
-    if (containerName == null)
-    {
-      containerName = "portal";
+    def currentUser = user;
+    if (currentUser == null) {
+      currentUser = ctx.getProperty("USER");
     }
+    userName = (userName == null) ? currentUser : userName;
 
-    controller = getComponent(containerName, ManagementController.class);
+    def currentContainer = container;
+    if (currentContainer == null) {
+      currentContainer = container = "portal";
+    }
+    containerName = (containerName == null) ? currentContainer : containerName;
+
+    def rootContainer = org.exoplatform.container.RootContainer.getInstance()
+    def portalContainer = rootContainer.getPortalContainer(containerName);
+
+    controller = portalContainer.getComponentInstanceOfType(ManagementController.class);
     logger = LoggerFactory.getLogger("org.gatein.management.cli");
+
+    def jaasDomain = portalContainer.realmName;
+    def authenticate = (userName != currentUser) || (containerName != currentContainer);
+
+    if (authenticate) {
+      boolean auth = false;
+      for (i in 1..3) {
+        if (password == null) {
+          password = readLine("Password for $userName: ", false);
+        }
+        auth = JaasAuthenticationPlugin.login(userName, password, jaasDomain);
+
+        if (!auth) {
+          password = null;
+        } else {
+          break;
+        }
+      }
+
+      if (!auth) {
+        ctx.getWriter().println("Invalid credentials for $userName");
+        return disconnect();
+        //return "Invalid credentials for $userName";
+      }
+    }
 
     begin = {
       start(userName, containerName);
@@ -85,6 +122,7 @@ Connect to portal container 'sample-portal'
     connectionInfo = "[user=$userName, container='$containerName', host='$hostName']";
     container = containerName;
     user = userName;
+    connected = true;
 
     execute(OperationNames.READ_RESOURCE, PathAddress.EMPTY_ADDRESS, ContentType.JSON, null, null, { ReadResourceModel result, error ->
       return "Successfully connected to gatein management system: $connectionInfo"
@@ -96,10 +134,8 @@ Connect to portal container 'sample-portal'
   @Command
   public Object disconnect() throws ScriptException
   {
-    assertConnected();
-    container = null;
-    user = null;
     controller = null;
+    connected = false;
     address = null;
     connectionInfo = null;
     return "Disconnected from management system.";

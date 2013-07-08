@@ -79,7 +79,7 @@ public class JaasAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugin> 
       return login(username, password, domain);
    }
 
-   public boolean login(final String username, final String password, final String domain) throws LoginException
+   public static boolean login(final String username, final String password, final String domain) throws LoginException
    {
       if (domain != null)
       {

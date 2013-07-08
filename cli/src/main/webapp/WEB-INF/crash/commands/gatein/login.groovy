@@ -28,7 +28,7 @@ import org.gatein.management.api.exceptions.OperationException
 import org.gatein.management.api.exceptions.ResourceNotFoundException
 
 assertConnected = {
-  if (container == null) throw new ScriptException("Not connected to a portal container, try executing mgmt connect first.");
+  if (!connected) throw new ScriptException("Not connected to a portal container, try executing mgmt connect first.");
 };
 
 execute = { String operationName, PathAddress pathAddress, ContentType contentType, Map<String, List<String>> attributes, InputStream data, Closure printResult ->

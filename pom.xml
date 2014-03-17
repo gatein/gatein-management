@@ -36,7 +36,7 @@
 
    <groupId>org.gatein.management</groupId>
    <artifactId>gatein-management-parent</artifactId>
-   <version>2.1.0.Final-SNAPSHOT</version>
+   <version>2.1.0.Final</version>
    <packaging>pom</packaging>
 
    <name>GateIn Management - Parent Project</name>
@@ -46,7 +46,8 @@
       <connection>scm:git:git://github.com/gatein/gatein-management.git</connection>
       <developerConnection>scm:git:ssh://git@github.com/gatein/gatein-management.git</developerConnection>
       <url>https://github.com/gatein/gatein-management.git</url>
-   </scm>
+     <tag>2.1.0.Final</tag>
+  </scm>
 
    <properties>
       <org.gatein.common.version>2.2.2.Final</org.gatein.common.version>
